@@ -1,0 +1,6 @@
+{
+  "name": "Kasir Warung POS",
+  "description": "Aplikasi Point of Sale (POS) Kasir Warung modern dengan manajemen transaksi tersimpan, inventaris stok produk, laporan penjualan, autentikasi JWT, MongoDB Native, dan Redis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
