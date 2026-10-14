@@ -1,9 +1,52 @@
 export interface User {
   id: string;
   name: string;
+  username?: string;
+  email: string;
+  role: 'ADMIN' | 'SHOP_OWNER' | 'SHOP_CASHIER' | 'admin' | 'pemilik' | 'kasir' | string;
+  shift?: string;
+  tenantId?: string;
+  tenantName?: string;
+  tenantStatus?: string;
+  tenantDeactivationRequest?: {
+    status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'resolved';
+    reason?: string;
+    requestedAt?: string;
+    reviewedAt?: string;
+    rejectReason?: string;
+  } | null;
+}
+
+export interface Tenant {
+  id: string;
+  name: string;
+  code: string;
+  ownerEmail: string;
+  status: 'active' | 'inactive' | 'pending_verification';
+  cashierCount?: number;
+  productCount?: number;
+  orderCount?: number;
+  deactivationRequest?: {
+    status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'resolved';
+    reason: string;
+    requestedAt: string;
+    reviewedAt?: string;
+    reviewedBy?: string;
+    rejectReason?: string;
+  } | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Cashier {
+  id: string;
+  name: string;
+  username: string;
   email: string;
   role: string;
-  shift?: string;
+  shift: string;
+  status: 'active' | 'inactive';
+  createdAt?: string;
 }
 
 export interface Product {
@@ -212,6 +255,71 @@ export const api = {
     apiRequest(`/api/orders/saved/${encodeURIComponent(invoiceNo)}`, {
       method: 'DELETE',
     }),
+
+  // Tenant & Multi-Tenant Management
+  registerTenant: (data: { shopName: string; ownerEmail: string; username: string; password: string }) =>
+    apiRequest('/api/auth/register-tenant', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  verifyTenant: (token: string) =>
+    apiRequest('/api/tenants/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+  requestReactivation: (email: string) =>
+    apiRequest('/api/tenants/request-reactivation', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  confirmReactivation: (token: string) =>
+    apiRequest('/api/tenants/confirm-reactivation', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+  getTenants: () => apiRequest('/api/tenants'),
+  getCurrentTenant: () => apiRequest('/api/tenants/current'),
+  updateTenantStatus: (id: string, status: 'active' | 'inactive') =>
+    apiRequest(`/api/tenants/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
+  requestDeactivation: (reason: string) =>
+    apiRequest('/api/tenants/request-deactivation', {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  cancelDeactivation: () =>
+    apiRequest('/api/tenants/cancel-deactivation', {
+      method: 'POST',
+    }),
+  reviewDeactivation: (id: string, action: 'approve' | 'reject', rejectReason?: string) =>
+    apiRequest(`/api/tenants/${id}/review-deactivation`, {
+      method: 'POST',
+      body: JSON.stringify({ action, rejectReason }),
+    }),
+  getRecentEmails: () => apiRequest('/api/tenants/recent-emails'),
+
+  // Cashier Management (CRUD by SHOP_OWNER)
+  getCashiers: () => apiRequest('/api/cashiers'),
+  createCashier: (cashierData: {
+    name: string;
+    username: string;
+    email: string;
+    password: string;
+    shift: string;
+  }) =>
+    apiRequest('/api/cashiers', {
+      method: 'POST',
+      body: JSON.stringify(cashierData),
+    }),
+  updateCashier: (id: string, cashierData: any) =>
+    apiRequest(`/api/cashiers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(cashierData),
+    }),
+  deleteCashier: (id: string) =>
+    apiRequest(`/api/cashiers/${id}`, { method: 'DELETE' }),
 
   // Reports
   getReportSummary: () => apiRequest('/api/reports/summary'),

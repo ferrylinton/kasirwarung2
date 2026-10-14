@@ -24,14 +24,26 @@ function matchesFilter(doc: any, filter: Record<string, any> = {}): boolean {
         if (!v.$in.map(String).includes(String(doc[k]))) return false;
         continue;
       }
+      if ('$ne' in v) {
+        if (String(doc[k] || '') === String(v.$ne || '')) return false;
+        continue;
+      }
     }
-    if (k === '_id') {
-      if (String(doc._id) !== String(v)) return false;
+    if (k === '_id' || k.endsWith('Id') || v instanceof ObjectId || doc[k] instanceof ObjectId) {
+      if (String(doc[k] || '') !== String(v || '')) return false;
     } else if (doc[k] !== v) {
       return false;
     }
   }
   return true;
+}
+
+export function toObjectId(id: string | ObjectId): ObjectId {
+  if (id instanceof ObjectId) return id;
+  if (typeof id === 'string' && ObjectId.isValid(id) && id.length === 24) {
+    return new ObjectId(id);
+  }
+  return new ObjectId();
 }
 
 class FallbackCollection<T extends Record<string, any>> {
@@ -149,10 +161,14 @@ class FallbackCollection<T extends Record<string, any>> {
 
 export async function connectMongoDB(): Promise<void> {
   if (isNativeConnected && nativeDb) return;
+  if (!env.MONGODB_URI) {
+    console.log('[MongoDB] Running in-memory document engine');
+    return;
+  }
   try {
     mongoClient = new MongoClient(env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 6000,
-      connectTimeoutMS: 6000,
+      serverSelectionTimeoutMS: 2000,
+      connectTimeoutMS: 2000,
     });
     await mongoClient.connect();
     nativeDb = mongoClient.db();

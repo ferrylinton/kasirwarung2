@@ -5,9 +5,11 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  registerTenant: (data: { shopName: string; ownerEmail: string; username: string; password: string }) => Promise<any>;
   register: (name: string, email: string, password: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
   switchCashier: (email: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
   idleTimeoutMinutes: number;
 }
 
@@ -17,6 +19,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(tokenStorage.getUser());
   const [loading, setLoading] = useState<boolean>(true);
   const [idleTimeoutMinutes, setIdleTimeoutMinutes] = useState<number>(5);
+
+  const refreshUser = async () => {
+    try {
+      const res = await api.getMe();
+      if (res.success && res.data?.user) {
+        setUser(res.data.user);
+        const currentToken = tokenStorage.getAccessToken() || '';
+        const currentRefresh = tokenStorage.getRefreshToken() || '';
+        tokenStorage.setSession(currentToken, currentRefresh, res.data.user);
+        if (res.data.idleTimeoutMinutes) {
+          setIdleTimeoutMinutes(res.data.idleTimeoutMinutes);
+        }
+      }
+    } catch {
+      // Ignored
+    }
+  };
 
   useEffect(() => {
     async function initAuth() {
@@ -29,6 +48,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (res.data.idleTimeoutMinutes) {
               setIdleTimeoutMinutes(res.data.idleTimeoutMinutes);
             }
+          } else {
+            tokenStorage.clearSession();
+            setUser(null);
           }
         } catch {
           // Token expired or invalid
@@ -36,19 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
         }
       } else {
-        // Auto-bootstrap default cashier session (Budi Santoso) to match image
-        try {
-          const res = await api.switchCashier('budi@kasirwarung.id');
-          if (res.success && res.data?.user) {
-            tokenStorage.setSession(res.data.accessToken, res.data.refreshToken, res.data.user);
-            setUser(res.data.user);
-            if (res.data.idleTimeoutMinutes) {
-              setIdleTimeoutMinutes(res.data.idleTimeoutMinutes);
-            }
-          }
-        } catch (err) {
-          console.warn('Auto-session bootstrap note:', err);
-        }
+        setUser(null);
       }
       setLoading(false);
     }
@@ -64,6 +74,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIdleTimeoutMinutes(res.data.idleTimeoutMinutes);
       }
     }
+  };
+
+  const registerTenant = async (data: { shopName: string; ownerEmail: string; username: string; password: string }) => {
+    const res = await api.registerTenant(data);
+    return res;
   };
 
   const register = async (name: string, email: string, password: string, role = 'kasir') => {
@@ -100,9 +115,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         loading,
         login,
+        registerTenant,
         register,
         logout,
         switchCashier,
+        refreshUser,
         idleTimeoutMinutes,
       }}
     >

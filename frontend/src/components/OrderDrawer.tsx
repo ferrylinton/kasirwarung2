@@ -1,7 +1,8 @@
 import React from 'react';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import {
   FileText,
-  Pause,
+  Save,
   Trash2,
   Calculator,
   X,
@@ -78,28 +79,106 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
           </h2>
         </div>
 
-        {/* Action icons: Pause (Hold order), Trash (Clear cart), Close for mobile */}
+        {/* Action icons with Radix Alert Dialog confirmation: Save (Hold order), Trash (Clear cart) */}
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleHoldOrder}
-            disabled={items.length === 0}
-            title="Simpan / Tunda Pesanan (Belum Dibayar)"
-            className="w-7 h-7 rounded-full bg-slate-100 hover:bg-orange-50 text-slate-600 hover:text-orange-600 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <Pause className="w-3.5 h-3.5 fill-current" />
-          </button>
-          <button
-            onClick={handleClear}
-            disabled={items.length === 0}
-            title="Kosongkan Keranjang"
-            className="w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-500 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {/* Pause / Hold order confirmation dialog */}
+          <AlertDialog.Root>
+            <AlertDialog.Trigger asChild>
+              <button
+                type="button"
+                disabled={items.length === 0}
+                title="Simpan / Tunda Pesanan (Belum Dibayar)"
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-orange-50 text-slate-600 hover:text-orange-600 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" />
+              </button>
+            </AlertDialog.Trigger>
+            <AlertDialog.Portal>
+              <AlertDialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 animate-in fade-in" />
+              <AlertDialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 md:p-6 shadow-2xl z-50 w-[90vw] max-w-sm border border-slate-200 animate-in fade-in zoom-in-95 focus:outline-none">
+                <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mb-3">
+                  <Save className="w-5 h-5" />
+                </div>
+                <AlertDialog.Title className="text-base font-bold text-slate-900">
+                  Simpan Pesanan Sementara?
+                </AlertDialog.Title>
+                <AlertDialog.Description className="text-xs md:text-sm text-slate-500 mt-1.5 leading-relaxed">
+                  Pesanan nota <span className="font-mono font-semibold text-slate-800">{invoiceNo}</span> akan disimpan ke daftar 'Pesanan Sementara' (belum dibayar) agar Anda dapat melayani pelanggan lain terlebih dahulu.
+                </AlertDialog.Description>
+                <div className="flex items-center justify-end gap-2.5 mt-5">
+                  <AlertDialog.Cancel asChild>
+                    <button
+                      type="button"
+                      className="px-3.5 py-2 text-xs md:text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </AlertDialog.Cancel>
+                  <AlertDialog.Action asChild>
+                    <button
+                      type="button"
+                      onClick={handleHoldOrder}
+                      className="px-4 py-2 text-xs md:text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-xs transition-colors cursor-pointer"
+                    >
+                      Ya, Simpan Pesanan
+                    </button>
+                  </AlertDialog.Action>
+                </div>
+              </AlertDialog.Content>
+            </AlertDialog.Portal>
+          </AlertDialog.Root>
+
+          {/* Clear cart confirmation dialog */}
+          <AlertDialog.Root>
+            <AlertDialog.Trigger asChild>
+              <button
+                type="button"
+                disabled={items.length === 0}
+                title="Kosongkan Keranjang"
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-500 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </AlertDialog.Trigger>
+            <AlertDialog.Portal>
+              <AlertDialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 animate-in fade-in" />
+              <AlertDialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 md:p-6 shadow-2xl z-50 w-[90vw] max-w-sm border border-slate-200 animate-in fade-in zoom-in-95 focus:outline-none">
+                <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-3">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <AlertDialog.Title className="text-base font-bold text-slate-900">
+                  Kosongkan Keranjang?
+                </AlertDialog.Title>
+                <AlertDialog.Description className="text-xs md:text-sm text-slate-500 mt-1.5 leading-relaxed">
+                  Semua item ({items.length} item) dalam nota pesanan ini akan dihapus dari keranjang. Aksi ini tidak dapat dibatalkan.
+                </AlertDialog.Description>
+                <div className="flex items-center justify-end gap-2.5 mt-5">
+                  <AlertDialog.Cancel asChild>
+                    <button
+                      type="button"
+                      className="px-3.5 py-2 text-xs md:text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </AlertDialog.Cancel>
+                  <AlertDialog.Action asChild>
+                    <button
+                      type="button"
+                      onClick={handleClear}
+                      className="px-4 py-2 text-xs md:text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer"
+                    >
+                      Ya, Kosongkan
+                    </button>
+                  </AlertDialog.Action>
+                </div>
+              </AlertDialog.Content>
+            </AlertDialog.Portal>
+          </AlertDialog.Root>
+
           {onCloseMobile && (
             <button
               onClick={onCloseMobile}
-              className="lg:hidden w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"
+              className="lg:hidden w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -116,7 +195,7 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
       </div>
 
       {/* Cart Items List */}
-      <div className="flex-1 overflow-y-auto p-4 divide-y divide-slate-100 space-y-2">
+      <div className="overflow-y-auto p-4 divide-y divide-slate-100 space-y-2">
         {items.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-12 text-slate-400">
             <ShoppingBag className="w-12 h-12 stroke-[1.2] mb-2 text-slate-300" />

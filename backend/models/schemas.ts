@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-// 1. Auth Validation Schemas
+// 1. Auth & Multi-Tenant Validation Schemas
 export const loginSchema = z.object({
-  email: z.string().email('Format email tidak valid'),
+  email: z.string().min(1, 'Email atau username wajib diisi'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
 });
 
@@ -10,7 +10,58 @@ export const registerSchema = z.object({
   name: z.string().min(2, 'Nama lengkap minimal 2 karakter').max(60),
   email: z.string().email('Format email tidak valid'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
-  role: z.enum(['kasir', 'admin', 'pemilik']).default('kasir'),
+  role: z.enum(['ADMIN', 'SHOP_OWNER', 'SHOP_CASHIER', 'kasir', 'admin', 'pemilik']).default('SHOP_CASHIER'),
+});
+
+// Pendaftaran Akun Tenan Baru oleh SHOP_OWNER
+export const registerTenantSchema = z.object({
+  shopName: z.string().min(3, 'Nama toko minimal 3 karakter').max(80),
+  ownerEmail: z.string().email('Format email pemilik toko tidak valid'),
+  username: z
+    .string()
+    .min(3, 'Username minimal 3 karakter')
+    .max(30)
+    .regex(/^[a-zA-Z0-9_.-]+$/, 'Username hanya boleh huruf, angka, titik, atau underscore'),
+  password: z.string().min(6, 'Password minimal 6 karakter'),
+});
+
+// Tambah / Ubah Kasir oleh SHOP_OWNER
+export const createCashierSchema = z.object({
+  name: z.string().min(2, 'Nama kasir minimal 2 karakter').max(60),
+  username: z
+    .string()
+    .min(3, 'Username minimal 3 karakter')
+    .max(30)
+    .regex(/^[a-zA-Z0-9_.-]+$/, 'Username hanya boleh huruf, angka, titik, atau underscore'),
+  email: z.string().email('Format email kasir tidak valid'),
+  password: z.string().min(6, 'Password minimal 6 karakter'),
+  shift: z.string().default('Shift Pagi (08:00 - 16:00)'),
+});
+
+export const updateCashierSchema = z.object({
+  name: z.string().min(2, 'Nama kasir minimal 2 karakter').max(60).optional(),
+  shift: z.string().optional(),
+  password: z.string().min(6, 'Password minimal 6 karakter').optional().or(z.literal('')),
+  status: z.enum(['active', 'inactive']).optional(),
+});
+
+// Permintaan Penonaktifan & Pengaktifan Kembali Tenan
+export const requestDeactivationSchema = z.object({
+  reason: z.string().min(5, 'Alasan penonaktifan minimal 5 karakter'),
+});
+
+export const reviewDeactivationSchema = z.object({
+  action: z.enum(['approve', 'reject']),
+  rejectReason: z.string().optional(),
+});
+
+export const requestReactivationSchema = z.object({
+  email: z.string().email('Format email pemilik toko tidak valid'),
+});
+
+export const updateTenantStatusSchema = z.object({
+  status: z.enum(['active', 'inactive']),
+  reason: z.string().optional(),
 });
 
 export const refreshSchema = z.object({

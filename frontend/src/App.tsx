@@ -10,6 +10,9 @@ import { LoginHistoryPage } from './pages/LoginHistoryPage.tsx';
 import { ChangePasswordPage } from './pages/ChangePasswordPage.tsx';
 import { ProductsPage } from './pages/ProductsPage.tsx';
 import { HistoryPage } from './pages/HistoryPage.tsx';
+import { TenantsPage } from './pages/TenantsPage.tsx';
+import { CashiersPage } from './pages/CashiersPage.tsx';
+import { StoreSettingsPage } from './pages/StoreSettingsPage.tsx';
 import { ShiftModal } from './components/ShiftModal.tsx';
 import { IdleTimerModal } from './components/IdleTimerModal.tsx';
 import { useIdleTimer } from './hooks/useIdleTimer.ts';
@@ -17,7 +20,9 @@ import { ActiveTab } from './components/TopNavbar.tsx';
 
 const AppContent: React.FC = () => {
   const { user, loading, logout, idleTimeoutMinutes } = useAuth();
-  const [currentTab, setCurrentTab] = useState<ActiveTab>('pos');
+  const [currentTab, setCurrentTab] = useState<ActiveTab>(() => {
+    return user?.role === 'ADMIN' ? 'tenants' : 'pos';
+  });
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
 
   // Inactivity auto-logout hook based on IDLE_TIMEOUT_MINUTES from .env
@@ -48,6 +53,27 @@ const AppContent: React.FC = () => {
 
   const renderCurrentPage = () => {
     switch (currentTab) {
+      case 'tenants':
+        return (
+          <TenantsPage
+            onBackToPos={() => setCurrentTab('pos')}
+            onNavigate={setCurrentTab}
+          />
+        );
+      case 'cashiers':
+        return (
+          <CashiersPage
+            onBackToPos={() => setCurrentTab('pos')}
+            onNavigate={setCurrentTab}
+          />
+        );
+      case 'store-settings':
+        return (
+          <StoreSettingsPage
+            onBackToPos={() => setCurrentTab('pos')}
+            onNavigate={setCurrentTab}
+          />
+        );
       case 'products':
         return (
           <ProductsPage

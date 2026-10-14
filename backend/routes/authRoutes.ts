@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   login,
   register,
+  registerTenant,
   refresh,
   logout,
   getMe,
@@ -12,7 +13,7 @@ import {
 import { validateBody } from '../middleware/validateMiddleware.ts';
 import { authenticateToken } from '../middleware/authMiddleware.ts';
 import { rateLimiter } from '../middleware/rateLimiter.ts';
-import { loginSchema, registerSchema, refreshSchema } from '../models/schemas.ts';
+import { loginSchema, registerSchema, registerTenantSchema, refreshSchema } from '../models/schemas.ts';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ const authLimiter = rateLimiter(15, 0.5);
 
 router.post('/login', authLimiter, validateBody(loginSchema), login);
 router.post('/register', authLimiter, validateBody(registerSchema), register);
+router.post('/register-tenant', authLimiter, validateBody(registerTenantSchema), registerTenant);
 router.post('/refresh', validateBody(refreshSchema), refresh);
 router.post('/logout', authenticateToken, logout);
 router.get('/me', authenticateToken, getMe);

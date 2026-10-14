@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { getCollection } from '../config/db.ts';
+import { getCollection, ObjectId } from '../config/db.ts';
 
 export const INITIAL_PRODUCTS = [
   {
@@ -102,42 +102,180 @@ export const INITIAL_PRODUCTS = [
 
 export async function seedInitialData(): Promise<void> {
   try {
+    const tenantsCol = getCollection('tenants');
     const usersCol = getCollection('users');
+    const productsCol = getCollection('products');
+    const ordersCol = getCollection('orders');
+
+    // 1. Seed Tenants
+    let tenant1 = await tenantsCol.findOne({ code: 'T-WARUNG-01' });
+    if (!tenant1) {
+      const tenant1Id = new ObjectId('6ace8019cb267df584bd0001');
+      await tenantsCol.insertOne({
+        _id: tenant1Id,
+        name: 'Warung Berkah Budi',
+        code: 'T-WARUNG-01',
+        ownerEmail: 'budi@kasirwarung.id',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      tenant1 = await tenantsCol.findOne({ _id: tenant1Id });
+    }
+
+    let tenant2 = await tenantsCol.findOne({ code: 'T-TOKO-02' });
+    if (!tenant2) {
+      const tenant2Id = new ObjectId('6ace8019cb267df584bd0002');
+      await tenantsCol.insertOne({
+        _id: tenant2Id,
+        name: 'Toko Kelontong Sejahtera',
+        code: 'T-TOKO-02',
+        ownerEmail: 'hendra@kelontong.id',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      tenant2 = await tenantsCol.findOne({ _id: tenant2Id });
+    }
+
+    const t1Id = tenant1 ? tenant1._id : new ObjectId('6ace8019cb267df584bd0001');
+    const t2Id = tenant2 ? tenant2._id : new ObjectId('6ace8019cb267df584bd0002');
+
+    // 2. Seed Users
+    const existingAdmin = await usersCol.findOne({ email: 'admin@kasirwarung.id' });
+    if (!existingAdmin) {
+      const adminHash = await bcrypt.hash('admin123', 10);
+      await usersCol.insertOne({
+        _id: new ObjectId('6ace8019cb267df584bd00a1'),
+        name: 'Super Administrator',
+        username: 'admin',
+        email: 'admin@kasirwarung.id',
+        passwordHash: adminHash,
+        role: 'ADMIN',
+        shift: 'Shift Pusat',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      });
+      console.log('[Seed] Super Admin created (admin@kasirwarung.id / admin123)');
+    }
+
     const existingBudi = await usersCol.findOne({ email: 'budi@kasirwarung.id' });
     if (!existingBudi) {
-      const passwordHash = await bcrypt.hash('kasir123', 10);
+      const ownerHash = await bcrypt.hash('kasir123', 10);
       await usersCol.insertMany([
         {
+          _id: new ObjectId('6ace8019cb267df584bd00a8'),
+          tenantId: t1Id,
           name: 'Budi Santoso',
+          username: 'budi',
           email: 'budi@kasirwarung.id',
-          passwordHash,
-          role: 'kasir',
+          passwordHash: ownerHash,
+          role: 'SHOP_OWNER',
           shift: 'Shift Siang (08:00 - 16:00)',
+          status: 'active',
           createdAt: new Date().toISOString(),
         },
         {
+          _id: new ObjectId('6ace8019cb267df584bd00a9'),
+          tenantId: t1Id,
           name: 'Siti Aminah',
+          username: 'siti',
           email: 'siti@kasirwarung.id',
-          passwordHash,
-          role: 'pemilik',
+          passwordHash: ownerHash,
+          role: 'SHOP_CASHIER',
           shift: 'Shift Sore (16:00 - 22:00)',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          _id: new ObjectId('6ace8019cb267df584bd00b5'),
+          tenantId: t2Id,
+          name: 'Hendra Gunawan',
+          username: 'hendra',
+          email: 'hendra@kelontong.id',
+          passwordHash: ownerHash,
+          role: 'SHOP_OWNER',
+          shift: 'Shift Pagi (08:00 - 17:00)',
+          status: 'active',
           createdAt: new Date().toISOString(),
         },
       ]);
-      console.log('[Seed] Default cashier users created (budi@kasirwarung.id / kasir123)');
+      console.log('[Seed] Multi-tenant users created');
+    } else {
+      // Ensure roles are updated to SHOP_OWNER / SHOP_CASHIER with tenantId
+      await usersCol.updateOne(
+        { email: 'budi@kasirwarung.id' },
+        { $set: { role: 'SHOP_OWNER', tenantId: t1Id, username: 'budi' } }
+      );
+      await usersCol.updateOne(
+        { email: 'siti@kasirwarung.id' },
+        { $set: { role: 'SHOP_CASHIER', tenantId: t1Id, username: 'siti' } }
+      );
     }
 
-    const productsCol = getCollection('products');
-    const productCount = await productsCol.countDocuments();
+    // 3. Seed Products with tenantId
+    const productCount = await productsCol.countDocuments({ tenantId: t1Id });
     if (productCount === 0) {
-      await productsCol.insertMany(INITIAL_PRODUCTS);
-      console.log('[Seed] 8 Kasir Warung products seeded');
+      const t1Products = INITIAL_PRODUCTS.map((p) => ({
+        ...p,
+        _id: new ObjectId(),
+        tenantId: t1Id,
+      }));
+      await productsCol.insertMany(t1Products);
+
+      // Seed separate products for Tenant 2 to demonstrate multi-tenant data isolation
+      const t2Products = [
+        {
+          _id: new ObjectId(),
+          tenantId: t2Id,
+          sku: 'TK-KOP-001',
+          name: 'Kopi Kapal Api Spesial 165g',
+          category: 'Minuman',
+          price: 14500,
+          costPrice: 12000,
+          stock: 45,
+          iconType: 'tea',
+          bgTint: '#FDF8EE',
+          iconColor: '#9A3412',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          tenantId: t2Id,
+          sku: 'TK-GUL-002',
+          name: 'Gula Pasir Gulaku 1kg',
+          category: 'Sembako',
+          price: 18000,
+          costPrice: 15500,
+          stock: 30,
+          iconType: 'rice',
+          bgTint: '#ECFDF5',
+          iconColor: '#16A34A',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          tenantId: t2Id,
+          sku: 'TK-TEL-003',
+          name: 'Telur Ayam Negeri 1kg',
+          category: 'Sembako',
+          price: 29000,
+          costPrice: 26000,
+          stock: 22,
+          iconType: 'oil',
+          bgTint: '#FCFCEB',
+          iconColor: '#CA8A04',
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      await productsCol.insertMany(t2Products);
+      console.log('[Seed] Multi-tenant products seeded for Tenant 1 and Tenant 2');
     }
 
-    const ordersCol = getCollection('orders');
+    // 4. Seed Orders with tenantId
     const existingSavedOrder = await ordersCol.findOne({ invoiceNo: 'INV/2025/05/28-0041' });
     if (!existingSavedOrder) {
-      const allProducts = await productsCol.find({}).toArray();
+      const allProducts = await productsCol.find({ tenantId: t1Id }).toArray();
       const findProd = (sku: string) =>
         allProducts.find((p: any) => p.sku === sku) || INITIAL_PRODUCTS.find((p) => p.sku === sku)!;
 
@@ -148,10 +286,12 @@ export async function seedInitialData(): Promise<void> {
 
       await ordersCol.insertMany([
         {
+          _id: new ObjectId(),
+          tenantId: t1Id,
           invoiceNo: 'INV/2025/05/28-0041',
           status: 'saved',
           timeLabel: '14:15',
-          summaryLabel: '4 Item: Beras, Telur, Minyak...',
+          summaryLabel: '3 Item: Beras, Indomie, Teh...',
           cashierName: 'Budi Santoso',
           customerName: 'Bu Rina (Langganan RT 04)',
           paymentMethod: 'Belum Dibayar',
@@ -190,10 +330,12 @@ export async function seedInitialData(): Promise<void> {
           createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
         },
         {
+          _id: new ObjectId(),
+          tenantId: t1Id,
           invoiceNo: 'INV/2025/05/28-0040',
           status: 'paid',
           timeLabel: '13:40',
-          summaryLabel: '3 Item: Minyak Goreng, Aqua...',
+          summaryLabel: '2 Item: Minyak Goreng, Indomie...',
           cashierName: 'Budi Santoso',
           customerName: 'Pak Hendra',
           paymentMethod: 'QRIS',
@@ -224,43 +366,8 @@ export async function seedInitialData(): Promise<void> {
           changeAmount: 0,
           createdAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
         },
-        {
-          invoiceNo: 'INV/2025/05/28-0039',
-          status: 'paid',
-          timeLabel: '12:15',
-          summaryLabel: '2 Item: Beras Ramos, Teh Botol',
-          cashierName: 'Budi Santoso',
-          customerName: 'Umum',
-          paymentMethod: 'Tunai',
-          items: [
-            {
-              productId: String((beras as any)._id || 'KW-BRS-006'),
-              name: 'Beras Ramos Setra 5kg',
-              price: 72000,
-              qty: 1,
-              iconType: 'rice',
-              bgTint: '#ECFDF5',
-              iconColor: '#16A34A',
-            },
-            {
-              productId: String((teh as any)._id || 'KW-TEH-007'),
-              name: 'Teh Botol Sosro 450ml',
-              price: 6000,
-              qty: 2,
-              iconType: 'tea',
-              bgTint: '#FDF8EE',
-              iconColor: '#9A3412',
-            },
-          ],
-          subtotal: 84000,
-          tax: 9240,
-          total: 93240,
-          cashReceived: 100000,
-          changeAmount: 6760,
-          createdAt: new Date(Date.now() - 180 * 60 * 1000).toISOString(),
-        },
       ]);
-      console.log('[Seed] Initial saved & completed orders seeded');
+      console.log('[Seed] Initial saved & completed orders seeded for Tenant 1');
     }
   } catch (err) {
     console.warn('[Seed] Seed warning:', err);

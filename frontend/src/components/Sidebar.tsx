@@ -1,6 +1,7 @@
 import React from 'react';
-import { Calculator, Package, History, PieChart, X } from 'lucide-react';
+import { Calculator, Package, History, PieChart, X, Building2, Users, Store } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
 import { ActiveTab } from './TopNavbar.tsx';
 
 interface SidebarProps {
@@ -15,6 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
 }) => {
   const { items, isMobileSidebarOpen, closeMobileSidebar } = useCart();
+  const { user } = useAuth();
   const totalItemCount = items.reduce((sum, i) => sum + i.qty, 0);
 
   const handleSelect = (tab: ActiveTab) => {
@@ -126,6 +128,83 @@ export const Sidebar: React.FC<SidebarProps> = ({
           Laporan
         </span>
       </button>
+
+      {/* ADMIN ONLY: Tenants Management Tab */}
+      {user?.role === 'ADMIN' && (
+        <button
+          onClick={() => handleSelect('tenants')}
+          title="Kelola Seluruh Tenan"
+          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+        >
+          <div
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'tenants'
+                ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
+                : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
+            }`}
+          >
+            <Building2 className="w-5 h-5 md:w-5.5 md:h-5.5" />
+          </div>
+          <span
+            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+              currentTab === 'tenants' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Tenan
+          </span>
+        </button>
+      )}
+
+      {/* SHOP_OWNER ONLY: Staf Kasir & Toko Tabs */}
+      {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik') && (
+        <>
+          <button
+            onClick={() => handleSelect('cashiers')}
+            title="Kelola Staf Kasir (SHOP_CASHIER)"
+            className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          >
+            <div
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentTab === 'cashiers'
+                  ? 'bg-[#EC6C1A] text-white shadow-orange-600/30 shadow-md'
+                  : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+              }`}
+            >
+              <Users className="w-5 h-5 md:w-5.5 md:h-5.5" />
+            </div>
+            <span
+              className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+                currentTab === 'cashiers' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+              }`}
+            >
+              Kasir Toko
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleSelect('store-settings')}
+            title="Pengaturan Toko & Akun Tenan"
+            className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          >
+            <div
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentTab === 'store-settings'
+                  ? 'bg-[#EC6C1A] text-white shadow-orange-600/30 shadow-md'
+                  : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+              }`}
+            >
+              <Store className="w-5 h-5 md:w-5.5 md:h-5.5" />
+            </div>
+            <span
+              className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+                currentTab === 'store-settings' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+              }`}
+            >
+              Toko
+            </span>
+          </button>
+        </>
+      )}
     </nav>
   );
 

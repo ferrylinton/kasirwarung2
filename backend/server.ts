@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import http from 'http';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env.ts';
 import { connectMongoDB, isMongoNativeConnected } from './config/db.ts';
@@ -8,6 +9,8 @@ import authRoutes from './routes/authRoutes.ts';
 import productRoutes from './routes/productRoutes.ts';
 import orderRoutes from './routes/orderRoutes.ts';
 import reportRoutes from './routes/reportRoutes.ts';
+import tenantRoutes from './routes/tenantRoutes.ts';
+import cashierRoutes from './routes/cashierRoutes.ts';
 import { errorHandler } from './middleware/errorMiddleware.ts';
 
 export async function createApp(): Promise<Express> {
@@ -33,6 +36,8 @@ export async function createApp(): Promise<Express> {
 
   // Mount API Routes
   app.use('/api/auth', authRoutes);
+  app.use('/api/tenants', tenantRoutes);
+  app.use('/api/cashiers', cashierRoutes);
   app.use('/api/products', productRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/reports', reportRoutes);
@@ -45,12 +50,18 @@ export async function createApp(): Promise<Express> {
 export async function startServer() {
   const app = await createApp();
   const port = env.PORT || 3000;
+  const httpServer = http.createServer(app);
 
   // In development, hook Vite middleware
   if (process.env.NODE_ENV !== 'production') {
     const { createServer } = await import('vite');
     const vite = await createServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: {
+          server: httpServer,
+        },
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -63,7 +74,7 @@ export async function startServer() {
     });
   }
 
-  app.listen(port, '0.0.0.0', () => {
+  httpServer.listen(port, '0.0.0.0', () => {
     console.log(`[KasirWarung] Server running on http://0.0.0.0:${port}`);
   });
 }

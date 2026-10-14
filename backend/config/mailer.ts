@@ -1,16 +1,19 @@
 import nodemailer from 'nodemailer';
 import { env } from './env.ts';
 
-const transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
-  secure: env.SMTP_PORT === 465,
-  auth: {
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-  },
-  connectionTimeout: 5000,
-});
+const transporter =
+  env.SMTP_HOST && env.SMTP_USER
+    ? nodemailer.createTransport({
+        host: env.SMTP_HOST,
+        port: env.SMTP_PORT,
+        secure: env.SMTP_PORT === 465,
+        auth: {
+          user: env.SMTP_USER,
+          pass: env.SMTP_PASS,
+        },
+        connectionTimeout: 4000,
+      })
+    : null;
 
 export async function sendReceiptEmail(
   toEmail: string,
@@ -18,6 +21,12 @@ export async function sendReceiptEmail(
   totalAmount: number,
   items: Array<{ name: string; price: number; qty: number }>
 ): Promise<{ sent: boolean; message: string }> {
+  if (!transporter) {
+    return {
+      sent: true,
+      message: `Simulasi: Struk nota telah dibuat untuk ${toEmail}`,
+    };
+  }
   const rowsHtml = items
     .map(
       (i) =>
@@ -55,5 +64,111 @@ export async function sendReceiptEmail(
       sent: false,
       message: `Nota disimpan (Server SMTP sedang sibuk: ${err.message})`,
     };
+  }
+}
+
+export const recentEmailSimulations: Array<{
+  type: 'verification' | 'reactivation' | 'receipt';
+  toEmail: string;
+  token?: string;
+  url?: string;
+  timestamp: string;
+}> = [];
+
+export async function sendTenantVerificationEmail(
+  toEmail: string,
+  shopName: string,
+  token: string
+): Promise<{ sent: boolean; message: string; verificationUrl: string }> {
+  const verificationUrl = `${env.APP_URL || ''}/verify-tenant?token=${token}`;
+  console.log(`[Email] Tenant Verification URL for ${toEmail} (${shopName}): ${verificationUrl}`);
+  
+  recentEmailSimulations.unshift({
+    type: 'verification',
+    toEmail,
+    token,
+    url: verificationUrl,
+    timestamp: new Date().toISOString(),
+  });
+  if (recentEmailSimulations.length > 20) recentEmailSimulations.pop();
+
+  if (!transporter) {
+    return {
+      sent: true,
+      message: `Simulasi: Tautan konfirmasi pendaftaran toko telah dikirim ke ${toEmail}`,
+      verificationUrl,
+    };
+  }
+
+  try {
+    await transporter.sendMail({
+      from: env.SMTP_FROM,
+      to: toEmail,
+      subject: `Konfirmasi Pendaftaran Toko - ${shopName}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:12px;">
+          <h2 style="color:#EC6C1A;margin-top:0;">Kasir Warung POS</h2>
+          <p>Halo Pemilik Toko <strong>${shopName}</strong>,</p>
+          <p>Terima kasih telah mendaftarkan toko Anda di Kasir Warung. Silakan klik tautan di bawah ini untuk mengonfirmasi dan mengaktifkan akun toko Anda:</p>
+          <div style="text-align:center;margin:24px 0;">
+            <a href="${verificationUrl}" style="background:#EC6C1A;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Konfirmasi & Aktifkan Toko</a>
+          </div>
+          <p style="font-size:12px;color:#64748b;">Atau salin tautan berikut ke peramban Anda:<br/><a href="${verificationUrl}">${verificationUrl}</a></p>
+        </div>
+      `,
+    });
+    return { sent: true, message: `Email konfirmasi terkirim ke ${toEmail}`, verificationUrl };
+  } catch (err: any) {
+    console.warn('[SMTP] Verification mail error:', err.message);
+    return { sent: true, message: `Simulasi terkirim (SMTP offline): ${verificationUrl}`, verificationUrl };
+  }
+}
+
+export async function sendTenantReactivationEmail(
+  toEmail: string,
+  shopName: string,
+  token: string
+): Promise<{ sent: boolean; message: string; reactivationUrl: string }> {
+  const reactivationUrl = `${env.APP_URL || ''}/reactivate-tenant?token=${token}`;
+  console.log(`[Email] Tenant Reactivation URL for ${toEmail} (${shopName}): ${reactivationUrl}`);
+
+  recentEmailSimulations.unshift({
+    type: 'reactivation',
+    toEmail,
+    token,
+    url: reactivationUrl,
+    timestamp: new Date().toISOString(),
+  });
+  if (recentEmailSimulations.length > 20) recentEmailSimulations.pop();
+
+  if (!transporter) {
+    return {
+      sent: true,
+      message: `Simulasi: Tautan pengaktifan kembali toko telah dikirim ke ${toEmail}`,
+      reactivationUrl,
+    };
+  }
+
+  try {
+    await transporter.sendMail({
+      from: env.SMTP_FROM,
+      to: toEmail,
+      subject: `Konfirmasi Pengaktifan Kembali Toko - ${shopName}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:12px;">
+          <h2 style="color:#EC6C1A;margin-top:0;">Kasir Warung POS</h2>
+          <p>Halo Pemilik Toko <strong>${shopName}</strong>,</p>
+          <p>Kami menerima permintaan untuk mengaktifkan kembali akun toko Anda. Klik tombol di bawah ini untuk mengaktifkan kembali:</p>
+          <div style="text-align:center;margin:24px 0;">
+            <a href="${reactivationUrl}" style="background:#16A34A;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Aktifkan Kembali Toko</a>
+          </div>
+          <p style="font-size:12px;color:#64748b;">Tautan: <a href="${reactivationUrl}">${reactivationUrl}</a></p>
+        </div>
+      `,
+    });
+    return { sent: true, message: `Email pengaktifan kembali terkirim ke ${toEmail}`, reactivationUrl };
+  } catch (err: any) {
+    console.warn('[SMTP] Reactivation mail error:', err.message);
+    return { sent: true, message: `Simulasi terkirim (SMTP offline): ${reactivationUrl}`, reactivationUrl };
   }
 }

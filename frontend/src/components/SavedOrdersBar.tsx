@@ -31,10 +31,9 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
   return (
     <div className="mb-5">
       {/* Section Header */}
-      <div className="flex items-center justify-between text-xs md:text-sm font-semibold tracking-wide text-slate-600 uppercase mb-2.5">
+      <div className="flex items-center justify-between text-xs md:text-sm font-semibold tracking-wide text-slate-600 my-3">
         <div className="flex items-center gap-1.5 text-slate-700">
-          <span className="text-orange-500 text-base leading-none">⌧</span>
-          <span>PESANAN DISIMPAN (BELUM DIBAYAR)</span>
+          <span>Pesanan Sementara</span>
         </div>
         <button
           onClick={onOpenAllSaved}

@@ -14,6 +14,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      // Ignore HMR WebSocket connection warnings in AI Studio iframe environment
+      window.addEventListener('error', function(e) {
+        if (
+          (e.message && (e.message.indexOf('WebSocket') !== -1 || e.message.indexOf('createWebSocket') !== -1)) ||
+          (e.filename && e.filename.indexOf('@vite/client') !== -1)
+        ) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function(e) {
+        var reason = e.reason && (e.reason.message || String(e.reason));
+        if (reason && (reason.indexOf('WebSocket') !== -1 || reason.indexOf('createWebSocket') !== -1)) {
+          e.preventDefault();
+        }
+      });
+    </script>
   </head>
   <body class="bg-[#F5F6F8] text-slate-900 antialiased selection:bg-orange-500 selection:text-white">
     <div id="root"></div>

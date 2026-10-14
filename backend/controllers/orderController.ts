@@ -1,13 +1,21 @@
-import { Request, Response } from 'express';
+import type { Response } from 'express';
 import { getCollection, ObjectId } from '../config/db.ts';
 import { sendReceiptEmail } from '../config/mailer.ts';
 import { formatCurrentTimeHHMM } from '../utils/invoice.ts';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
-export async function getSavedOrders(_req: Request, res: Response): Promise<void> {
+export async function getSavedOrders(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : req.query.tenantId
+    ? new ObjectId(String(req.query.tenantId))
+    : new ObjectId('6ace8019cb267df584bd0001');
+
+  const filter: Record<string, any> = { status: 'saved', tenantId };
+
   const savedOrders = await ordersCol
-    .find({ status: 'saved' })
+    .find(filter)
     .sort({ createdAt: -1 })
     .toArray();
 
@@ -26,14 +34,31 @@ export async function getSavedOrders(_req: Request, res: Response): Promise<void
       tax: o.tax || 0,
       total: o.total || 0,
       createdAt: o.createdAt,
+      tenantId: String(o.tenantId),
     })),
   });
 }
 
-export async function getOrderHistory(_req: Request, res: Response): Promise<void> {
+export async function getOrderHistory(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : req.query.tenantId
+    ? new ObjectId(String(req.query.tenantId))
+    : new ObjectId('6ace8019cb267df584bd0001');
+
+  const filter: Record<string, any> = {
+    status: { $in: ['paid', 'cancelled'] },
+  };
+
+  if (req.user?.role !== 'ADMIN') {
+    filter.tenantId = tenantId;
+  } else if (req.query.tenantId) {
+    filter.tenantId = new ObjectId(String(req.query.tenantId));
+  }
+
   const list = await ordersCol
-    .find({ status: { $in: ['paid', 'cancelled'] } })
+    .find(filter)
     .sort({ createdAt: -1 })
     .limit(50)
     .toArray();
@@ -55,6 +80,7 @@ export async function getOrderHistory(_req: Request, res: Response): Promise<voi
       cashReceived: o.cashReceived,
       changeAmount: o.changeAmount,
       createdAt: o.createdAt,
+      tenantId: String(o.tenantId),
     })),
   });
 }
@@ -71,6 +97,10 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
     notes,
   } = req.body;
 
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : new ObjectId('6ace8019cb267df584bd0001');
+
   const ordersCol = getCollection('orders');
   const productsCol = getCollection('products');
 
@@ -82,32 +112,37 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
   const summaryLabel = `${items.length} Item: ${summaryItems}...`;
   const timeLabel = formatCurrentTimeHHMM();
 
-  // If status is 'paid', deduct inventory stock
+  // If status is 'paid', deduct inventory stock for this tenant
   if (status === 'paid') {
     for (const item of items) {
-      if (item.productId) {
+      if (item.productId && ObjectId.isValid(item.productId)) {
         try {
           await productsCol.updateOne(
-            { _id: new ObjectId(item.productId) },
+            { _id: new ObjectId(item.productId), tenantId },
             { $inc: { stock: -item.qty } }
           );
         } catch {
-          // If productId is not ObjectId string, fallback by sku or name
           await productsCol.updateOne(
-            { name: item.name },
+            { name: item.name, tenantId },
             { $inc: { stock: -item.qty } }
           );
         }
+      } else {
+        await productsCol.updateOne(
+          { name: item.name, tenantId },
+          { $inc: { stock: -item.qty } }
+        );
       }
     }
   }
 
   // If this was an existing saved order being completed or updated, update or replace it
-  const existingOrder = await ordersCol.findOne({ invoiceNo });
+  const existingOrder = await ordersCol.findOne({ invoiceNo, tenantId });
   let orderId: string;
 
   const orderPayload = {
     invoiceNo,
+    tenantId,
     status,
     timeLabel,
     summaryLabel,
@@ -126,10 +161,11 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
   };
 
   if (existingOrder) {
-    await ordersCol.updateOne({ invoiceNo }, { $set: orderPayload });
+    await ordersCol.updateOne({ invoiceNo, tenantId }, { $set: orderPayload });
     orderId = String(existingOrder._id);
   } else {
     const insertResult = await ordersCol.insertOne({
+      _id: new ObjectId(),
       ...orderPayload,
       createdAt: new Date().toISOString(),
     });
@@ -144,7 +180,7 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
 
   res.status(201).json({
     success: true,
-    message: status === 'saved' ? 'Pesanan berhasil disimpan (Belum Dibayar)' : 'Pembayaran berhasil diproses',
+    message: status === 'saved' ? 'Pesanan berhasil disimpan ke Pesanan Sementara' : 'Pembayaran berhasil diproses',
     data: {
       id: orderId,
       ...orderPayload,
@@ -153,17 +189,27 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
   });
 }
 
-export async function deleteSavedOrder(req: Request, res: Response): Promise<void> {
+export async function deleteSavedOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
   const { invoiceNo } = req.params;
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : new ObjectId('6ace8019cb267df584bd0001');
+
   const ordersCol = getCollection('orders');
-  await ordersCol.deleteOne({ invoiceNo });
+  await ordersCol.deleteOne({ invoiceNo, tenantId });
   res.json({ success: true, message: `Pesanan ${invoiceNo} berhasil dihapus` });
 }
 
-export async function getNextInvoice(_req: Request, res: Response): Promise<void> {
+export async function getNextInvoice(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
-  const count = await ordersCol.countDocuments();
-  const nextSeq = count + 42; // Starts from 42 as in screenshot INV/2025/05/28-0042
-  const nextInvoiceNo = `INV/2025/05/28-${String(nextSeq).padStart(4, '0')}`;
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : new ObjectId('6ace8019cb267df584bd0001');
+
+  const count = await ordersCol.countDocuments({ tenantId });
+  const nextSeq = count + 42;
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+  const nextInvoiceNo = `INV/${dateStr}-${String(nextSeq).padStart(4, '0')}`;
   res.json({ success: true, invoiceNo: nextInvoiceNo });
 }

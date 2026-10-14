@@ -136,23 +136,68 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 space-y-1">
                   <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
                     <Store className="w-3.5 h-3.5 text-orange-500" />
-                    Unit Warung
+                    Unit Toko / Warung
                   </span>
                   <p className="text-sm font-extrabold text-slate-900">
-                    Kasir Warung Cabang Utama
+                    {user?.tenantName || (user?.role === 'ADMIN' ? 'Platform Administrator' : 'Kasir Warung')}
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 space-y-1">
                   <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-orange-500" />
-                    ID Pengguna
+                    ID Pengguna (ObjectId)
                   </span>
                   <p className="text-xs font-mono font-bold text-slate-700 truncate">
                     {user?.id || 'USR-2026-BUDI'}
                   </p>
                 </div>
               </div>
+
+              {/* Quick links for Shop Owner or Admin */}
+              {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik') && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <button
+                    onClick={() => onNavigate?.('cashiers')}
+                    className="p-3.5 bg-orange-50/80 hover:bg-orange-100/80 border border-orange-200/80 rounded-2xl text-left transition-colors cursor-pointer group"
+                  >
+                    <p className="text-xs font-bold text-orange-900 group-hover:text-orange-700">
+                      Kelola Staf Kasir (SHOP_CASHIER) →
+                    </p>
+                    <p className="text-[11px] text-orange-700 mt-0.5">
+                      Tambah, ubah data shift, atau hapus akses kasir toko Anda.
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() => onNavigate?.('store-settings')}
+                    className="p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-left transition-colors cursor-pointer group"
+                  >
+                    <p className="text-xs font-bold text-slate-900 group-hover:text-orange-600">
+                      Pengaturan Toko & Penonaktifan →
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Lihat status tenan dan ajukan penonaktifan akun toko.
+                    </p>
+                  </button>
+                </div>
+              )}
+
+              {user?.role === 'ADMIN' && (
+                <div className="pt-2">
+                  <button
+                    onClick={() => onNavigate?.('tenants')}
+                    className="w-full p-3.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-2xl text-left transition-colors cursor-pointer group"
+                  >
+                    <p className="text-xs font-bold text-purple-900 group-hover:text-purple-700">
+                      Kelola Seluruh Tenan Toko (ADMIN) →
+                    </p>
+                    <p className="text-[11px] text-purple-700 mt-0.5">
+                      Kontrol status aktif/nonaktif dan review permintaan penonaktifan dari pemilik toko.
+                    </p>
+                  </button>
+                </div>
+              )}
 
               {/* Action Banner to Switch Shift */}
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-orange-50/60 p-4 rounded-2xl border border-orange-200/60">

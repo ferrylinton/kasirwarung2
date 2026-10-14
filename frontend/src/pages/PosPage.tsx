@@ -9,9 +9,8 @@ import { PaymentModal } from '../components/PaymentModal.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
 import { ShiftModal } from '../components/ShiftModal.tsx';
 import { Product, api } from '../services/api.ts';
-import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
-import { ShoppingCart, PackagePlus, RefreshCcw } from 'lucide-react';
+import { PackagePlus, RefreshCcw } from 'lucide-react';
 
 const CATEGORIES = [
   'Semua Produk',
@@ -38,7 +37,6 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
-  const { items, total } = useCart();
   const { logout } = useAuth();
 
   const fetchProducts = useCallback(async () => {
@@ -149,22 +147,6 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
         onCloseMobile={() => setIsMobileCartOpen(false)}
       />
       </div>
-
-      {/* Mobile Floating Cart Summary Button */}
-      {items.length > 0 && (
-        <div className="lg:hidden fixed bottom-4 right-4 left-20 z-40">
-          <button
-            onClick={() => setIsMobileCartOpen(true)}
-            className="w-full bg-[#16A34A] text-white py-3 px-4 rounded-2xl shadow-xl flex items-center justify-between font-bold text-sm"
-          >
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
-              <span>{items.reduce((s, i) => s + i.qty, 0)} Item di Keranjang</span>
-            </div>
-            <span>Rp{total.toLocaleString('id-ID')} &gt;</span>
-          </button>
-        </div>
-      )}
 
       {/* Modals */}
       <PaymentModal

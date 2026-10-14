@@ -5,13 +5,24 @@ export interface TokenPayload {
   userId: string;
   email: string;
   name: string;
-  role: string;
+  username?: string;
+  role: 'ADMIN' | 'SHOP_OWNER' | 'SHOP_CASHIER' | string;
+  tenantId?: string;
+  tenantName?: string;
   type: 'access' | 'refresh';
   exp?: number;
   iat?: number;
 }
 
-export function signAccessToken(user: { userId: string; email: string; name: string; role: string }): string {
+export function signAccessToken(user: {
+  userId: string;
+  email: string;
+  name: string;
+  username?: string;
+  role: string;
+  tenantId?: string;
+  tenantName?: string;
+}): string {
   return jwt.sign(
     { ...user, type: 'access' },
     env.JWT_SECRET,
@@ -19,7 +30,15 @@ export function signAccessToken(user: { userId: string; email: string; name: str
   );
 }
 
-export function signRefreshToken(user: { userId: string; email: string; name: string; role: string }): string {
+export function signRefreshToken(user: {
+  userId: string;
+  email: string;
+  name: string;
+  username?: string;
+  role: string;
+  tenantId?: string;
+  tenantName?: string;
+}): string {
   return jwt.sign(
     { ...user, type: 'refresh' },
     env.JWT_SECRET,

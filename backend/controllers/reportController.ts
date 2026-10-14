@@ -1,13 +1,27 @@
-import { Request, Response } from 'express';
-import { getCollection } from '../config/db.ts';
+import type { Response } from 'express';
+import { getCollection, ObjectId } from '../config/db.ts';
+import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
-export async function getReportSummary(_req: Request, res: Response): Promise<void> {
+export async function getReportSummary(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
   const productsCol = getCollection('products');
 
-  const paidOrders = await ordersCol.find({ status: 'paid' }).toArray();
-  const savedOrdersCount = await ordersCol.countDocuments({ status: 'saved' });
-  const totalProducts = await productsCol.countDocuments();
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : req.query.tenantId
+    ? new ObjectId(String(req.query.tenantId))
+    : new ObjectId('6ace8019cb267df584bd0001');
+
+  const filter: Record<string, any> = {};
+  if (req.user?.role !== 'ADMIN') {
+    filter.tenantId = tenantId;
+  } else if (req.query.tenantId) {
+    filter.tenantId = new ObjectId(String(req.query.tenantId));
+  }
+
+  const paidOrders = await ordersCol.find({ ...filter, status: 'paid' }).toArray();
+  const savedOrdersCount = await ordersCol.countDocuments({ ...filter, status: 'saved' });
+  const totalProducts = await productsCol.countDocuments(filter);
 
   const totalRevenue = paidOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
   const totalTax = paidOrders.reduce((sum: number, o: any) => sum + (o.tax || 0), 0);

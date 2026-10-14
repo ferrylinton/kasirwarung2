@@ -11,14 +11,18 @@ const memoryRateBuckets = new Map<string, { tokens: number; lastRefill: number }
 
 export function initRedis(): Redis | null {
   if (redisClient) return redisClient;
+  if (!env.REDIS_URL) {
+    console.log('[Redis] Running in-memory Redis cache & token store');
+    return null;
+  }
   try {
     redisClient = new Redis(env.REDIS_URL, {
-      maxRetriesPerRequest: 2,
-      connectTimeout: 5000,
+      maxRetriesPerRequest: 1,
+      connectTimeout: 2000,
       enableOfflineQueue: false,
       retryStrategy(times) {
-        if (times > 3) return null;
-        return Math.min(times * 500, 2000);
+        if (times > 2) return null;
+        return Math.min(times * 500, 1000);
       },
     });
 
