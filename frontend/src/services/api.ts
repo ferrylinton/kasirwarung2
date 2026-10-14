@@ -49,6 +49,18 @@ export interface Cashier {
   createdAt?: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  productCount?: number;
+  tenantId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Product {
   id: string;
   sku: string;
@@ -299,6 +311,28 @@ export const api = {
       body: JSON.stringify({ action, rejectReason }),
     }),
   getRecentEmails: () => apiRequest('/api/tenants/recent-emails'),
+
+  // Category Management (CRUD by SHOP_OWNER)
+  getCategories: (tenantId?: string) => {
+    const params = new URLSearchParams();
+    if (tenantId) params.append('tenantId', tenantId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return apiRequest(`/api/categories${qs}`);
+  },
+  createCategory: (data: { name: string; description?: string; icon?: string; color?: string }) =>
+    apiRequest('/api/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateCategory: (id: string, data: { name?: string; description?: string; icon?: string; color?: string }) =>
+    apiRequest(`/api/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteCategory: (id: string) =>
+    apiRequest(`/api/categories/${id}`, {
+      method: 'DELETE',
+    }),
 
   // Cashier Management (CRUD by SHOP_OWNER)
   getCashiers: () => apiRequest('/api/cashiers'),

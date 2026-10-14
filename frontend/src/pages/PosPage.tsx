@@ -10,7 +10,7 @@ import { ProductModal } from '../components/ProductModal.tsx';
 import { ShiftModal } from '../components/ShiftModal.tsx';
 import { Product, api } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { PackagePlus, RefreshCcw } from 'lucide-react';
+import { PackagePlus, RefreshCcw, Shield } from 'lucide-react';
 
 const CATEGORIES = [
   'Semua Produk',
@@ -37,7 +37,7 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -77,8 +77,33 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
             onOpenSwitchCashier={() => setIsShiftModalOpen(true)}
           />
 
-        {/* Section: PESANAN DISIMPAN (BELUM DIBAYAR) */}
-        <SavedOrdersBar onOpenAllSaved={() => onNavigate?.('history')} />
+          {/* ADMIN Notice Banner: role ADMIN tidak bisa bikin order */}
+          {user?.role === 'ADMIN' && (
+            <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-purple-900 shadow-xs">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-purple-900">
+                    Mode Akun Administrator Platform (Role ADMIN)
+                  </p>
+                  <p className="text-xs text-purple-700 mt-0.5">
+                    Role ADMIN bertugas mengelola data tenan dan <span className="font-semibold underline">tidak dapat membuat order/transaksi</span>. Hanya akun Pemilik Toko (SHOP_OWNER) atau Kasir (SHOP_CASHIER) yang dapat membuat transaksi penjualan.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => onNavigate?.('tenants')}
+                className="shrink-0 px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+              >
+                Buka Kelola Tenan &rarr;
+              </button>
+            </div>
+          )}
+
+          {/* Section: PESANAN DISIMPAN (BELUM DIBAYAR) */}
+          <SavedOrdersBar onOpenAllSaved={() => onNavigate?.('history')} />
 
         {/* Section: Kategori Produk & Radix Select Filter */}
         <div className="flex items-center justify-between gap-3 mb-4 mt-1">

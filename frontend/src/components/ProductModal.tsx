@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, PackagePlus, Save } from 'lucide-react';
-import { Product, api } from '../services/api.ts';
+import React, { useState, useEffect } from 'react';
+import { X, PackagePlus, Save, Shield } from 'lucide-react';
+import { Product, Category, api } from '../services/api.ts';
+import { useAuth } from '../context/AuthContext.tsx';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -15,18 +16,39 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onSaved,
   initialProduct,
 }) => {
+  const { user } = useAuth();
+  const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
+
   const [name, setName] = useState(initialProduct?.name || '');
   const [sku, setSku] = useState(initialProduct?.sku || '');
   const [category, setCategory] = useState(initialProduct?.category || 'Makanan Instan');
+  const [categories, setCategories] = useState<Category[]>([]);
   const [price, setPrice] = useState(initialProduct?.price || 5000);
   const [stock, setStock] = useState(initialProduct?.stock || 20);
   const [iconType, setIconType] = useState(initialProduct?.iconType || 'box');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      api.getCategories().then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setCategories(res.data);
+          if (!initialProduct && !res.data.some((c: any) => c.name === category)) {
+            setCategory(res.data[0].name);
+          }
+        }
+      }).catch((err) => console.warn('Could not load categories in modal:', err));
+    }
+  }, [isOpen, initialProduct]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isShopOwner) {
+      alert('Hanya role SHOP_OWNER yang bisa menambah atau mengubah data produk.');
+      return;
+    }
     setLoading(true);
     try {
       if (initialProduct?.id) {

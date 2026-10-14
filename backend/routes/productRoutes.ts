@@ -17,15 +17,21 @@ router.get('/', apiLimiter, optionalAuthenticateToken, getProducts);
 router.post(
   '/',
   authenticateToken,
-  requireRole('ADMIN', 'admin', 'SHOP_OWNER', 'pemilik'),
+  requireRole('SHOP_OWNER', 'pemilik'),
   validateBody(productSchema),
   createProduct
 );
-router.put('/:id', authenticateToken, validateBody(updateStockSchema), updateProduct);
+router.put(
+  '/:id',
+  authenticateToken,
+  requireRole('SHOP_OWNER', 'pemilik'),
+  validateBody(updateStockSchema),
+  updateProduct
+);
 router.delete(
   '/:id',
   authenticateToken,
-  requireRole('ADMIN', 'admin', 'SHOP_OWNER', 'pemilik'),
+  requireRole('SHOP_OWNER', 'pemilik'),
   deleteProduct
 );
 

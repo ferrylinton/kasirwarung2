@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product, OrderItem, Order, api } from '../services/api.ts';
+import { useAuth } from './AuthContext.tsx';
 
 interface CartContextType {
   invoiceNo: string;
@@ -81,12 +82,21 @@ const INITIAL_DEMO_ITEMS: OrderItem[] = [
 ];
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [invoiceNo, setInvoiceNo] = useState<string>('INV/2025/05/28-0042');
-  const [items, setItems] = useState<OrderItem[]>(INITIAL_DEMO_ITEMS);
+  const [items, setItems] = useState<OrderItem[]>(() => {
+    return user?.role === 'ADMIN' ? [] : INITIAL_DEMO_ITEMS;
+  });
   const [savedOrders, setSavedOrders] = useState<Order[]>([]);
   const [customerName, setCustomerName] = useState<string>('Pelanggan Umum');
   const [isMobileCartOpen, setIsMobileCartOpen] = useState<boolean>(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      setItems([]);
+    }
+  }, [user]);
 
   const openMobileCart = () => setIsMobileCartOpen(true);
   const closeMobileCart = () => setIsMobileCartOpen(false);
@@ -117,6 +127,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addItem = (product: Product, qtyDelta = 1) => {
+    if (user?.role === 'ADMIN') return;
     setItems((prev) => {
       const existingIdx = prev.findIndex(
         (i) => i.productId === product.id || i.productId === product.sku || i.name === product.name
@@ -147,6 +158,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const setItemQty = (productId: string, qty: number, product?: Product) => {
+    if (user?.role === 'ADMIN') return;
     setItems((prev) => {
       const existingIdx = prev.findIndex(
         (i) => i.productId === productId || (product && i.name === product.name)
@@ -200,7 +212,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const saveCurrentOrder = async (): Promise<boolean> => {
-    if (items.length === 0) return false;
+    if (user?.role === 'ADMIN' || items.length === 0) return false;
     try {
       await api.createOrSaveOrder({
         invoiceNo,

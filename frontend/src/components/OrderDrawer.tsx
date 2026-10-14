@@ -8,8 +8,10 @@ import {
   X,
   CreditCard,
   ShoppingBag,
+  ShieldAlert,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
 import { ProductIcon } from './ProductIcons.tsx';
 
 interface OrderDrawerProps {
@@ -36,11 +38,14 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
     closeMobileCart,
   } = useCart();
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const isDrawerOpen = isOpenMobile !== undefined ? isOpenMobile : isMobileCartOpen;
   const handleClose = onCloseMobile || closeMobileCart;
 
   const handleHoldOrder = async () => {
-    if (items.length === 0) return;
+    if (items.length === 0 || isAdmin) return;
     const ok = await saveCurrentOrder();
     if (ok) {
       handleClose();
@@ -86,8 +91,12 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
             <AlertDialog.Trigger asChild>
               <button
                 type="button"
-                disabled={items.length === 0}
-                title="Simpan / Tunda Pesanan (Belum Dibayar)"
+                disabled={items.length === 0 || isAdmin}
+                title={
+                  isAdmin
+                    ? 'Role ADMIN tidak bisa bikin / simpan order'
+                    : 'Simpan / Tunda Pesanan (Belum Dibayar)'
+                }
                 className="w-7 h-7 rounded-full bg-slate-100 hover:bg-orange-50 text-slate-600 hover:text-orange-600 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
@@ -279,15 +288,27 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
           </span>
         </div>
 
-        {/* Large Green Pay Button */}
-        <button
-          onClick={onOpenPayment}
-          disabled={items.length === 0}
-          className="w-full bg-[#16A34A] hover:bg-[#15803D] active:scale-[0.99] text-white py-3 rounded-xl font-bold text-sm md:text-base flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-        >
-          <CreditCard className="w-4 h-4 stroke-[2.5]" />
-          <span>Bayar</span>
-        </button>
+        {/* Large Pay Button or ADMIN notice */}
+        {isAdmin ? (
+          <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-1 text-center">
+            <div className="flex items-center justify-center gap-1.5 text-purple-900 font-bold text-xs md:text-sm">
+              <ShieldAlert className="w-4 h-4 text-purple-600 shrink-0" />
+              <span>Role ADMIN Tidak Bisa Bikin Order</span>
+            </div>
+            <p className="text-[11px] text-purple-700 leading-snug">
+              Role ADMIN hanya bertugas mengelola platform dan tenan. Transaksi penjualan kasir hanya dapat dibuat oleh Kasir (SHOP_CASHIER) atau Pemilik Toko (SHOP_OWNER).
+            </p>
+          </div>
+        ) : (
+          <button
+            onClick={onOpenPayment}
+            disabled={items.length === 0}
+            className="w-full bg-[#16A34A] hover:bg-[#15803D] active:scale-[0.99] text-white py-3 rounded-xl font-bold text-sm md:text-base flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <CreditCard className="w-4 h-4 stroke-[2.5]" />
+            <span>Bayar</span>
+          </button>
+        )}
       </div>
     </div>
   </>

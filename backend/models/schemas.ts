@@ -68,11 +68,25 @@ export const refreshSchema = z.object({
   refreshToken: z.string().optional(),
 });
 
-// 2. Product Validation Schemas
+// 2. Product & Category Validation Schemas
+export const createCategorySchema = z.object({
+  name: z.string().min(2, 'Nama kategori minimal 2 karakter').max(50),
+  description: z.string().max(200).optional(),
+  icon: z.string().optional().default('📦'),
+  color: z.string().optional().default('#F59E0B'),
+});
+
+export const updateCategorySchema = z.object({
+  name: z.string().min(2, 'Nama kategori minimal 2 karakter').max(50).optional(),
+  description: z.string().max(200).optional(),
+  icon: z.string().optional(),
+  color: z.string().optional(),
+});
+
 export const productSchema = z.object({
   name: z.string().min(2, 'Nama produk minimal 2 karakter'),
   sku: z.string().min(2, 'SKU wajib diisi'),
-  category: z.enum(['Makanan Instan', 'Minuman', 'Sembako', 'Camilan', 'Kebutuhan Rumah']),
+  category: z.string().min(1, 'Kategori produk wajib diisi'),
   price: z.number().int().positive('Harga harus lebih dari 0'),
   costPrice: z.number().int().nonnegative().optional(),
   stock: z.number().int().nonnegative('Stok tidak boleh negatif'),
@@ -88,7 +102,7 @@ export const updateStockSchema = z.object({
   stock: z.number().int().nonnegative('Stok tidak boleh negatif'),
   price: z.number().int().positive().optional(),
   name: z.string().min(2).optional(),
-  category: z.enum(['Makanan Instan', 'Minuman', 'Sembako', 'Camilan', 'Kebutuhan Rumah']).optional(),
+  category: z.string().min(1).optional(),
 });
 
 // 3. Order / Transaction Validation Schemas

@@ -3,12 +3,15 @@ import { Minus, Plus } from 'lucide-react';
 import { Product } from '../services/api.ts';
 import { ProductIcon } from './ProductIcons.tsx';
 import { useCart } from '../context/CartContext.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const { findItemQty, addItem, setItemQty } = useCart();
   const qty = findItemQty(product.id) || findItemQty(product.sku) || findItemQty(product.name);
   const isInCart = qty > 0;
@@ -66,14 +69,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Stepper (-  qty  +) */}
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => addItem(product, -1)}
-            disabled={qty <= 0}
+            onClick={() => !isAdmin && addItem(product, -1)}
+            disabled={qty <= 0 || isAdmin}
             className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-colors ${
-              qty > 0
+              qty > 0 && !isAdmin
                 ? 'text-slate-600 hover:bg-slate-100 active:bg-slate-200 cursor-pointer'
                 : 'text-slate-300 cursor-not-allowed opacity-50'
             }`}
-            title="Kurangi jumlah"
+            title={isAdmin ? 'Role ADMIN tidak bisa bikin order' : 'Kurangi jumlah'}
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
@@ -87,13 +90,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </span>
 
           <button
-            onClick={() => addItem(product, 1)}
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-2xs cursor-pointer ${
-              isInCart
-                ? 'bg-[#16A34A] text-white hover:bg-[#15803D] active:scale-95'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            onClick={() => !isAdmin && addItem(product, 1)}
+            disabled={isAdmin}
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-2xs ${
+              isAdmin
+                ? 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-50'
+                : isInCart
+                ? 'bg-[#16A34A] text-white hover:bg-[#15803D] active:scale-95 cursor-pointer'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer'
             }`}
-            title="Tambah jumlah"
+            title={isAdmin ? 'Role ADMIN tidak bisa bikin order' : 'Tambah jumlah'}
           >
             <Plus className="w-3.5 h-3.5" />
           </button>

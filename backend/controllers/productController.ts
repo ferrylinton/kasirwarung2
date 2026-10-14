@@ -54,17 +54,20 @@ export async function getProducts(req: AuthenticatedRequest, res: Response): Pro
 }
 
 export async function createProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
-  if (!req.user?.tenantId && req.user?.role !== 'ADMIN') {
+  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+    res.status(403).json({
+      success: false,
+      message: 'Hanya role SHOP_OWNER yang bisa menambah data produk.',
+    });
+    return;
+  }
+
+  if (!req.user?.tenantId) {
     res.status(400).json({ success: false, message: 'ID tenan tidak ditemukan dalam sesi' });
     return;
   }
 
-  const tenantId = req.user?.tenantId
-    ? new ObjectId(req.user.tenantId)
-    : req.body.tenantId
-    ? new ObjectId(req.body.tenantId)
-    : new ObjectId('6ace8019cb267df584bd0001');
-
+  const tenantId = new ObjectId(req.user.tenantId);
   const productsCol = getCollection('products');
   const newProductId = new ObjectId();
 
@@ -83,11 +86,19 @@ export async function createProduct(req: AuthenticatedRequest, res: Response): P
 }
 
 export async function updateProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
+  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+    res.status(403).json({
+      success: false,
+      message: 'Hanya role SHOP_OWNER yang bisa mengubah data produk.',
+    });
+    return;
+  }
+
   const { id } = req.params;
   const productsCol = getCollection('products');
 
   const filter: Record<string, any> = { _id: new ObjectId(id) };
-  if (req.user?.role !== 'ADMIN' && req.user?.tenantId) {
+  if (req.user?.tenantId) {
     filter.tenantId = new ObjectId(req.user.tenantId);
   }
 
@@ -110,11 +121,19 @@ export async function updateProduct(req: AuthenticatedRequest, res: Response): P
 }
 
 export async function deleteProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
+  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+    res.status(403).json({
+      success: false,
+      message: 'Hanya role SHOP_OWNER yang bisa menghapus data produk.',
+    });
+    return;
+  }
+
   const { id } = req.params;
   const productsCol = getCollection('products');
 
   const filter: Record<string, any> = { _id: new ObjectId(id) };
-  if (req.user?.role !== 'ADMIN' && req.user?.tenantId) {
+  if (req.user?.tenantId) {
     filter.tenantId = new ObjectId(req.user.tenantId);
   }
 

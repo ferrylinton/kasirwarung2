@@ -10,6 +10,7 @@ import {
   Receipt,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
 import { api } from '../services/api.ts';
 
 interface PaymentModalProps {
@@ -23,6 +24,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { user } = useAuth();
   const { invoiceNo, items, total, customerName, setCustomerName, startNewTransaction } = useCart();
   const [method, setMethod] = useState<'Tunai' | 'QRIS' | 'Transfer'>('Tunai');
   const [cashAmount, setCashAmount] = useState<number>(total);
@@ -44,6 +46,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   ].filter((q) => q.amount >= total || q.label === 'Uang Pas');
 
   const handlePay = async () => {
+    if (user?.role === 'ADMIN') {
+      alert('Role ADMIN tidak bisa bikin order. Hanya kasir atau pemilik toko yang dapat memproses transaksi.');
+      return;
+    }
     if (!isCashSufficient) return;
     setLoading(true);
     try {

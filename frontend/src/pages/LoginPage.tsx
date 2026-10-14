@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as Select from '@radix-ui/react-select';
 import {
   ShoppingBag,
   Lock,
@@ -15,9 +16,50 @@ import {
   ExternalLink,
   RefreshCw,
   AtSign,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { api } from '../services/api.ts';
+
+const DEMO_ACCOUNTS = [
+  {
+    id: 'admin',
+    role: 'ADMIN',
+    label: 'Super Administrator',
+    email: 'admin@kasirwarung.id',
+    password: 'admin123',
+    subtext: 'Kelola seluruh tenan platform',
+    badgeClass: 'bg-purple-100 text-purple-700',
+  },
+  {
+    id: 'owner-budi',
+    role: 'SHOP_OWNER',
+    label: 'Budi Santoso (Pemilik Toko 1)',
+    email: 'budi@kasirwarung.id',
+    password: 'kasir123',
+    subtext: 'Warung Berkah Budi',
+    badgeClass: 'bg-orange-100 text-orange-700',
+  },
+  {
+    id: 'cashier-siti',
+    role: 'SHOP_CASHIER',
+    label: 'Siti Aminah (Kasir Toko 1)',
+    email: 'siti@kasirwarung.id',
+    password: 'kasir123',
+    subtext: 'Warung Berkah Budi',
+    badgeClass: 'bg-emerald-100 text-emerald-700',
+  },
+  {
+    id: 'owner-hendra',
+    role: 'SHOP_OWNER',
+    label: 'Hendra Gunawan (Pemilik Toko 2)',
+    email: 'hendra@kelontong.id',
+    password: 'kasir123',
+    subtext: 'Toko Kelontong Sejahtera',
+    badgeClass: 'bg-blue-100 text-blue-700',
+  },
+];
 
 type AuthMode = 'login' | 'register_tenant' | 'reactivate_tenant';
 
@@ -333,46 +375,76 @@ export const LoginPage: React.FC = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
 
-            {/* Quick Demo Accounts Pill Switcher */}
+            {/* Quick Demo Accounts Select Dropdown using @radix-ui/react-select */}
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/60 space-y-2">
-              <p className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-orange-600" />
-                Pilih Akun Demo Cepat:
-              </p>
-              <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => fillQuickDemo('admin@kasirwarung.id', 'admin123')}
-                  className="p-2 bg-white hover:bg-orange-50 hover:border-orange-200 rounded-xl border border-slate-200 text-left transition-colors cursor-pointer"
-                >
-                  <p className="font-bold text-purple-700">ADMIN</p>
-                  <p className="text-slate-500 font-mono text-[10px]">admin@kasirwarung.id</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickDemo('budi@kasirwarung.id', 'kasir123')}
-                  className="p-2 bg-white hover:bg-orange-50 hover:border-orange-200 rounded-xl border border-slate-200 text-left transition-colors cursor-pointer"
-                >
-                  <p className="font-bold text-orange-600">SHOP_OWNER (Toko 1)</p>
-                  <p className="text-slate-500 font-mono text-[10px]">budi@kasirwarung.id</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickDemo('siti@kasirwarung.id', 'kasir123')}
-                  className="p-2 bg-white hover:bg-orange-50 hover:border-orange-200 rounded-xl border border-slate-200 text-left transition-colors cursor-pointer"
-                >
-                  <p className="font-bold text-emerald-600">SHOP_CASHIER (Toko 1)</p>
-                  <p className="text-slate-500 font-mono text-[10px]">siti@kasirwarung.id</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickDemo('hendra@kelontong.id', 'kasir123')}
-                  className="p-2 bg-white hover:bg-orange-50 hover:border-orange-200 rounded-xl border border-slate-200 text-left transition-colors cursor-pointer"
-                >
-                  <p className="font-bold text-blue-600">SHOP_OWNER (Toko 2)</p>
-                  <p className="text-slate-500 font-mono text-[10px]">hendra@kelontong.id</p>
-                </button>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-orange-600" />
+                  Pilih Akun Demo Cepat:
+                </p>
+                <span className="text-[10px] text-slate-400 font-mono">Pilih role & toko</span>
               </div>
+
+              <Select.Root
+                value={
+                  DEMO_ACCOUNTS.find(
+                    (acc) => acc.email === loginEmail && acc.password === loginPassword
+                  )?.id || ''
+                }
+                onValueChange={(val) => {
+                  const selected = DEMO_ACCOUNTS.find((acc) => acc.id === val);
+                  if (selected) {
+                    fillQuickDemo(selected.email, selected.password);
+                  }
+                }}
+              >
+                <Select.Trigger
+                  aria-label="Pilih Akun Demo Cepat"
+                  className="w-full h-11 px-3.5 bg-white border border-slate-200 rounded-xl text-xs md:text-sm text-slate-800 flex items-center justify-between gap-2 shadow-2xs hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
+                >
+                  <Select.Value placeholder="-- Pilih Akun Demo Cepat --" />
+                  <Select.Icon className="text-slate-400">
+                    <ChevronDown className="w-4 h-4" />
+                  </Select.Icon>
+                </Select.Trigger>
+
+                <Select.Portal>
+                  <Select.Content
+                    position="popper"
+                    sideOffset={6}
+                    className="z-50 min-w-[280px] sm:min-w-[340px] bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 animate-in fade-in-80 zoom-in-95 max-h-[300px] overflow-y-auto"
+                  >
+                    <Select.Viewport className="p-1 space-y-1">
+                      {DEMO_ACCOUNTS.map((acc) => (
+                        <Select.Item
+                          key={acc.id}
+                          value={acc.id}
+                          className="flex items-center justify-between gap-3 px-3 py-2 text-xs rounded-xl hover:bg-orange-50 hover:text-orange-950 focus:bg-orange-50 focus:text-orange-950 cursor-pointer outline-none transition-colors data-[highlighted]:bg-orange-50 data-[state=checked]:bg-orange-50/70"
+                        >
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${acc.badgeClass}`}
+                              >
+                                {acc.role}
+                              </span>
+                              <Select.ItemText>
+                                <span className="font-bold text-slate-800">{acc.label}</span>
+                              </Select.ItemText>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-mono mt-0.5">
+                              {acc.email} • {acc.subtext}
+                            </span>
+                          </div>
+                          <Select.ItemIndicator className="text-orange-600 shrink-0">
+                            <Check className="w-4 h-4 stroke-[2.5]" />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
             </div>
           </form>
         )}

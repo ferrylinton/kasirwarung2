@@ -11,6 +11,7 @@ import orderRoutes from './routes/orderRoutes.ts';
 import reportRoutes from './routes/reportRoutes.ts';
 import tenantRoutes from './routes/tenantRoutes.ts';
 import cashierRoutes from './routes/cashierRoutes.ts';
+import categoryRoutes from './routes/categoryRoutes.ts';
 import { errorHandler } from './middleware/errorMiddleware.ts';
 
 export async function createApp(): Promise<Express> {
@@ -38,6 +39,7 @@ export async function createApp(): Promise<Express> {
   app.use('/api/auth', authRoutes);
   app.use('/api/tenants', tenantRoutes);
   app.use('/api/cashiers', cashierRoutes);
+  app.use('/api/categories', categoryRoutes);
   app.use('/api/products', productRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/reports', reportRoutes);

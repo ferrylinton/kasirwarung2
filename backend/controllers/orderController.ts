@@ -86,6 +86,15 @@ export async function getOrderHistory(req: AuthenticatedRequest, res: Response):
 }
 
 export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
+  // Role ADMIN tidak bisa bikin order
+  if (req.user?.role === 'ADMIN') {
+    res.status(403).json({
+      success: false,
+      message: 'Role ADMIN tidak bisa bikin order. Hanya kasir atau pemilik toko (SHOP_CASHIER / SHOP_OWNER) yang dapat membuat transaksi.',
+    });
+    return;
+  }
+
   const {
     invoiceNo,
     status,
