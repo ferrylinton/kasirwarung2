@@ -2,6 +2,7 @@
   "name": "kasirwarung-backend",
   "version": "1.0.0",
   "description": "Express.js backend for Kasir Warung POS with MongoDB Native, Upstash Redis, JWT Auth, and Zod validation",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "tsx server.ts",

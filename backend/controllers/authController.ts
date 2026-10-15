@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { getCollection, ObjectId } from '../config/db.ts';
+import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import {
   signAccessToken,
   signRefreshToken,
@@ -14,7 +14,7 @@ import {
   revokeRefreshToken,
   blacklistToken,
 } from '../config/redis.ts';
-import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
+import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { env } from '../config/env.ts';
 import { sendTenantVerificationEmail } from '../config/mailer.ts';
 
@@ -44,7 +44,10 @@ export async function login(req: Request, res: Response): Promise<void> {
   // Multi-tenant check: if user belongs to a tenant, check tenant status
   let tenant: any = null;
   if (user.tenantId && user.role !== 'ADMIN') {
-    tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
+    const tId = safeObjectId(user.tenantId);
+    if (tId) {
+      tenant = await tenantsCol.findOne({ _id: tId });
+    }
     if (!tenant || tenant.status === 'inactive') {
       res.status(403).json({
         success: false,
@@ -271,7 +274,8 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
     const usersCol = getCollection('users');
     const tenantsCol = getCollection('tenants');
-    const user = await usersCol.findOne({ _id: new ObjectId(payload.userId) });
+    const uId = safeObjectId(payload.userId);
+    const user = uId ? await usersCol.findOne({ _id: uId }) : null;
     if (!user) {
       res.status(401).json({ success: false, message: 'Pengguna tidak ditemukan' });
       return;
@@ -279,7 +283,10 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
     let tenant: any = null;
     if (user.tenantId && user.role !== 'ADMIN') {
-      tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
+      const tId = safeObjectId(user.tenantId);
+      if (tId) {
+        tenant = await tenantsCol.findOne({ _id: tId });
+      }
       if (!tenant || tenant.status === 'inactive') {
         res.status(403).json({ success: false, message: 'Akun toko Anda dinonaktifkan', tenantInactive: true });
         return;
@@ -348,11 +355,13 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
   const usersCol = getCollection('users');
   const tenantsCol = getCollection('tenants');
 
-  const user = await usersCol.findOne({ _id: new ObjectId(req.user.userId) });
+  const uId = safeObjectId(req.user.userId);
+  const user = uId ? await usersCol.findOne({ _id: uId }) : null;
   let tenant: any = null;
 
   if (user?.tenantId) {
-    tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
+    const tId = safeObjectId(user.tenantId);
+    if (tId) tenant = await tenantsCol.findOne({ _id: tId });
   }
 
   res.json({
@@ -390,8 +399,9 @@ export async function switchCashier(req: Request, res: Response): Promise<void> 
     ],
   };
 
-  if (tenantId) {
-    filter.tenantId = new ObjectId(tenantId);
+  if (tenantId && tenantId !== 'ALL') {
+    const tId = safeObjectId(tenantId);
+    if (tId) filter.tenantId = tId;
   }
 
   let user = await usersCol.findOne(filter);
@@ -406,7 +416,8 @@ export async function switchCashier(req: Request, res: Response): Promise<void> 
 
   let tenant: any = null;
   if (user.tenantId && user.role !== 'ADMIN') {
-    tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
+    const tId = safeObjectId(user.tenantId);
+    if (tId) tenant = await tenantsCol.findOne({ _id: tId });
     if (!tenant || tenant.status === 'inactive') {
       res.status(403).json({
         success: false,

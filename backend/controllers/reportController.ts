@@ -1,22 +1,22 @@
 import type { Response } from 'express';
-import { getCollection, ObjectId } from '../config/db.ts';
-import { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
+import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
+import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
 export async function getReportSummary(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
   const productsCol = getCollection('products');
 
-  const tenantId = req.user?.tenantId
-    ? new ObjectId(req.user.tenantId)
-    : req.query.tenantId
-    ? new ObjectId(String(req.query.tenantId))
-    : new ObjectId('6ace8019cb267df584bd0001');
-
   const filter: Record<string, any> = {};
+
   if (req.user?.role !== 'ADMIN') {
+    const tenantId =
+      safeObjectId(req.user?.tenantId) ||
+      (req.query.tenantId && req.query.tenantId !== 'ALL' ? safeObjectId(String(req.query.tenantId)) : null) ||
+      new ObjectId('6ace8019cb267df584bd0001');
     filter.tenantId = tenantId;
-  } else if (req.query.tenantId) {
-    filter.tenantId = new ObjectId(String(req.query.tenantId));
+  } else if (req.query.tenantId && req.query.tenantId !== 'ALL' && req.query.tenantId !== 'all') {
+    const tId = safeObjectId(String(req.query.tenantId));
+    if (tId) filter.tenantId = tId;
   }
 
   const paidOrders = await ordersCol.find({ ...filter, status: 'paid' }).toArray();
