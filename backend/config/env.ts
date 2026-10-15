@@ -4,7 +4,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 export const env = {
-  PORT: parseInt(process.env.PORT || '3000', 10),
+  PORT: parseInt(process.env.APP_PORT || '3000', 10),
   APP_URL: process.env.APP_URL || 'http://localhost:3000',
   JWT_SECRET: process.env.JWT_SECRET || 'kasirwarung-jwt-supersecret-2026',
   ACCESS_TOKEN_EXPIRES: process.env.ACCESS_TOKEN_EXPIRES || '15m',

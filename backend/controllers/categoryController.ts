@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { getCollection, ObjectId } from '../config/db.ts';
+import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
 export async function getCategories(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -11,13 +11,16 @@ export async function getCategories(req: AuthenticatedRequest, res: Response): P
   const filter: Record<string, any> = {};
 
   if (req.user?.role === 'ADMIN') {
-    if (queryTenantId) {
-      filter.tenantId = new ObjectId(String(queryTenantId));
+    if (queryTenantId && queryTenantId !== 'ALL' && queryTenantId !== 'all') {
+      const tId = safeObjectId(String(queryTenantId));
+      if (tId) filter.tenantId = tId;
     }
   } else if (req.user?.tenantId) {
-    filter.tenantId = new ObjectId(req.user.tenantId);
-  } else if (queryTenantId) {
-    filter.tenantId = new ObjectId(String(queryTenantId));
+    const tId = safeObjectId(req.user.tenantId);
+    if (tId) filter.tenantId = tId;
+  } else if (queryTenantId && queryTenantId !== 'ALL' && queryTenantId !== 'all') {
+    const tId = safeObjectId(String(queryTenantId));
+    if (tId) filter.tenantId = tId;
   } else {
     filter.tenantId = new ObjectId('6ace8019cb267df584bd0001');
   }
@@ -157,12 +160,17 @@ export async function updateCategory(req: AuthenticatedRequest, res: Response): 
   }
 
   const { id } = req.params;
-  const tenantId = new ObjectId(req.user!.tenantId);
+  const catId = safeObjectId(id);
+  if (!catId) {
+    res.status(400).json({ success: false, message: 'ID kategori tidak valid' });
+    return;
+  }
+  const tenantId = safeObjectId(req.user?.tenantId) || new ObjectId('6ace8019cb267df584bd0001');
   const categoriesCol = getCollection('categories');
   const productsCol = getCollection('products');
 
   const existing = await categoriesCol.findOne({
-    _id: new ObjectId(id),
+    _id: catId,
     tenantId,
   });
 
@@ -185,7 +193,7 @@ export async function updateCategory(req: AuthenticatedRequest, res: Response): 
     const cleanName = name.trim();
     // Check if new name conflicts with another category
     const duplicate = await categoriesCol.findOne({
-      _id: { $ne: new ObjectId(id) },
+      _id: { $ne: catId },
       tenantId,
       name: { $regex: `^${cleanName}$`, $options: 'i' },
     });
@@ -207,9 +215,9 @@ export async function updateCategory(req: AuthenticatedRequest, res: Response): 
     );
   }
 
-  await categoriesCol.updateOne({ _id: new ObjectId(id), tenantId }, { $set: updates });
+  await categoriesCol.updateOne({ _id: catId, tenantId }, { $set: updates });
 
-  const updated = await categoriesCol.findOne({ _id: new ObjectId(id), tenantId });
+  const updated = await categoriesCol.findOne({ _id: catId, tenantId });
   const productCount = await productsCol.countDocuments({
     tenantId,
     category: updated.name,
@@ -242,12 +250,17 @@ export async function deleteCategory(req: AuthenticatedRequest, res: Response): 
   }
 
   const { id } = req.params;
-  const tenantId = new ObjectId(req.user!.tenantId);
+  const catId = safeObjectId(id);
+  if (!catId) {
+    res.status(400).json({ success: false, message: 'ID kategori tidak valid' });
+    return;
+  }
+  const tenantId = safeObjectId(req.user?.tenantId) || new ObjectId('6ace8019cb267df584bd0001');
   const categoriesCol = getCollection('categories');
   const productsCol = getCollection('products');
 
   const existing = await categoriesCol.findOne({
-    _id: new ObjectId(id),
+    _id: catId,
     tenantId,
   });
 
@@ -273,7 +286,7 @@ export async function deleteCategory(req: AuthenticatedRequest, res: Response): 
     );
   }
 
-  await categoriesCol.deleteOne({ _id: new ObjectId(id), tenantId });
+  await categoriesCol.deleteOne({ _id: catId, tenantId });
 
   res.json({
     success: true,

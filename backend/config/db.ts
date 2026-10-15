@@ -20,6 +20,21 @@ function matchesFilter(doc: any, filter: Record<string, any> = {}): boolean {
         if (!regex.test(String(doc[k] || ''))) return false;
         continue;
       }
+      if ('$gte' in v) {
+        if (doc[k] === undefined || doc[k] < v.$gte) return false;
+      }
+      if ('$gt' in v) {
+        if (doc[k] === undefined || doc[k] <= v.$gt) return false;
+      }
+      if ('$lte' in v) {
+        if (doc[k] === undefined || doc[k] > v.$lte) return false;
+      }
+      if ('$lt' in v) {
+        if (doc[k] === undefined || doc[k] >= v.$lt) return false;
+      }
+      if ('$gte' in v || '$gt' in v || '$lte' in v || '$lt' in v) {
+        continue;
+      }
       if ('$in' in v && Array.isArray(v.$in)) {
         if (!v.$in.map(String).includes(String(doc[k]))) return false;
         continue;
@@ -38,10 +53,64 @@ function matchesFilter(doc: any, filter: Record<string, any> = {}): boolean {
   return true;
 }
 
-export function toObjectId(id: string | ObjectId): ObjectId {
+export class SafeObjectId extends ObjectId {
+  constructor(id?: string | number | ObjectId | Uint8Array) {
+    if (id !== undefined && id !== null) {
+      if (id instanceof ObjectId) {
+        super(id);
+        return;
+      }
+      if (typeof id === 'string') {
+        if (/^[0-9a-fA-F]{24}$/.test(id)) {
+          super(id);
+          return;
+        }
+        // Fallback for non-24 hex string so BSONError is never thrown
+        super();
+        return;
+      }
+      try {
+        super(id as any);
+        return;
+      } catch {
+        super();
+        return;
+      }
+    }
+    super();
+  }
+}
+
+export function isValidObjectId(id: any): boolean {
+  if (!id) return false;
+  if (id instanceof ObjectId) return true;
+  if (typeof id === 'string') {
+    return /^[0-9a-fA-F]{24}$/.test(id);
+  }
+  return false;
+}
+
+export function safeObjectId(id?: any): ObjectId | null {
+  if (!id) return null;
   if (id instanceof ObjectId) return id;
-  if (typeof id === 'string' && ObjectId.isValid(id) && id.length === 24) {
-    return new ObjectId(id);
+  if (typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)) {
+    try {
+      return new ObjectId(id);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+export function toObjectId(id?: any): ObjectId {
+  if (id instanceof ObjectId) return id;
+  if (typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)) {
+    try {
+      return new ObjectId(id);
+    } catch {
+      return new ObjectId();
+    }
   }
   return new ObjectId();
 }
@@ -192,4 +261,4 @@ export function isMongoNativeConnected(): boolean {
   return isNativeConnected;
 }
 
-export { ObjectId };
+export { SafeObjectId as ObjectId };

@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyToken, type TokenPayload } from '../utils/jwt.ts';
 import { isTokenBlacklisted } from '../config/redis.ts';
-import { getCollection, ObjectId } from '../config/db.ts';
+import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 
 export interface AuthenticatedRequest extends Request {
   user?: TokenPayload;
@@ -38,15 +38,18 @@ export async function authenticateToken(
 
     // If user belongs to a tenant, ensure the tenant is still active
     if (payload.tenantId && payload.role !== 'ADMIN') {
-      const tenantsCol = getCollection('tenants');
-      const tenant = await tenantsCol.findOne({ _id: new ObjectId(payload.tenantId) });
-      if (!tenant || tenant.status === 'inactive') {
-        res.status(403).json({
-          success: false,
-          message: 'Akun toko/tenan Anda sedang dinonaktifkan. Silakan hubungi admin atau ajukan pengaktifan kembali.',
-          tenantInactive: true,
-        });
-        return;
+      const tId = safeObjectId(payload.tenantId);
+      if (tId) {
+        const tenantsCol = getCollection('tenants');
+        const tenant = await tenantsCol.findOne({ _id: tId });
+        if (!tenant || tenant.status === 'inactive') {
+          res.status(403).json({
+            success: false,
+            message: 'Akun toko/tenan Anda sedang dinonaktifkan. Silakan hubungi admin atau ajukan pengaktifan kembali.',
+            tenantInactive: true,
+          });
+          return;
+        }
       }
     }
 

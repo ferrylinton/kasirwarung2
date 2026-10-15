@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --rdp-accent-color: #F97316;
+    --rdp-accent-background-color: #FFF7ED;
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
@@ -9,3 +14,4 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
