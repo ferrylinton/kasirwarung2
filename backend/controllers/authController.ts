@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
+import { getCollection, ObjectId } from '../config/db.ts';
 import {
   signAccessToken,
   signRefreshToken,
@@ -44,10 +44,7 @@ export async function login(req: Request, res: Response): Promise<void> {
   // Multi-tenant check: if user belongs to a tenant, check tenant status
   let tenant: any = null;
   if (user.tenantId && user.role !== 'ADMIN') {
-    const tId = safeObjectId(user.tenantId);
-    if (tId) {
-      tenant = await tenantsCol.findOne({ _id: tId });
-    }
+    tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
     if (!tenant || tenant.status === 'inactive') {
       res.status(403).json({
         success: false,
@@ -274,8 +271,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
     const usersCol = getCollection('users');
     const tenantsCol = getCollection('tenants');
-    const uId = safeObjectId(payload.userId);
-    const user = uId ? await usersCol.findOne({ _id: uId }) : null;
+    const user = await usersCol.findOne({ _id: new ObjectId(payload.userId) });
     if (!user) {
       res.status(401).json({ success: false, message: 'Pengguna tidak ditemukan' });
       return;
@@ -283,10 +279,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
     let tenant: any = null;
     if (user.tenantId && user.role !== 'ADMIN') {
-      const tId = safeObjectId(user.tenantId);
-      if (tId) {
-        tenant = await tenantsCol.findOne({ _id: tId });
-      }
+      tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
       if (!tenant || tenant.status === 'inactive') {
         res.status(403).json({ success: false, message: 'Akun toko Anda dinonaktifkan', tenantInactive: true });
         return;
@@ -355,13 +348,11 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
   const usersCol = getCollection('users');
   const tenantsCol = getCollection('tenants');
 
-  const uId = safeObjectId(req.user.userId);
-  const user = uId ? await usersCol.findOne({ _id: uId }) : null;
+  const user = await usersCol.findOne({ _id: new ObjectId(req.user.userId) });
   let tenant: any = null;
 
   if (user?.tenantId) {
-    const tId = safeObjectId(user.tenantId);
-    if (tId) tenant = await tenantsCol.findOne({ _id: tId });
+    tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
   }
 
   res.json({
@@ -399,9 +390,8 @@ export async function switchCashier(req: Request, res: Response): Promise<void> 
     ],
   };
 
-  if (tenantId && tenantId !== 'ALL') {
-    const tId = safeObjectId(tenantId);
-    if (tId) filter.tenantId = tId;
+  if (tenantId) {
+    filter.tenantId = new ObjectId(tenantId);
   }
 
   let user = await usersCol.findOne(filter);
@@ -416,8 +406,7 @@ export async function switchCashier(req: Request, res: Response): Promise<void> 
 
   let tenant: any = null;
   if (user.tenantId && user.role !== 'ADMIN') {
-    const tId = safeObjectId(user.tenantId);
-    if (tId) tenant = await tenantsCol.findOne({ _id: tId });
+    tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
     if (!tenant || tenant.status === 'inactive') {
       res.status(403).json({
         success: false,

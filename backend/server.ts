@@ -1,4 +1,4 @@
-import express, { type Express } from 'express';
+import express, { Express } from 'express';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env.ts';
@@ -13,7 +13,6 @@ import tenantRoutes from './routes/tenantRoutes.ts';
 import cashierRoutes from './routes/cashierRoutes.ts';
 import categoryRoutes from './routes/categoryRoutes.ts';
 import { errorHandler } from './middleware/errorMiddleware.ts';
-import { initMidnightCleanupScheduler } from './services/cleanupScheduler.ts';
 
 export async function createApp(): Promise<Express> {
   const app = express();
@@ -21,11 +20,10 @@ export async function createApp(): Promise<Express> {
   app.use(express.json());
   app.use(cookieParser());
 
-  // Initialize DB, Redis, and Midnight Cleanup Scheduler (3-month retention)
+  // Initialize DB and Redis
   await connectMongoDB();
   initRedis();
   await seedInitialData();
-  initMidnightCleanupScheduler();
 
   // Health and System Status Endpoint
   app.get('/api/health', (_req, res) => {
@@ -53,7 +51,7 @@ export async function createApp(): Promise<Express> {
 
 export async function startServer() {
   const app = await createApp();
-  const port = 3000;
+  const port = env.PORT || 3000;
   const httpServer = http.createServer(app);
 
   // In development, hook Vite middleware
@@ -62,7 +60,9 @@ export async function startServer() {
     const vite = await createServer({
       server: {
         middlewareMode: true,
-        hmr: false,
+        hmr: {
+          server: httpServer,
+        },
       },
       appType: 'spa',
     });

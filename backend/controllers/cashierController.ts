@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
+import { getCollection, ObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
 /**
@@ -9,7 +9,7 @@ import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
  */
 export async function getCashiers(req: AuthenticatedRequest, res: Response): Promise<void> {
   const usersCol = getCollection('users');
-  const tenantId = req.user?.tenantId ? safeObjectId(req.user.tenantId) : null;
+  const tenantId = req.user?.tenantId ? new ObjectId(req.user.tenantId) : null;
 
   const filter: Record<string, any> = {
     role: { $in: ['SHOP_CASHIER', 'kasir'] },
@@ -65,7 +65,7 @@ export async function createCashier(req: AuthenticatedRequest, res: Response): P
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const tenantId = safeObjectId(req.user.tenantId) || new ObjectId('6ace8019cb267df584bd0001');
+  const tenantId = new ObjectId(req.user.tenantId);
   const newCashierId = new ObjectId();
 
   await usersCol.insertOne({
@@ -101,11 +101,6 @@ export async function createCashier(req: AuthenticatedRequest, res: Response): P
  */
 export async function updateCashier(req: AuthenticatedRequest, res: Response): Promise<void> {
   const { id } = req.params;
-  const cashierId = safeObjectId(id);
-  if (!cashierId) {
-    res.status(400).json({ success: false, message: 'ID kasir tidak valid' });
-    return;
-  }
   const { name, shift, password, status } = req.body;
 
   if (!req.user?.tenantId) {
@@ -114,10 +109,10 @@ export async function updateCashier(req: AuthenticatedRequest, res: Response): P
   }
 
   const usersCol = getCollection('users');
-  const tenantId = safeObjectId(req.user.tenantId) || new ObjectId('6ace8019cb267df584bd0001');
+  const tenantId = new ObjectId(req.user.tenantId);
 
   const filter: Record<string, any> = {
-    _id: cashierId,
+    _id: new ObjectId(id),
     role: { $in: ['SHOP_CASHIER', 'kasir'] },
   };
 
@@ -156,11 +151,6 @@ export async function updateCashier(req: AuthenticatedRequest, res: Response): P
  */
 export async function deleteCashier(req: AuthenticatedRequest, res: Response): Promise<void> {
   const { id } = req.params;
-  const cashierId = safeObjectId(id);
-  if (!cashierId) {
-    res.status(400).json({ success: false, message: 'ID kasir tidak valid' });
-    return;
-  }
 
   if (!req.user?.tenantId) {
     res.status(400).json({ success: false, message: 'ID tenan tidak ditemukan' });
@@ -168,10 +158,10 @@ export async function deleteCashier(req: AuthenticatedRequest, res: Response): P
   }
 
   const usersCol = getCollection('users');
-  const tenantId = safeObjectId(req.user.tenantId) || new ObjectId('6ace8019cb267df584bd0001');
+  const tenantId = new ObjectId(req.user.tenantId);
 
   const filter: Record<string, any> = {
-    _id: cashierId,
+    _id: new ObjectId(id),
     role: { $in: ['SHOP_CASHIER', 'kasir'] },
   };
 

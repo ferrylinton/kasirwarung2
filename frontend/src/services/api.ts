@@ -106,8 +106,6 @@ export interface Order {
   cashReceived?: number;
   changeAmount?: number;
   createdAt?: string;
-  tenantId?: string;
-  tenantName?: string;
 }
 
 const ACCESS_KEY = 'kw_access_token';
@@ -264,18 +262,7 @@ export const api = {
 
   // Orders
   getSavedOrders: () => apiRequest('/api/orders/saved'),
-  getOrderHistory: (tenantId?: string, startDate?: string, endDate?: string) => {
-    const params = new URLSearchParams();
-    if (tenantId && tenantId !== 'ALL') params.set('tenantId', tenantId);
-    if (startDate) params.set('startDate', startDate);
-    if (endDate) params.set('endDate', endDate);
-    const qs = params.toString() ? `?${params.toString()}` : '';
-    return apiRequest(`/api/orders/history${qs}`);
-  },
-  runOldOrdersCleanup: () =>
-    apiRequest('/api/orders/cleanup-old', {
-      method: 'POST',
-    }),
+  getOrderHistory: () => apiRequest('/api/orders/history'),
   getNextInvoice: () => apiRequest('/api/orders/next-invoice'),
   createOrSaveOrder: (orderData: any) =>
     apiRequest('/api/orders', {
@@ -334,7 +321,7 @@ export const api = {
   // Category Management (CRUD by SHOP_OWNER)
   getCategories: (tenantId?: string) => {
     const params = new URLSearchParams();
-    if (tenantId && tenantId !== 'ALL') params.append('tenantId', tenantId);
+    if (tenantId) params.append('tenantId', tenantId);
     const qs = params.toString() ? `?${params.toString()}` : '';
     return apiRequest(`/api/categories${qs}`);
   },

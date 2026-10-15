@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import crypto from 'crypto';
-import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
+import { getCollection, ObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import {
   sendTenantVerificationEmail,
@@ -54,14 +54,13 @@ export async function getTenants(req: AuthenticatedRequest, res: Response): Prom
  * Get current tenant details for logged-in SHOP_OWNER or SHOP_CASHIER
  */
 export async function getCurrentTenant(req: AuthenticatedRequest, res: Response): Promise<void> {
-  const tId = safeObjectId(req.user?.tenantId);
-  if (!tId) {
+  if (!req.user?.tenantId) {
     res.status(400).json({ success: false, message: 'Tidak ada informasi tenan' });
     return;
   }
 
   const tenantsCol = getCollection('tenants');
-  const tenant = await tenantsCol.findOne({ _id: tId });
+  const tenant = await tenantsCol.findOne({ _id: new ObjectId(req.user.tenantId) });
 
   if (!tenant) {
     res.status(404).json({ success: false, message: 'Data tenan tidak ditemukan' });
@@ -89,11 +88,6 @@ export async function getCurrentTenant(req: AuthenticatedRequest, res: Response)
  */
 export async function updateTenantStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
   const { id } = req.params;
-  const tId = safeObjectId(id);
-  if (!tId) {
-    res.status(400).json({ success: false, message: 'ID tenan tidak valid' });
-    return;
-  }
   const { status, reason } = req.body;
 
   if (!['active', 'inactive'].includes(status)) {
@@ -102,14 +96,14 @@ export async function updateTenantStatus(req: AuthenticatedRequest, res: Respons
   }
 
   const tenantsCol = getCollection('tenants');
-  const tenant = await tenantsCol.findOne({ _id: tId });
+  const tenant = await tenantsCol.findOne({ _id: new ObjectId(id) });
   if (!tenant) {
     res.status(404).json({ success: false, message: 'Tenan tidak ditemukan' });
     return;
   }
 
   await tenantsCol.updateOne(
-    { _id: tId },
+    { _id: new ObjectId(id) },
     {
       $set: {
         status,
@@ -142,11 +136,7 @@ export async function requestDeactivation(req: AuthenticatedRequest, res: Respon
   }
 
   const tenantsCol = getCollection('tenants');
-  const tenantId = safeObjectId(req.user?.tenantId);
-  if (!tenantId) {
-    res.status(400).json({ success: false, message: 'ID tenan tidak valid' });
-    return;
-  }
+  const tenantId = new ObjectId(req.user.tenantId);
   const tenant = await tenantsCol.findOne({ _id: tenantId });
 
   if (!tenant) {
@@ -157,7 +147,7 @@ export async function requestDeactivation(req: AuthenticatedRequest, res: Respon
   const deactivationRequest = {
     status: 'pending',
     reason: reason.trim(),
-    requestedBy: req.user?.email || 'owner',
+    requestedBy: req.user.email,
     requestedAt: new Date().toISOString(),
   };
 
@@ -189,11 +179,7 @@ export async function cancelDeactivation(req: AuthenticatedRequest, res: Respons
   }
 
   const tenantsCol = getCollection('tenants');
-  const tenantId = safeObjectId(req.user?.tenantId);
-  if (!tenantId) {
-    res.status(400).json({ success: false, message: 'ID tenan tidak valid' });
-    return;
-  }
+  const tenantId = new ObjectId(req.user.tenantId);
   const tenant = await tenantsCol.findOne({ _id: tenantId });
 
   if (!tenant || !tenant.deactivationRequest || tenant.deactivationRequest.status !== 'pending') {
@@ -231,14 +217,8 @@ export async function reviewDeactivation(req: AuthenticatedRequest, res: Respons
     return;
   }
 
-  const tId = safeObjectId(id);
-  if (!tId) {
-    res.status(400).json({ success: false, message: 'ID tenan tidak valid' });
-    return;
-  }
-
   const tenantsCol = getCollection('tenants');
-  const tenant = await tenantsCol.findOne({ _id: tId });
+  const tenant = await tenantsCol.findOne({ _id: new ObjectId(id) });
 
   if (!tenant) {
     res.status(404).json({ success: false, message: 'Tenan tidak ditemukan' });
@@ -247,7 +227,7 @@ export async function reviewDeactivation(req: AuthenticatedRequest, res: Respons
 
   if (action === 'approve') {
     await tenantsCol.updateOne(
-      { _id: tId },
+      { _id: new ObjectId(id) },
       {
         $set: {
           status: 'inactive',
@@ -264,7 +244,7 @@ export async function reviewDeactivation(req: AuthenticatedRequest, res: Respons
     });
   } else {
     await tenantsCol.updateOne(
-      { _id: tId },
+      { _id: new ObjectId(id) },
       {
         $set: {
           'deactivationRequest.status': 'rejected',
@@ -303,8 +283,7 @@ export async function requestReactivation(req: Request, res: Response): Promise<
     return;
   }
 
-  const tId = safeObjectId(user.tenantId);
-  const tenant = tId ? await tenantsCol.findOne({ _id: tId }) : null;
+  const tenant = await tenantsCol.findOne({ _id: new ObjectId(user.tenantId) });
   if (!tenant) {
     res.status(404).json({ success: false, message: 'Data tenan tidak ditemukan' });
     return;

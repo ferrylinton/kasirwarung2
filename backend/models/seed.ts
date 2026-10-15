@@ -369,12 +369,6 @@ export async function seedInitialData(): Promise<void> {
       ]);
       console.log('[Seed] Initial saved & completed orders seeded for Tenant 1');
     }
-
-    // Ensure any legacy orders without tenantId are assigned to t1Id (Warung Berkah Budi)
-    await ordersCol.updateMany(
-      { $or: [{ tenantId: { $exists: false } }, { tenantId: null }] },
-      { $set: { tenantId: t1Id } }
-    );
   } catch (err) {
     console.warn('[Seed] Seed warning:', err);
   }

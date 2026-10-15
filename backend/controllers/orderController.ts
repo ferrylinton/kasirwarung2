@@ -1,21 +1,18 @@
 import type { Response } from 'express';
-import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
+import { getCollection, ObjectId } from '../config/db.ts';
 import { sendReceiptEmail } from '../config/mailer.ts';
 import { formatCurrentTimeHHMM } from '../utils/invoice.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
-import { cleanupOrdersOlderThanThreeMonths } from '../services/cleanupScheduler.ts';
 
 export async function getSavedOrders(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
-  const tenantId =
-    safeObjectId(req.user?.tenantId) ||
-    (req.query.tenantId && req.query.tenantId !== 'ALL' ? safeObjectId(String(req.query.tenantId)) : null) ||
-    new ObjectId('6ace8019cb267df584bd0001');
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : req.query.tenantId
+    ? new ObjectId(String(req.query.tenantId))
+    : new ObjectId('6ace8019cb267df584bd0001');
 
-  const filter: Record<string, any> = { status: 'saved' };
-  if (req.user?.role !== 'ADMIN' || (req.query.tenantId && req.query.tenantId !== 'ALL')) {
-    filter.tenantId = tenantId;
-  }
+  const filter: Record<string, any> = { status: 'saved', tenantId };
 
   const savedOrders = await ordersCol
     .find(filter)
@@ -43,65 +40,31 @@ export async function getSavedOrders(req: AuthenticatedRequest, res: Response): 
 }
 
 export async function getOrderHistory(req: AuthenticatedRequest, res: Response): Promise<void> {
-  const { tenantId: queryTenantId, startDate, endDate } = req.query;
   const ordersCol = getCollection('orders');
-  const tenantsCol = getCollection('tenants');
-
-  // 3-Month retention baseline cutoff
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-  const baselineCutoffIso = threeMonthsAgo.toISOString();
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : req.query.tenantId
+    ? new ObjectId(String(req.query.tenantId))
+    : new ObjectId('6ace8019cb267df584bd0001');
 
   const filter: Record<string, any> = {
     status: { $in: ['paid', 'cancelled'] },
   };
 
-  // Date filtering with 3-month max retention boundary
-  const dateFilter: Record<string, string> = { $gte: baselineCutoffIso };
-  if (startDate) {
-    const sDate = new Date(String(startDate));
-    if (!isNaN(sDate.getTime())) {
-      sDate.setHours(0, 0, 0, 0);
-      const sIso = sDate.toISOString();
-      // Cannot view older than 3 months
-      dateFilter.$gte = sIso > baselineCutoffIso ? sIso : baselineCutoffIso;
-    }
-  }
-  if (endDate) {
-    const eDate = new Date(String(endDate));
-    if (!isNaN(eDate.getTime())) {
-      eDate.setHours(23, 59, 59, 999);
-      dateFilter.$lte = eDate.toISOString();
-    }
-  }
-  filter.createdAt = dateFilter;
-
-  // Tenant scoping: SHOP_OWNER can only see their own tenant; ADMIN can see ALL or specific tenant
   if (req.user?.role !== 'ADMIN') {
-    const userTenantId = safeObjectId(req.user?.tenantId) || new ObjectId('6ace8019cb267df584bd0001');
-    if (String(userTenantId) === '6ace8019cb267df584bd0001') {
-      filter.$or = [{ tenantId: userTenantId }, { tenantId: { $exists: false } }, { tenantId: null }];
-    } else {
-      filter.tenantId = userTenantId;
-    }
-  } else if (queryTenantId && queryTenantId !== 'ALL' && queryTenantId !== 'all') {
-    const tId = safeObjectId(String(queryTenantId));
-    if (tId) filter.tenantId = tId;
+    filter.tenantId = tenantId;
+  } else if (req.query.tenantId) {
+    filter.tenantId = new ObjectId(String(req.query.tenantId));
   }
 
   const list = await ordersCol
     .find(filter)
     .sort({ createdAt: -1 })
+    .limit(50)
     .toArray();
-
-  // Map tenant names for display
-  const allTenants = await tenantsCol.find({}).toArray();
-  const tenantMap = new Map(allTenants.map((t: any) => [String(t._id), t.name]));
 
   res.json({
     success: true,
-    retentionPolicy: '3_MONTHS',
-    earliestAllowedDate: baselineCutoffIso,
     data: list.map((o: any) => ({
       id: String(o._id),
       invoiceNo: o.invoiceNo,
@@ -109,6 +72,7 @@ export async function getOrderHistory(req: AuthenticatedRequest, res: Response):
       timeLabel: o.timeLabel || formatCurrentTimeHHMM(),
       customerName: o.customerName || 'Umum',
       cashierName: o.cashierName || 'Budi Santoso',
+      paymentMethod: o.paymentMethod || 'Tunai',
       items: o.items || [],
       subtotal: o.subtotal,
       tax: o.tax,
@@ -117,17 +81,7 @@ export async function getOrderHistory(req: AuthenticatedRequest, res: Response):
       changeAmount: o.changeAmount,
       createdAt: o.createdAt,
       tenantId: String(o.tenantId),
-      tenantName: tenantMap.get(String(o.tenantId)) || 'Warung Berkah Budi',
     })),
-  });
-}
-
-export async function triggerCleanupOrders(_req: AuthenticatedRequest, res: Response): Promise<void> {
-  const result = await cleanupOrdersOlderThanThreeMonths();
-  res.json({
-    success: true,
-    message: `Pembersihan riwayat transaksi lama selesai. Sebanyak ${result.deletedCount} transaksi lebih dari 3 bulan telah dihapus.`,
-    data: result,
   });
 }
 
@@ -152,9 +106,9 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
     notes,
   } = req.body;
 
-  const tenantId =
-    safeObjectId(req.user?.tenantId) ||
-    new ObjectId('6ace8019cb267df584bd0001');
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : new ObjectId('6ace8019cb267df584bd0001');
 
   const ordersCol = getCollection('orders');
   const productsCol = getCollection('products');
@@ -170,11 +124,10 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
   // If status is 'paid', deduct inventory stock for this tenant
   if (status === 'paid') {
     for (const item of items) {
-      const pId = safeObjectId(item.productId);
-      if (pId) {
+      if (item.productId && ObjectId.isValid(item.productId)) {
         try {
           await productsCol.updateOne(
-            { _id: pId, tenantId },
+            { _id: new ObjectId(item.productId), tenantId },
             { $inc: { stock: -item.qty } }
           );
         } catch {
@@ -247,9 +200,9 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
 
 export async function deleteSavedOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
   const { invoiceNo } = req.params;
-  const tenantId =
-    safeObjectId(req.user?.tenantId) ||
-    new ObjectId('6ace8019cb267df584bd0001');
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : new ObjectId('6ace8019cb267df584bd0001');
 
   const ordersCol = getCollection('orders');
   await ordersCol.deleteOne({ invoiceNo, tenantId });
@@ -258,9 +211,9 @@ export async function deleteSavedOrder(req: AuthenticatedRequest, res: Response)
 
 export async function getNextInvoice(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
-  const tenantId =
-    safeObjectId(req.user?.tenantId) ||
-    new ObjectId('6ace8019cb267df584bd0001');
+  const tenantId = req.user?.tenantId
+    ? new ObjectId(req.user.tenantId)
+    : new ObjectId('6ace8019cb267df584bd0001');
 
   const count = await ordersCol.countDocuments({ tenantId });
   const nextSeq = count + 42;

@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
+import { getCollection, ObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 
 export async function getProducts(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -10,16 +10,13 @@ export async function getProducts(req: AuthenticatedRequest, res: Response): Pro
 
   // Multi-tenant scoping
   if (req.user?.role === 'ADMIN') {
-    if (queryTenantId && queryTenantId !== 'ALL' && queryTenantId !== 'all') {
-      const tId = safeObjectId(String(queryTenantId));
-      if (tId) filter.tenantId = tId;
+    if (queryTenantId) {
+      filter.tenantId = new ObjectId(String(queryTenantId));
     }
   } else if (req.user?.tenantId) {
-    const tId = safeObjectId(req.user.tenantId);
-    if (tId) filter.tenantId = tId;
-  } else if (queryTenantId && queryTenantId !== 'ALL' && queryTenantId !== 'all') {
-    const tId = safeObjectId(String(queryTenantId));
-    if (tId) filter.tenantId = tId;
+    filter.tenantId = new ObjectId(req.user.tenantId);
+  } else if (queryTenantId) {
+    filter.tenantId = new ObjectId(String(queryTenantId));
   } else {
     // Default fallback to first tenant for initial pre-login state
     filter.tenantId = new ObjectId('6ace8019cb267df584bd0001');
@@ -107,17 +104,11 @@ export async function updateProduct(req: AuthenticatedRequest, res: Response): P
   }
 
   const { id } = req.params;
-  const prodId = safeObjectId(id);
-  if (!prodId) {
-    res.status(400).json({ success: false, message: 'ID produk tidak valid' });
-    return;
-  }
   const productsCol = getCollection('products');
 
-  const filter: Record<string, any> = { _id: prodId };
+  const filter: Record<string, any> = { _id: new ObjectId(id) };
   if (req.user?.tenantId) {
-    const tId = safeObjectId(req.user.tenantId);
-    if (tId) filter.tenantId = tId;
+    filter.tenantId = new ObjectId(req.user.tenantId);
   }
 
   const existing = await productsCol.findOne(filter);
@@ -148,17 +139,11 @@ export async function deleteProduct(req: AuthenticatedRequest, res: Response): P
   }
 
   const { id } = req.params;
-  const prodId = safeObjectId(id);
-  if (!prodId) {
-    res.status(400).json({ success: false, message: 'ID produk tidak valid' });
-    return;
-  }
   const productsCol = getCollection('products');
 
-  const filter: Record<string, any> = { _id: prodId };
+  const filter: Record<string, any> = { _id: new ObjectId(id) };
   if (req.user?.tenantId) {
-    const tId = safeObjectId(req.user.tenantId);
-    if (tId) filter.tenantId = tId;
+    filter.tenantId = new ObjectId(req.user.tenantId);
   }
 
   const existing = await productsCol.findOne(filter);
