@@ -31,6 +31,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [customerEmail, setCustomerEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [successOrder, setSuccessOrder] = useState<any | null>(null);
+  const [paymentError, setPaymentError] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -47,10 +48,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const handlePay = async () => {
     if (user?.role === 'ADMIN') {
-      alert('Role ADMIN tidak bisa bikin order. Hanya kasir atau pemilik toko yang dapat memproses transaksi.');
+      setPaymentError('Role ADMIN tidak bisa bikin order. Hanya kasir atau pemilik toko yang dapat memproses transaksi.');
       return;
     }
     if (!isCashSufficient) return;
+    setPaymentError('');
     setLoading(true);
     try {
       const res = await api.createOrSaveOrder({
@@ -67,7 +69,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         setSuccessOrder(res.data);
       }
     } catch (err: any) {
-      alert(err.message || 'Pembayaran gagal diproses');
+      setPaymentError(err.message || 'Pembayaran gagal diproses');
     } finally {
       setLoading(false);
     }
@@ -172,6 +174,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
         ) : (
           <div className="p-6 space-y-5">
+            {paymentError && (
+              <div className="p-3 bg-red-50 border border-red-200/80 rounded-xl text-xs text-red-700 font-semibold">
+                {paymentError}
+              </div>
+            )}
+
             {/* Amount Banner */}
             <div className="bg-orange-50/60 rounded-2xl p-4 flex items-center justify-between border border-orange-200/60">
               <div>

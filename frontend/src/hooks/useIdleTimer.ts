@@ -4,9 +4,15 @@ interface IdleTimerOptions {
   timeoutMinutes: number;
   onTimeout: () => void;
   warningSeconds?: number;
+  enabled?: boolean;
 }
 
-export function useIdleTimer({ timeoutMinutes, onTimeout, warningSeconds = 30 }: IdleTimerOptions) {
+export function useIdleTimer({
+  timeoutMinutes,
+  onTimeout,
+  warningSeconds = 30,
+  enabled = true,
+}: IdleTimerOptions) {
   const [showWarning, setShowWarning] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(warningSeconds);
   const lastActivityRef = useRef(Date.now());
@@ -19,6 +25,11 @@ export function useIdleTimer({ timeoutMinutes, onTimeout, warningSeconds = 30 }:
   }, [warningSeconds]);
 
   useEffect(() => {
+    if (!enabled) {
+      setShowWarning(false);
+      return;
+    }
+
     const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll', 'click'];
 
     const handleUserActivity = () => {
@@ -52,7 +63,7 @@ export function useIdleTimer({ timeoutMinutes, onTimeout, warningSeconds = 30 }:
       activityEvents.forEach((ev) => window.removeEventListener(ev, handleUserActivity));
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [timeoutMinutes, warningSeconds, onTimeout, showWarning]);
+  }, [timeoutMinutes, warningSeconds, onTimeout, showWarning, enabled]);
 
   return {
     showWarning,

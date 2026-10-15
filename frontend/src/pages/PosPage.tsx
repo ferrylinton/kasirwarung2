@@ -10,7 +10,7 @@ import { ProductModal } from '../components/ProductModal.tsx';
 import { ShiftModal } from '../components/ShiftModal.tsx';
 import { Product, api } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { PackagePlus, RefreshCcw, Shield } from 'lucide-react';
+import { PackagePlus, RefreshCcw, Shield, Tags } from 'lucide-react';
 
 const CATEGORIES = [
   'Semua Produk',
@@ -27,6 +27,7 @@ interface PosPageProps {
 
 export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categoriesList, setCategoriesList] = useState<string[]>(CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -56,6 +57,14 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  useEffect(() => {
+    api.getCategories().then((res) => {
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setCategoriesList(['Semua Produk', ...res.data.map((c: any) => c.name)]);
+      }
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
@@ -118,8 +127,15 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
             <CategorySelect
               value={selectedCategory}
               onValueChange={setSelectedCategory}
-              categories={CATEGORIES}
+              categories={categoriesList}
             />
+            <button
+              onClick={() => onNavigate?.('categories')}
+              title="Buka Halaman Kategori Produk"
+              className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-orange-600 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+            >
+              <Tags className="w-4 h-4 text-amber-500" />
+            </button>
             <button
               onClick={() => onNavigate?.('products')}
               title="Buka Halaman Inventaris Produk"

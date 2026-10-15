@@ -11,6 +11,8 @@ import {
   Building2,
   Users,
   Store,
+  Tags,
+  Package,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -18,12 +20,15 @@ import { useAuth } from '../context/AuthContext.tsx';
 export type ActiveTab =
   | 'pos'
   | 'products'
+  | 'categories'
   | 'history'
   | 'reports'
   | 'profile'
   | 'login-history'
   | 'change-password'
   | 'tenants'
+  | 'admin-products'
+  | 'admin-categories'
   | 'cashiers'
   | 'store-settings';
 
@@ -47,6 +52,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
     switch (currentTab) {
       case 'tenants':
         return 'Kelola Tenan Platform';
+      case 'admin-products':
+        return 'Semua Produk Tenan';
+      case 'admin-categories':
+        return 'Semua Kategori Tenan';
       case 'cashiers':
         return 'Kelola Staf Kasir';
       case 'store-settings':
@@ -61,6 +70,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         return 'Laporan & Analitik';
       case 'products':
         return 'Katalog & Stok';
+      case 'categories':
+        return 'Kelola Kategori Produk';
       case 'history':
         return 'Riwayat Transaksi';
       case 'pos':
@@ -91,30 +102,32 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
       {/* Right: User Dropdown Menu & Tablet/Mobile Shopping Cart Button */}
       <div className="flex items-center gap-2 md:gap-3">
-      {/* Shopping Cart Button for Tablet and Mobile */}
-        <button
-          onClick={onOpenMobileCart || openMobileCart}
-          title="Buka Daftar Pesanan"
-          className="relative h-9 md:h-10 px-2.5 sm:px-3.5 bg-[#16A34A] hover:bg-[#15803D] active:scale-95 text-white rounded-full shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <div className="relative flex items-center justify-center shrink-0">
-            <ShoppingCart className="w-4 h-4 md:w-4.5 md:h-4.5" />
-            {totalItemCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-[#EF4444] text-white text-[10px] font-extrabold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center border-2 border-[#16A34A] shadow-xs">
-                {totalItemCount}
+        {/* Shopping Cart Button for Tablet and Mobile (non-ADMIN only) */}
+        {user?.role !== 'ADMIN' && (
+          <button
+            onClick={onOpenMobileCart || openMobileCart}
+            title="Buka Daftar Pesanan"
+            className="relative h-9 md:h-10 px-2.5 sm:px-3.5 bg-[#16A34A] hover:bg-[#15803D] active:scale-95 text-white rounded-full shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <div className="relative flex items-center justify-center shrink-0">
+              <ShoppingCart className="w-4 h-4 md:w-4.5 md:h-4.5" />
+              {totalItemCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-[#EF4444] text-white text-[10px] font-extrabold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center border-2 border-[#16A34A] shadow-xs">
+                  {totalItemCount}
+                </span>
+              )}
+            </div>
+            {totalItemCount > 0 ? (
+              <span className="hidden sm:inline font-semibold text-xs md:text-sm tabular-nums">
+                Rp{total.toLocaleString('id-ID')}
+              </span>
+            ) : (
+              <span className="hidden sm:inline font-semibold text-xs md:text-sm">
+                Pesanan
               </span>
             )}
-          </div>
-          {totalItemCount > 0 ? (
-            <span className="hidden sm:inline font-semibold text-xs md:text-sm tabular-nums">
-              Rp{total.toLocaleString('id-ID')}
-            </span>
-          ) : (
-            <span className="hidden sm:inline font-semibold text-xs md:text-sm">
-              Pesanan
-            </span>
-          )}
-        </button>
+          </button>
+        )}
 
         {/* User Dropdown Menu using @radix-ui/react-dropdown-menu */}
         <DropdownMenu.Root>
@@ -160,13 +173,31 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
               {/* Role-Specific Admin & Shop Owner Menus */}
               {user?.role === 'ADMIN' && (
-                <DropdownMenu.Item
-                  onSelect={() => onNavigate?.('tenants')}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 bg-purple-50/50 rounded-xl hover:bg-purple-100 focus:bg-purple-100 cursor-pointer outline-none transition-colors"
-                >
-                  <Building2 className="w-4 h-4 text-purple-600" />
-                  <span>Kelola Tenan Platform</span>
-                </DropdownMenu.Item>
+                <>
+                  <DropdownMenu.Item
+                    onSelect={() => onNavigate?.('tenants')}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 bg-purple-50/50 rounded-xl hover:bg-purple-100 focus:bg-purple-100 cursor-pointer outline-none transition-colors"
+                  >
+                    <Building2 className="w-4 h-4 text-purple-600" />
+                    <span>Kelola Tenan Platform</span>
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    onSelect={() => onNavigate?.('admin-products')}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 rounded-xl hover:bg-purple-50 focus:bg-purple-50 cursor-pointer outline-none transition-colors"
+                  >
+                    <Package className="w-4 h-4 text-purple-600" />
+                    <span>Semua Produk Tenan</span>
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    onSelect={() => onNavigate?.('admin-categories')}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 rounded-xl hover:bg-purple-50 focus:bg-purple-50 cursor-pointer outline-none transition-colors"
+                  >
+                    <Tags className="w-4 h-4 text-purple-600" />
+                    <span>Semua Kategori Tenan</span>
+                  </DropdownMenu.Item>
+                </>
               )}
 
               {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik') && (
@@ -177,6 +208,14 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                   >
                     <Users className="w-4 h-4 text-slate-400" />
                     <span>Kelola Kasir (SHOP_CASHIER)</span>
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    onSelect={() => onNavigate?.('categories')}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
+                  >
+                    <Tags className="w-4 h-4 text-slate-400" />
+                    <span>Kategori Produk</span>
                   </DropdownMenu.Item>
 
                   <DropdownMenu.Item

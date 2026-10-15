@@ -27,9 +27,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [stock, setStock] = useState(initialProduct?.stock || 20);
   const [iconType, setIconType] = useState(initialProduct?.iconType || 'box');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
+      setError('');
       api.getCategories().then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           setCategories(res.data);
@@ -46,9 +48,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isShopOwner) {
-      alert('Hanya role SHOP_OWNER yang bisa menambah atau mengubah data produk.');
+      setError('Hanya role SHOP_OWNER yang bisa menambah atau mengubah data produk.');
       return;
     }
+    setError('');
     setLoading(true);
     try {
       if (initialProduct?.id) {
@@ -73,7 +76,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       onSaved();
       onClose();
     } catch (err: any) {
-      alert(err.message || 'Gagal menyimpan produk');
+      setError(err.message || 'Gagal menyimpan produk');
     } finally {
       setLoading(false);
     }
@@ -97,6 +100,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </button>
         </div>
 
+        {!isShopOwner && (
+          <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200/80 rounded-xl flex items-center gap-2 text-xs text-amber-800">
+            <Shield className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>Mode Hanya Lihat: Hanya role SHOP_OWNER yang bisa menambah atau mengubah data produk.</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200/80 rounded-xl text-xs text-red-700 font-medium">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -105,10 +121,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <input
               type="text"
               required
+              disabled={!isShopOwner}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Contoh: Indomie Goreng Spesial"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-slate-100 disabled:text-slate-500"
             />
           </div>
 
@@ -119,14 +136,25 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               </label>
               <select
                 value={category}
+                disabled={!isShopOwner}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-slate-100 disabled:text-slate-500"
               >
-                <option value="Makanan Instan">Makanan Instan</option>
-                <option value="Minuman">Minuman</option>
-                <option value="Sembako">Sembako</option>
-                <option value="Camilan">Camilan</option>
-                <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
+                {categories.length > 0 ? (
+                  categories.map((c) => (
+                    <option key={c.id || c.name} value={c.name}>
+                      {c.icon ? `${c.icon} ` : ''}{c.name}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Makanan Instan">🍜 Makanan Instan</option>
+                    <option value="Minuman">🥤 Minuman</option>
+                    <option value="Sembako">🌾 Sembako</option>
+                    <option value="Camilan">🍿 Camilan</option>
+                    <option value="Kebutuhan Rumah">🧼 Kebutuhan Rumah</option>
+                  </>
+                )}
               </select>
             </div>
             <div>
@@ -194,11 +222,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           <div className="pt-2">
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-[#EC6C1A] hover:bg-orange-600 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+              disabled={loading || !isShopOwner}
+              className="w-full bg-[#EC6C1A] hover:bg-orange-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              <span>{loading ? 'Menyimpan...' : 'Simpan Produk'}</span>
+              <span>{loading ? 'Menyimpan...' : !isShopOwner ? 'Hanya SHOP_OWNER' : 'Simpan Produk'}</span>
             </button>
           </div>
         </form>

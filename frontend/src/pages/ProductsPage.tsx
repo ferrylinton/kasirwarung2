@@ -12,8 +12,10 @@ import {
   CheckCircle,
   RefreshCw,
   Layers,
+  Shield,
 } from 'lucide-react';
-import { Product, api } from '../services/api.ts';
+import { Product, Category, api } from '../services/api.ts';
+import { useAuth } from '../context/AuthContext.tsx';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
 
@@ -32,7 +34,11 @@ const CATEGORIES = [
 ];
 
 export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavigate }) => {
+  const { user } = useAuth();
+  const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
+
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
@@ -57,6 +63,14 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
     fetchProducts();
   }, [fetchProducts]);
 
+  useEffect(() => {
+    api.getCategories().then((res) => {
+      if (res.success && Array.isArray(res.data)) {
+        setCategories(res.data);
+      }
+    }).catch((err) => console.warn('Could not load categories:', err));
+  }, []);
+
   // Statistics calculation
   const totalProducts = products.length;
   const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
@@ -64,22 +78,53 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
   const lowStockCount = products.filter((p) => (p.stock || 0) < 15).length;
 
   const handleOpenAdd = () => {
+    if (!isShopOwner) {
+      alert('Hanya role SHOP_OWNER yang bisa menambah data produk.');
+      return;
+    }
     setEditingProduct(null);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (p: Product) => {
+    if (!isShopOwner) {
+      alert('Hanya role SHOP_OWNER yang bisa mengubah data produk.');
+      return;
+    }
     setEditingProduct(p);
     setIsModalOpen(true);
   };
 
   const handleQuickAddStock = async (p: Product, amount: number) => {
+    if (!isShopOwner) {
+      alert('Hanya role SHOP_OWNER yang bisa mengubah stok produk.');
+      return;
+    }
     try {
       const nextStock = (p.stock || 0) + amount;
       await api.updateProduct(p.id, { stock: nextStock });
       fetchProducts();
     } catch (err: any) {
       alert(err.message || 'Gagal menambah stok');
+    }
+  };
+
+  const handleDeleteProduct = async (p: Product) => {
+    if (!isShopOwner) {
+      alert('Hanya role SHOP_OWNER yang bisa menghapus data produk.');
+      return;
+    }
+    if (confirm(`Yakin ingin menghapus produk "${p.name}"?`)) {
+      try {
+        const res = await api.deleteProduct(p.id);
+        if (res.success) {
+          fetchProducts();
+        } else {
+          alert(res.message || 'Gagal menghapus produk');
+        }
+      } catch (err: any) {
+        alert(err.message || 'Gagal menghapus produk');
+      }
     }
   };
 
@@ -99,13 +144,30 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
               <span>Kembali ke Kasir POS</span>
             </button>
 
-            <button
-              onClick={handleOpenAdd}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#EC6C1A] hover:bg-orange-600 active:scale-95 text-white rounded-xl text-xs md:text-sm font-bold shadow-xs transition-all cursor-pointer self-start sm:self-auto"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Tambah Produk Baru</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => onNavigate?.('categories')}
+                className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-700 border border-slate-200/90 rounded-xl text-xs md:text-sm font-bold shadow-2xs transition-all cursor-pointer"
+              >
+                <Layers className="w-4 h-4 text-amber-500" />
+                <span>{isShopOwner ? 'Kelola Kategori' : 'Lihat Kategori'}</span>
+              </button>
+
+              {isShopOwner ? (
+                <button
+                  onClick={handleOpenAdd}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#EC6C1A] hover:bg-orange-600 active:scale-95 text-white rounded-xl text-xs md:text-sm font-bold shadow-xs transition-all cursor-pointer self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <span>Tambah Produk Baru</span>
+                </button>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold">
+                  <Shield className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Hanya SHOP_OWNER yang dapat mengelola produk</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Title Header */}
@@ -194,11 +256,20 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer"
               >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
+                <option value="Semua Produk">Semua Produk</option>
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <option key={cat.id || cat.name} value={cat.name}>
+                      {cat.icon ? `${cat.icon} ` : ''}{cat.name}
+                    </option>
+                  ))
+                ) : (
+                  CATEGORIES.filter((c) => c !== 'Semua Produk').map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))
+                )}
               </select>
 
               <button
@@ -307,22 +378,38 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
                             )}
                           </td>
                           <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => handleQuickAddStock(p, 10)}
-                                title="Tambah Stok Cepat (+10 pcs)"
-                                className="px-2 py-1 bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                              >
-                                +10
-                              </button>
-                              <button
-                                onClick={() => handleOpenEdit(p)}
-                                title="Ubah Data Produk"
-                                className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                            {isShopOwner ? (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleQuickAddStock(p, 10)}
+                                  title="Tambah Stok Cepat (+10 pcs)"
+                                  className="px-2 py-1 bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                >
+                                  +10
+                                </button>
+                                <button
+                                  onClick={() => handleOpenEdit(p)}
+                                  title="Ubah Data Produk"
+                                  className="p-1.5 hover:bg-amber-50 text-slate-500 hover:text-amber-700 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteProduct(p)}
+                                  title="Hapus Produk"
+                                  className="p-1.5 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-end">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                                  <Shield className="w-3 h-3 text-slate-400" />
+                                  <span>Hanya Baca</span>
+                                </span>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       );

@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Ban,
   Clock,
+  Tags,
 } from 'lucide-react';
 import { api, Tenant } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
@@ -119,7 +120,23 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => onNavigate?.('admin-products')}
+              className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-xl text-xs md:text-sm font-bold text-purple-700 flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            >
+              <Package className="w-4 h-4 text-purple-600" />
+              <span>Semua Produk Tenan</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate?.('admin-categories')}
+              className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-xl text-xs md:text-sm font-bold text-purple-700 flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            >
+              <Tags className="w-4 h-4 text-purple-600" />
+              <span>Semua Kategori Tenan</span>
+            </button>
+
             <button
               onClick={fetchTenants}
               disabled={loading}

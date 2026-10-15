@@ -6,52 +6,63 @@ export async function getCategories(req: AuthenticatedRequest, res: Response): P
   const { tenantId: queryTenantId } = req.query;
   const categoriesCol = getCollection('categories');
   const productsCol = getCollection('products');
+  const tenantsCol = getCollection('tenants');
 
-  let tenantId: ObjectId;
-  if (req.user?.role === 'ADMIN' && queryTenantId) {
-    tenantId = new ObjectId(String(queryTenantId));
+  const filter: Record<string, any> = {};
+
+  if (req.user?.role === 'ADMIN') {
+    if (queryTenantId) {
+      filter.tenantId = new ObjectId(String(queryTenantId));
+    }
   } else if (req.user?.tenantId) {
-    tenantId = new ObjectId(req.user.tenantId);
+    filter.tenantId = new ObjectId(req.user.tenantId);
   } else if (queryTenantId) {
-    tenantId = new ObjectId(String(queryTenantId));
+    filter.tenantId = new ObjectId(String(queryTenantId));
   } else {
-    tenantId = new ObjectId('6ace8019cb267df584bd0001');
+    filter.tenantId = new ObjectId('6ace8019cb267df584bd0001');
   }
 
-  // Ensure default categories exist for this tenant
-  const existingCount = await categoriesCol.countDocuments({ tenantId });
-  if (existingCount === 0) {
-    const defaultCategories = [
-      { name: 'Makanan Instan', icon: '🍜', color: '#F59E0B', description: 'Aneka mi instan, bubur, dan makanan cepat saji' },
-      { name: 'Minuman', icon: '🥤', color: '#0EA5E9', description: 'Air mineral, susu kemasan, kopi, dan teh' },
-      { name: 'Sembako', icon: '🌾', color: '#16A34A', description: 'Beras, minyak goreng, gula, telur, dan bumbu dapur' },
-      { name: 'Camilan', icon: '🍿', color: '#D97706', description: 'Keripik, biskuit, wafer, dan snack ringan' },
-      { name: 'Kebutuhan Rumah', icon: '🧼', color: '#8B5CF6', description: 'Sabun, deterjen, pasta gigi, dan peralatan sanitasi' },
-    ];
+  // Get all tenants for name mapping and default category seeding
+  const allTenants = await tenantsCol.find({}).toArray();
+  const tenantMap = new Map(allTenants.map((t: any) => [String(t._id), t]));
 
-    for (const c of defaultCategories) {
-      await categoriesCol.insertOne({
-        _id: new ObjectId(),
-        tenantId,
-        name: c.name,
-        icon: c.icon,
-        color: c.color,
-        description: c.description,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+  // Ensure default categories exist if tenant has none
+  const tenantsToSeed = filter.tenantId ? [filter.tenantId] : allTenants.map((t: any) => t._id);
+  for (const tid of tenantsToSeed) {
+    const existingCount = await categoriesCol.countDocuments({ tenantId: tid });
+    if (existingCount === 0) {
+      const defaultCategories = [
+        { name: 'Makanan Instan', icon: '🍜', color: '#F59E0B', description: 'Aneka mi instan, bubur, dan makanan cepat saji' },
+        { name: 'Minuman', icon: '🥤', color: '#0EA5E9', description: 'Air mineral, susu kemasan, kopi, dan teh' },
+        { name: 'Sembako', icon: '🌾', color: '#16A34A', description: 'Beras, minyak goreng, gula, telur, dan bumbu dapur' },
+        { name: 'Camilan', icon: '🍿', color: '#D97706', description: 'Keripik, biskuit, wafer, dan snack ringan' },
+        { name: 'Kebutuhan Rumah', icon: '🧼', color: '#8B5CF6', description: 'Sabun, deterjen, pasta gigi, dan peralatan sanitasi' },
+      ];
+      for (const c of defaultCategories) {
+        await categoriesCol.insertOne({
+          _id: new ObjectId(),
+          tenantId: tid,
+          name: c.name,
+          icon: c.icon,
+          color: c.color,
+          description: c.description,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
     }
   }
 
-  const categories = await categoriesCol.find({ tenantId }).sort({ createdAt: 1 }).toArray();
+  const categories = await categoriesCol.find(filter).sort({ createdAt: 1 }).toArray();
 
-  // Attach product count for each category
+  // Attach product count and tenant details for each category
   const categoriesWithCount = await Promise.all(
     categories.map(async (c: any) => {
       const productCount = await productsCol.countDocuments({
-        tenantId,
+        tenantId: c.tenantId,
         category: c.name,
       });
+      const t = c.tenantId ? tenantMap.get(String(c.tenantId)) : null;
       return {
         id: String(c._id),
         name: c.name,
@@ -60,6 +71,8 @@ export async function getCategories(req: AuthenticatedRequest, res: Response): P
         description: c.description || '',
         productCount,
         tenantId: String(c.tenantId),
+        tenantName: t?.name || (c.tenantId ? 'Tenan ' + String(c.tenantId).slice(-4) : 'Warung Utama'),
+        tenantCode: t?.code || '',
         createdAt: c.createdAt,
         updatedAt: c.updatedAt,
       };

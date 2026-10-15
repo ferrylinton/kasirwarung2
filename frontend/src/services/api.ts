@@ -57,6 +57,8 @@ export interface Category {
   color?: string;
   productCount?: number;
   tenantId?: string;
+  tenantName?: string;
+  tenantCode?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -73,6 +75,9 @@ export interface Product {
   bgTint: string;
   iconColor: string;
   imageUrl?: string;
+  tenantId?: string;
+  tenantName?: string;
+  tenantCode?: string;
 }
 
 export interface OrderItem {
@@ -235,10 +240,11 @@ export const api = {
   getLoginHistory: () => apiRequest('/api/auth/login-history'),
 
   // Products
-  getProducts: (search = '', category = 'Semua Produk') => {
+  getProducts: (search = '', category = 'Semua Produk', tenantId?: string) => {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (category && category !== 'Semua Produk') params.set('category', category);
+    if (tenantId && tenantId !== 'ALL') params.set('tenantId', tenantId);
     return apiRequest(`/api/products?${params.toString()}`);
   },
   createProduct: (productData: any) =>

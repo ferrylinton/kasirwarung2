@@ -34,22 +34,31 @@ export async function getProducts(req: AuthenticatedRequest, res: Response): Pro
   }
 
   const products = await productsCol.find(filter).toArray();
+  const tenantsCol = getCollection('tenants');
+  const tenantsList = await tenantsCol.find({}).toArray();
+  const tenantMap = new Map(tenantsList.map((t: any) => [String(t._id), t]));
+
   res.json({
     success: true,
-    data: products.map((p: any) => ({
-      id: String(p._id),
-      sku: p.sku,
-      name: p.name,
-      category: p.category,
-      price: p.price,
-      costPrice: p.costPrice || Math.round(p.price * 0.8),
-      stock: p.stock,
-      iconType: p.iconType || 'box',
-      bgTint: p.bgTint || '#FDF8EE',
-      iconColor: p.iconColor || '#F59E0B',
-      imageUrl: p.imageUrl || null,
-      tenantId: p.tenantId ? String(p.tenantId) : undefined,
-    })),
+    data: products.map((p: any) => {
+      const t = p.tenantId ? tenantMap.get(String(p.tenantId)) : null;
+      return {
+        id: String(p._id),
+        sku: p.sku,
+        name: p.name,
+        category: p.category,
+        price: p.price,
+        costPrice: p.costPrice || Math.round(p.price * 0.8),
+        stock: p.stock,
+        iconType: p.iconType || 'box',
+        bgTint: p.bgTint || '#FDF8EE',
+        iconColor: p.iconColor || '#F59E0B',
+        imageUrl: p.imageUrl || null,
+        tenantId: p.tenantId ? String(p.tenantId) : undefined,
+        tenantName: t?.name || (p.tenantId ? 'Tenan ' + String(p.tenantId).slice(-4) : 'Warung Utama'),
+        tenantCode: t?.code || '',
+      };
+    }),
   });
 }
 

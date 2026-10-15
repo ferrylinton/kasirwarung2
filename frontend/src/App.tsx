@@ -9,6 +9,9 @@ import { ProfilePage } from './pages/ProfilePage.tsx';
 import { LoginHistoryPage } from './pages/LoginHistoryPage.tsx';
 import { ChangePasswordPage } from './pages/ChangePasswordPage.tsx';
 import { ProductsPage } from './pages/ProductsPage.tsx';
+import { CategoriesPage } from './pages/CategoriesPage.tsx';
+import { AdminProductsPage } from './pages/AdminProductsPage.tsx';
+import { AdminCategoriesPage } from './pages/AdminCategoriesPage.tsx';
 import { HistoryPage } from './pages/HistoryPage.tsx';
 import { TenantsPage } from './pages/TenantsPage.tsx';
 import { CashiersPage } from './pages/CashiersPage.tsx';
@@ -24,6 +27,15 @@ const AppContent: React.FC = () => {
     return user?.role === 'ADMIN' ? 'tenants' : 'pos';
   });
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [adminDrillTenantId, setAdminDrillTenantId] = useState<string>('ALL');
+  const [adminDrillCategory, setAdminDrillCategory] = useState<string>('Semua Produk');
+
+  // Automatically switch tab if user role changes or is ADMIN trying to access POS
+  React.useEffect(() => {
+    if (user?.role === 'ADMIN' && currentTab === 'pos') {
+      setCurrentTab('tenants');
+    }
+  }, [user?.role, currentTab]);
 
   // Inactivity auto-logout hook based on IDLE_TIMEOUT_MINUTES from .env
   const { showWarning, secondsRemaining, resetTimer } = useIdleTimer({
@@ -32,6 +44,7 @@ const AppContent: React.FC = () => {
       logout();
     },
     warningSeconds: 30,
+    enabled: !!user,
   });
 
   if (loading) {
@@ -51,47 +64,96 @@ const AppContent: React.FC = () => {
     return <LoginPage />;
   }
 
+  const defaultHomeTab: ActiveTab = user.role === 'ADMIN' ? 'tenants' : 'pos';
+
   const renderCurrentPage = () => {
     switch (currentTab) {
       case 'tenants':
         return (
           <TenantsPage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
+          />
+        );
+      case 'admin-products':
+        return (
+          <AdminProductsPage
+            onNavigate={setCurrentTab}
+            initialTenantId={adminDrillTenantId}
+            initialCategory={adminDrillCategory}
+          />
+        );
+      case 'admin-categories':
+        return (
+          <AdminCategoriesPage
+            onNavigate={setCurrentTab}
+            onFilterTenantProducts={(tId, catName) => {
+              setAdminDrillTenantId(tId);
+              setAdminDrillCategory(catName);
+              setCurrentTab('admin-products');
+            }}
           />
         );
       case 'cashiers':
         return (
           <CashiersPage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
       case 'store-settings':
         return (
           <StoreSettingsPage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
       case 'products':
+        if (user?.role === 'ADMIN') {
+          return (
+            <AdminProductsPage
+              onNavigate={setCurrentTab}
+              initialTenantId={adminDrillTenantId}
+              initialCategory={adminDrillCategory}
+            />
+          );
+        }
         return (
           <ProductsPage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
+          />
+        );
+      case 'categories':
+        if (user?.role === 'ADMIN') {
+          return (
+            <AdminCategoriesPage
+              onNavigate={setCurrentTab}
+              onFilterTenantProducts={(tId, catName) => {
+                setAdminDrillTenantId(tId);
+                setAdminDrillCategory(catName);
+                setCurrentTab('admin-products');
+              }}
+            />
+          );
+        }
+        return (
+          <CategoriesPage
+            onNavigate={setCurrentTab}
+            onFilterCategory={() => setCurrentTab('products')}
           />
         );
       case 'history':
         return (
           <HistoryPage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
       case 'profile':
         return (
           <ProfilePage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigateToChangePassword={() => setCurrentTab('change-password')}
             onNavigateToLoginHistory={() => setCurrentTab('login-history')}
             onOpenSwitchShift={() => setIsShiftModalOpen(true)}
@@ -101,14 +163,14 @@ const AppContent: React.FC = () => {
       case 'login-history':
         return (
           <LoginHistoryPage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
       case 'change-password':
         return (
           <ChangePasswordPage
-            onBackToPos={() => setCurrentTab('pos')}
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
@@ -116,6 +178,15 @@ const AppContent: React.FC = () => {
         return <ReportPage onNavigate={setCurrentTab} />;
       case 'pos':
       default:
+        // Role ADMIN tidak bisa akses halaman order/pos, arahkan ke tenants
+        if (user?.role === 'ADMIN') {
+          return (
+            <TenantsPage
+              onBackToPos={() => setCurrentTab('tenants')}
+              onNavigate={setCurrentTab}
+            />
+          );
+        }
         return <PosPage onNavigate={setCurrentTab} />;
     }
   };

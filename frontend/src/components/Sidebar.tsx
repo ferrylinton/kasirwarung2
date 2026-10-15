@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, Package, History, PieChart, X, Building2, Users, Store } from 'lucide-react';
+import { Calculator, Package, History, PieChart, X, Building2, Users, Store, Tags } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ActiveTab } from './TopNavbar.tsx';
@@ -26,60 +26,160 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navContent = (
     <nav className="flex-1 flex flex-col items-center gap-2.5 w-full px-1">
-      {/* Active POS Cashier Button with badge */}
-      <button
-        onClick={() => handleSelect('pos')}
-        title="Kasir POS"
-        className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
-      >
-        <div className="relative">
+      {/* Active POS Cashier Button with badge (Only for non-ADMIN, role ADMIN cannot access order page) */}
+      {user?.role !== 'ADMIN' ? (
+        <button
+          onClick={() => handleSelect('pos')}
+          title="Kasir POS"
+          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+        >
+          <div className="relative">
+            <div
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all shadow-md ${
+                currentTab === 'pos'
+                  ? 'bg-[#EC6C1A] text-white shadow-orange-600/30'
+                  : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+              }`}
+            >
+              <Calculator className="w-5 h-5 md:w-5.5 md:h-5.5 stroke-[2]" />
+            </div>
+            {totalItemCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#10B981] text-white text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center border-2 border-[#181A1F] shadow-xs">
+                {totalItemCount}
+              </span>
+            )}
+          </div>
+          <span
+            className={`text-[10px] md:text-[11px] font-semibold tracking-tight mt-0.5 ${
+              currentTab === 'pos' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Kasir
+          </span>
+        </button>
+      ) : (
+        /* ADMIN ONLY: Primary Tenants Management Tab */
+        <button
+          onClick={() => handleSelect('tenants')}
+          title="Kelola Seluruh Tenan"
+          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+        >
           <div
-            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all shadow-md ${
-              currentTab === 'pos'
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'tenants'
+                ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
+                : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
+            }`}
+          >
+            <Building2 className="w-5 h-5 md:w-5.5 md:h-5.5" />
+          </div>
+          <span
+            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+              currentTab === 'tenants' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Tenan
+          </span>
+        </button>
+      )}
+
+      {/* Product Stock Inventory */}
+      {user?.role === 'ADMIN' ? (
+        <button
+          onClick={() => handleSelect('admin-products')}
+          title="Semua Produk Seluruh Tenan"
+          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+        >
+          <div
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'admin-products'
+                ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
+                : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
+            }`}
+          >
+            <Package className="w-5 h-5 md:w-5.5 md:h-5.5" />
+          </div>
+          <span
+            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+              currentTab === 'admin-products' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Produk
+          </span>
+        </button>
+      ) : (
+        <button
+          onClick={() => handleSelect('products')}
+          title="Produk & Stok Warung"
+          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+        >
+          <div
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'products'
                 ? 'bg-[#EC6C1A] text-white shadow-orange-600/30'
                 : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
             }`}
           >
-            <Calculator className="w-5 h-5 md:w-5.5 md:h-5.5 stroke-[2]" />
+            <Package className="w-5 h-5 md:w-5.5 md:h-5.5" />
           </div>
-          {totalItemCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-[#10B981] text-white text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center border-2 border-[#181A1F] shadow-xs">
-              {totalItemCount}
-            </span>
-          )}
-        </div>
-        <span
-          className={`text-[10px] md:text-[11px] font-semibold tracking-tight mt-0.5 ${
-            currentTab === 'pos' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
-          }`}
-        >
-          Kasir
-        </span>
-      </button>
+          <span
+            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+              currentTab === 'products' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Produk
+          </span>
+        </button>
+      )}
 
-      {/* Product Stock Inventory */}
-      <button
-        onClick={() => handleSelect('products')}
-        title="Produk & Stok Warung"
-        className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
-      >
-        <div
-          className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
-            currentTab === 'products'
-              ? 'bg-[#EC6C1A] text-white shadow-orange-600/30'
-              : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
-          }`}
+      {/* Product Categories */}
+      {user?.role === 'ADMIN' ? (
+        <button
+          onClick={() => handleSelect('admin-categories')}
+          title="Semua Kategori Seluruh Tenan"
+          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
         >
-          <Package className="w-5 h-5 md:w-5.5 md:h-5.5" />
-        </div>
-        <span
-          className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-            currentTab === 'products' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
-          }`}
+          <div
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'admin-categories'
+                ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
+                : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
+            }`}
+          >
+            <Tags className="w-5 h-5 md:w-5.5 md:h-5.5" />
+          </div>
+          <span
+            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+              currentTab === 'admin-categories' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Kategori
+          </span>
+        </button>
+      ) : (
+        <button
+          onClick={() => handleSelect('categories')}
+          title="Kategori Produk"
+          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
         >
-          Produk
-        </span>
-      </button>
+          <div
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'categories'
+                ? 'bg-[#EC6C1A] text-white shadow-orange-600/30'
+                : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+            }`}
+          >
+            <Tags className="w-5 h-5 md:w-5.5 md:h-5.5" />
+          </div>
+          <span
+            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+              currentTab === 'categories' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Kategori
+          </span>
+        </button>
+      )}
 
       {/* Transaction History */}
       <button
@@ -129,31 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </span>
       </button>
 
-      {/* ADMIN ONLY: Tenants Management Tab */}
-      {user?.role === 'ADMIN' && (
-        <button
-          onClick={() => handleSelect('tenants')}
-          title="Kelola Seluruh Tenan"
-          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
-        >
-          <div
-            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
-              currentTab === 'tenants'
-                ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
-                : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
-            }`}
-          >
-            <Building2 className="w-5 h-5 md:w-5.5 md:h-5.5" />
-          </div>
-          <span
-            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-              currentTab === 'tenants' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
-            }`}
-          >
-            Tenan
-          </span>
-        </button>
-      )}
+
 
       {/* SHOP_OWNER ONLY: Staf Kasir & Toko Tabs */}
       {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik') && (
