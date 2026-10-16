@@ -122,7 +122,7 @@ export const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, 'Minimal 1 produk dalam pesanan'),
   customerName: z.string().optional(),
   customerEmail: z.string().email().optional().or(z.literal('')),
-  paymentMethod: z.enum(['Tunai', 'QRIS', 'Transfer', 'Belum Dibayar']).default('Tunai'),
+  paymentMethod: z.string().optional().default('Tunai'),
   cashReceived: z.number().nonnegative().optional(),
   notes: z.string().optional(),
 });

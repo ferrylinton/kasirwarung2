@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   X,
-  CreditCard,
-  QrCode,
   Banknote,
   Send,
   Printer,
@@ -26,7 +24,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { invoiceNo, items, total, customerName, setCustomerName, startNewTransaction } = useCart();
-  const [method, setMethod] = useState<'Tunai' | 'QRIS' | 'Transfer'>('Tunai');
   const [cashAmount, setCashAmount] = useState<number>(total);
   const [customerEmail, setCustomerEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -36,7 +33,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   if (!isOpen) return null;
 
   const changeAmount = Math.max(0, cashAmount - total);
-  const isCashSufficient = method !== 'Tunai' || cashAmount >= total;
+  const isCashSufficient = cashAmount >= total;
 
   const quickNominals = [
     { label: 'Uang Pas', amount: total },
@@ -61,8 +58,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         items,
         customerName: customerName || 'Pelanggan Umum',
         customerEmail: customerEmail.trim() || undefined,
-        paymentMethod: method,
-        cashReceived: method === 'Tunai' ? cashAmount : total,
+        cashReceived: cashAmount,
       });
 
       if (res.success && res.data) {
@@ -124,31 +120,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
             <div className="bg-slate-50 rounded-2xl p-4 text-left space-y-2 text-xs md:text-sm">
               <div className="flex justify-between text-slate-600">
-                <span>Metode:</span>
-                <span className="font-semibold text-slate-900">{successOrder.paymentMethod}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
                 <span>Total Belanja:</span>
                 <span className="font-bold text-slate-900 tabular-nums">
                   Rp{successOrder.total.toLocaleString('id-ID')}
                 </span>
               </div>
-              {successOrder.paymentMethod === 'Tunai' && (
-                <>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Uang Diterima:</span>
-                    <span className="tabular-nums font-semibold">
-                      Rp{successOrder.cashReceived?.toLocaleString('id-ID')}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-green-700 font-bold border-t border-slate-200 pt-2">
-                    <span>Kembalian:</span>
-                    <span className="tabular-nums">
-                      Rp{successOrder.changeAmount?.toLocaleString('id-ID')}
-                    </span>
-                  </div>
-                </>
-              )}
+              <div className="flex justify-between text-slate-600">
+                <span>Uang Diterima:</span>
+                <span className="tabular-nums font-semibold">
+                  Rp{successOrder.cashReceived?.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <div className="flex justify-between text-green-700 font-bold border-t border-slate-200 pt-2">
+                <span>Kembalian:</span>
+                <span className="tabular-nums">
+                  Rp{successOrder.changeAmount?.toLocaleString('id-ID')}
+                </span>
+              </div>
               {successOrder.emailStatus && (
                 <div className="mt-2 text-[11px] text-blue-600 bg-blue-50 p-2 rounded-lg">
                   📧 {successOrder.emailStatus.message}
@@ -195,54 +183,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               </span>
             </div>
 
-            {/* Payment Method Selector */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-2">
-                Pilih Metode Pembayaran
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMethod('Tunai')}
-                  className={`py-2.5 px-3 rounded-xl border text-xs md:text-sm font-semibold flex flex-col items-center gap-1 transition-all ${
-                    method === 'Tunai'
-                      ? 'border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-500/20'
-                      : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                  }`}
-                >
-                  <Banknote className="w-5 h-5" />
-                  <span>Tunai</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMethod('QRIS')}
-                  className={`py-2.5 px-3 rounded-xl border text-xs md:text-sm font-semibold flex flex-col items-center gap-1 transition-all ${
-                    method === 'QRIS'
-                      ? 'border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-500/20'
-                      : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                  }`}
-                >
-                  <QrCode className="w-5 h-5" />
-                  <span>QRIS</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMethod('Transfer')}
-                  className={`py-2.5 px-3 rounded-xl border text-xs md:text-sm font-semibold flex flex-col items-center gap-1 transition-all ${
-                    method === 'Transfer'
-                      ? 'border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-500/20'
-                      : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                  }`}
-                >
-                  <CreditCard className="w-5 h-5" />
-                  <span>Transfer</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Cash details if Tunai */}
-            {method === 'Tunai' && (
-              <div className="space-y-3">
+            {/* Cash details */}
+            <div className="space-y-3">
                 {/* Quick nominal buttons */}
                 <div>
                   <span className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -297,7 +239,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   </div>
                 </div>
               </div>
-            )}
 
             {/* Optional Customer Email for SMTP Receipt */}
             <div>
@@ -323,7 +264,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 disabled={loading || !isCashSufficient}
                 className="w-full bg-[#16A34A] hover:bg-[#15803D] active:scale-[0.99] disabled:opacity-40 text-white py-3 rounded-xl font-bold text-sm md:text-base flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
               >
-                <CreditCard className="w-4 h-4 stroke-[2.5]" />
+                <Banknote className="w-5 h-5 stroke-[2.2]" />
                 <span>{loading ? 'Memproses...' : 'Selesaikan Pembayaran'}</span>
               </button>
             </div>

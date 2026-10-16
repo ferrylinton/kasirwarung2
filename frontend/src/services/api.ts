@@ -98,7 +98,7 @@ export interface Order {
   summaryLabel?: string;
   customerName?: string;
   cashierName?: string;
-  paymentMethod: string;
+  paymentMethod?: string;
   items: OrderItem[];
   subtotal: number;
   tax: number;

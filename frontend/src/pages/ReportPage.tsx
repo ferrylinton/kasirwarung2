@@ -5,9 +5,7 @@ import {
   Package,
   Clock,
   ArrowUpRight,
-  CreditCard,
-  Banknote,
-  QrCode,
+  CalendarRange,
 } from 'lucide-react';
 import { api } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
@@ -92,42 +90,29 @@ export const ReportPage: React.FC<ReportPageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Payment Method Breakdown */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
-          <h3 className="font-bold text-slate-900 text-base mb-4">
-            Rincian Berdasarkan Metode Pembayaran
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/60">
-              <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
-                <Banknote className="w-5 h-5" />
-                <span>Tunai (Cash)</span>
-              </div>
-              <div className="text-xl font-extrabold text-slate-900 mt-2 tabular-nums">
-                Rp{(summary?.paymentBreakdown?.Tunai || 0).toLocaleString('id-ID')}
-              </div>
+        {/* Retention & History Navigation Card */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <CalendarRange className="w-5 h-5 text-orange-600" />
+              <h3 className="font-bold text-slate-900 text-base">
+                Riwayat Transaksi Penjualan (Retensi 3 Bulan)
+              </h3>
             </div>
-
-            <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/60">
-              <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
-                <QrCode className="w-5 h-5" />
-                <span>QRIS</span>
-              </div>
-              <div className="text-xl font-extrabold text-slate-900 mt-2 tabular-nums">
-                Rp{(summary?.paymentBreakdown?.QRIS || 0).toLocaleString('id-ID')}
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-purple-50/60 border border-purple-200/60">
-              <div className="flex items-center gap-2 text-purple-800 font-bold text-sm">
-                <CreditCard className="w-5 h-5" />
-                <span>Transfer Bank</span>
-              </div>
-              <div className="text-xl font-extrabold text-slate-900 mt-2 tabular-nums">
-                Rp{(summary?.paymentBreakdown?.Transfer || 0).toLocaleString('id-ID')}
-              </div>
-            </div>
+            <p className="text-xs text-slate-500 max-w-xl">
+              Data transaksi disimpan selama tiga bulan dengan scheduler pembersihan otomatis setiap pukul 00:00.
+              Gunakan filter tanggal dan Range Mode pada menu Riwayat.
+            </p>
           </div>
+
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate('history')}
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
+            >
+              Buka Riwayat Transaksi
+            </button>
+          )}
         </div>
       </div>
     </div>

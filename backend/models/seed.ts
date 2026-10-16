@@ -213,6 +213,24 @@ export async function seedInitialData(): Promise<void> {
       );
     }
 
+    const existingHendra = await usersCol.findOne({ email: 'hendra@kelontong.id' });
+    if (!existingHendra) {
+      const ownerHash = await bcrypt.hash('kasir123', 10);
+      await usersCol.insertOne({
+        _id: new ObjectId('6ace8019cb267df584bd00b5'),
+        tenantId: t2Id,
+        name: 'Hendra Gunawan',
+        username: 'hendra',
+        email: 'hendra@kelontong.id',
+        passwordHash: ownerHash,
+        role: 'SHOP_OWNER',
+        shift: 'Shift Pagi (08:00 - 17:00)',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      });
+      console.log('[Seed] Hendra created for Tenant 2');
+    }
+
     // 3. Seed Products with tenantId
     const productCount = await productsCol.countDocuments({ tenantId: t1Id });
     if (productCount === 0) {
@@ -368,6 +386,47 @@ export async function seedInitialData(): Promise<void> {
         },
       ]);
       console.log('[Seed] Initial saved & completed orders seeded for Tenant 1');
+    }
+
+    const t2Order = await ordersCol.findOne({ tenantId: t2Id });
+    if (!t2Order) {
+      await ordersCol.insertOne({
+        _id: new ObjectId(),
+        tenantId: t2Id,
+        invoiceNo: 'INV/2025/05/28-0099',
+        status: 'paid',
+        timeLabel: '15:10',
+        summaryLabel: '2 Item: Kopi Kapal Api, Gula Pasir...',
+        cashierName: 'Hendra Gunawan',
+        customerName: 'Ibu Dewi',
+        items: [
+          {
+            productId: 'TK-KOP-001',
+            name: 'Kopi Kapal Api Spesial 165g',
+            price: 14500,
+            qty: 2,
+            iconType: 'tea',
+            bgTint: '#FDF8EE',
+            iconColor: '#9A3412',
+          },
+          {
+            productId: 'TK-GUL-002',
+            name: 'Gula Pasir Gulaku 1kg',
+            price: 18000,
+            qty: 1,
+            iconType: 'rice',
+            bgTint: '#ECFDF5',
+            iconColor: '#16A34A',
+          },
+        ],
+        subtotal: 47000,
+        tax: 5170,
+        total: 52170,
+        cashReceived: 60000,
+        changeAmount: 7830,
+        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+      });
+      console.log('[Seed] Completed order seeded for Tenant 2');
     }
 
     // Ensure any legacy orders without tenantId are assigned to t1Id (Warung Berkah Budi)

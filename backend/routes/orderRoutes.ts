@@ -19,6 +19,7 @@ router.get('/saved', apiLimiter, optionalAuthenticateToken, getSavedOrders);
 router.get('/history', apiLimiter, optionalAuthenticateToken, getOrderHistory);
 router.get('/next-invoice', apiLimiter, optionalAuthenticateToken, getNextInvoice);
 router.post('/cleanup-old', authenticateToken, requireRole('ADMIN'), triggerCleanupOrders);
+router.post('/cleanup', authenticateToken, requireRole('ADMIN'), triggerCleanupOrders);
 router.post('/', authenticateToken, validateBody(createOrderSchema), createOrSaveOrder);
 router.delete('/saved/:invoiceNo', authenticateToken, deleteSavedOrder);
 
