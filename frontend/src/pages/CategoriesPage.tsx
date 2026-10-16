@@ -209,68 +209,37 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
     return c.name.toLowerCase().includes(q) || (c.description && c.description.toLowerCase().includes(q));
   });
 
-  const totalProducts = categories.reduce((sum, c) => sum + (c.productCount || 0), 0);
-
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8FAFC]">
       <TopNavbar currentTab="categories" onNavigate={onNavigate} />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header Banner */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-            <div className="flex items-start gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0">
-                <Tags className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
-                    Kategori Produk
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60">
-                    {categories.length} Kategori
-                  </span>
-                </div>
-                <p className="text-xs md:text-sm text-slate-500 mt-1">
-                  Kelola kategori produk toko untuk memudahkan kasir mencari barang dan mengelompokkan stok di POS.
-                </p>
-              </div>
-            </div>
+          {/* Top Actions */}
+          <div className="flex items-center justify-end gap-2.5 flex-wrap">
+            <button
+              onClick={fetchCategories}
+              disabled={loading}
+              title="Muat Ulang Kategori"
+              className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
 
-            <div className="flex items-center gap-2.5">
+            {isShopOwner ? (
               <button
-                onClick={fetchCategories}
-                disabled={loading}
-                title="Muat Ulang Kategori"
-                className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
+                onClick={handleOpenAdd}
+                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs md:text-sm rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Tambah Kategori</span>
               </button>
-
-              <button
-                onClick={() => onNavigate?.('products')}
-                className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold text-xs md:text-sm flex items-center gap-2 transition-colors cursor-pointer"
-              >
-                <Package className="w-4 h-4 text-slate-500" />
-                <span>Lihat Produk</span>
-              </button>
-
-              {isShopOwner ? (
-                <button
-                  onClick={handleOpenAdd}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs md:text-sm rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-                >
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
-                  <span>Tambah Kategori</span>
-                </button>
-              ) : (
-                <div className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Hanya SHOP_OWNER yang bisa mengedit</span>
-                </div>
-              )}
-            </div>
+            ) : (
+              <div className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-slate-400" />
+                <span>Hanya SHOP_OWNER yang bisa mengedit</span>
+              </div>
+            )}
           </div>
 
           {/* Role Access Restriction Banner for non-SHOP_OWNER */}
@@ -310,61 +279,6 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
             </div>
           )}
 
-          {/* Metric Overview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Total Kategori
-                </span>
-                <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
-                  <Tags className="w-4 h-4" />
-                </span>
-              </div>
-              <div className="text-2xl font-black text-slate-900 mt-2">
-                {categories.length}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Grup pengelompokan produk aktif
-              </p>
-            </div>
-
-            <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Produk Terkategori
-                </span>
-                <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                  <Package className="w-4 h-4" />
-                </span>
-              </div>
-              <div className="text-2xl font-black text-slate-900 mt-2">
-                {totalProducts}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Item produk terkait ke kategori toko
-              </p>
-            </div>
-
-            <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Izin Kelola
-                </span>
-                <span className="p-2 rounded-xl bg-orange-50 text-orange-600">
-                  <Shield className="w-4 h-4" />
-                </span>
-              </div>
-              <div className="text-base font-bold text-slate-900 mt-2 flex items-center gap-1.5">
-                <span className="px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 text-xs font-mono">
-                  SHOP_OWNER
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Hak tambah, ubah, dan hapus eksklusif
-              </p>
-            </div>
-          </div>
 
           {/* Search bar */}
           <div className="relative">
