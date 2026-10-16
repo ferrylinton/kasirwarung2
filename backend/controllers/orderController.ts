@@ -147,7 +147,6 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
     items,
     customerName,
     customerEmail,
-    paymentMethod,
     cashReceived,
     notes,
   } = req.body;
@@ -205,7 +204,6 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
     customerName: customerName || 'Pelanggan Umum',
     customerEmail: customerEmail || '',
     cashierName: req.user?.name || 'Budi Santoso',
-    paymentMethod: paymentMethod || (status === 'saved' ? 'Belum Dibayar' : 'Tunai'),
     items,
     subtotal,
     tax,

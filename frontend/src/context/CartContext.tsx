@@ -219,7 +219,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         status: 'saved',
         items,
         customerName,
-        paymentMethod: 'Belum Dibayar',
       });
       await refreshOrders();
       await startNewTransaction();

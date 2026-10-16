@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import * as Select from '@radix-ui/react-select';
 import {
   Package,
   Plus,
   Search,
-  ArrowLeft,
-  AlertTriangle,
-  TrendingUp,
-  Boxes,
   Edit2,
   Trash2,
   CheckCircle,
   RefreshCw,
-  Layers,
   Shield,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  Check,
 } from 'lucide-react';
 import { Product, Category, api } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -45,6 +46,64 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+
+  // Reset pagination when search query or category filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
+
+  const totalItems = products.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedProducts = products.slice(startIndex, endIndex);
+
+  const renderProductIcon = (iconType: string, bgTint?: string) => (
+    <div
+      style={{ backgroundColor: bgTint || '#FDF8EE' }}
+      className="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 shadow-2xs border border-slate-100"
+    >
+      {iconType === 'noodle' && '🍜'}
+      {iconType === 'water' && '💧'}
+      {iconType === 'milk' && '🥛'}
+      {iconType === 'oil' && '🍾'}
+      {iconType === 'chips' && '🥔'}
+      {iconType === 'rice' && '🌾'}
+      {iconType === 'tea' && '🍵'}
+      {iconType === 'energy' && '⚡'}
+      {!['noodle', 'water', 'milk', 'oil', 'chips', 'rice', 'tea', 'energy'].includes(iconType) && '📦'}
+    </div>
+  );
+
+  const renderStockBadge = (stock: number) => {
+    const isLowStock = (stock || 0) < 15;
+    const isOutOfStock = (stock || 0) <= 0;
+
+    if (isOutOfStock) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+          Habis
+        </span>
+      );
+    }
+    if (isLowStock) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+          Menipis
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+        Tersedia
+      </span>
+    );
+  };
+
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -71,11 +130,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
     }).catch((err) => console.warn('Could not load categories:', err));
   }, []);
 
-  // Statistics calculation
-  const totalProducts = products.length;
-  const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
-  const totalValue = products.reduce((sum, p) => sum + (p.price || 0) * (p.stock || 0), 0);
-  const lowStockCount = products.filter((p) => (p.stock || 0) < 15).length;
 
   const handleOpenAdd = () => {
     if (!isShopOwner) {
@@ -95,19 +149,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
     setIsModalOpen(true);
   };
 
-  const handleQuickAddStock = async (p: Product, amount: number) => {
-    if (!isShopOwner) {
-      alert('Hanya role SHOP_OWNER yang bisa mengubah stok produk.');
-      return;
-    }
-    try {
-      const nextStock = (p.stock || 0) + amount;
-      await api.updateProduct(p.id, { stock: nextStock });
-      fetchProducts();
-    } catch (err: any) {
-      alert(err.message || 'Gagal menambah stok');
-    }
-  };
 
   const handleDeleteProduct = async (p: Product) => {
     if (!isShopOwner) {
@@ -134,25 +175,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto w-full space-y-6">
-          {/* Top Actions & Breadcrumb */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <button
-              onClick={onBackToPos}
-              className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-slate-700 hover:text-orange-600 bg-white hover:bg-orange-50 px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs transition-all self-start cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Kembali ke Kasir POS</span>
-            </button>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => onNavigate?.('categories')}
-                className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-700 border border-slate-200/90 rounded-xl text-xs md:text-sm font-bold shadow-2xs transition-all cursor-pointer"
-              >
-                <Layers className="w-4 h-4 text-amber-500" />
-                <span>{isShopOwner ? 'Kelola Kategori' : 'Lihat Kategori'}</span>
-              </button>
-
+          {/* Top Actions */}
+          <div className="flex items-center justify-end gap-2 flex-wrap">
               {isShopOwner ? (
                 <button
                   onClick={handleOpenAdd}
@@ -168,72 +192,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Title Header */}
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Katalog & Inventaris Produk
-            </h1>
-            <p className="text-xs md:text-sm text-slate-500 mt-1">
-              Kelola daftar barang dagangan warung, pantau sisa stok barang, dan perbarui harga jual secara langsung.
-            </p>
-          </div>
-
-          {/* Metric Overview Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                Total Macam Produk
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-slate-900 mt-1">
-                {totalProducts} SKU
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-blue-500" />
-                Semua kategori warung
-              </p>
-            </div>
-
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                Total Fisik Barang
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-slate-900 mt-1">
-                {totalStock} pcs
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                <Boxes className="w-3.5 h-3.5 text-green-500" />
-                Siap untuk dijual
-              </p>
-            </div>
-
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                Estimasi Nilai Stok
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-[#16A34A] tabular-nums mt-1">
-                Rp{totalValue.toLocaleString('id-ID')}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-green-600" />
-                Nilai jual inventaris
-              </p>
-            </div>
-
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                Stok Menipis (&lt;15)
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-amber-600 mt-1">
-                {lowStockCount} Item
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                Perlu restock segera
-              </p>
-            </div>
-          </div>
 
           {/* Filter & Search Bar */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -251,26 +210,75 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
 
             {/* Category Select Filter */}
             <div className="flex items-center gap-2">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer"
-              >
-                <option value="Semua Produk">Semua Produk</option>
-                {categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <option key={cat.id || cat.name} value={cat.name}>
-                      {cat.icon ? `${cat.icon} ` : ''}{cat.name}
-                    </option>
-                  ))
-                ) : (
-                  CATEGORIES.filter((c) => c !== 'Semua Produk').map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))
-                )}
-              </select>
+              <Select.Root value={selectedCategory} onValueChange={(val) => setSelectedCategory(val)}>
+                <Select.Trigger
+                  aria-label="Filter Kategori"
+                  className="inline-flex items-center justify-between gap-2 px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[140px] md:min-w-[170px]"
+                >
+                  <Select.Value placeholder="Semua Produk" />
+                  <Select.Icon className="text-slate-400">
+                    <ChevronDown className="w-4 h-4" />
+                  </Select.Icon>
+                </Select.Trigger>
+
+                <Select.Portal>
+                  <Select.Content
+                    position="popper"
+                    sideOffset={5}
+                    className="overflow-hidden bg-white rounded-xl shadow-xl border border-slate-200 z-50 min-w-[180px] p-1.5 animate-in fade-in-80"
+                  >
+                    <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-slate-600 cursor-default">
+                      <ChevronUp className="w-4 h-4" />
+                    </Select.ScrollUpButton>
+                    <Select.Viewport className="p-1">
+                      <Select.Item
+                        value="Semua Produk"
+                        className="relative flex items-center justify-between px-3 py-2 text-xs md:text-sm rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 focus:outline-none cursor-pointer select-none font-medium data-[state=checked]:font-bold data-[state=checked]:text-orange-600 data-[state=checked]:bg-orange-50/70"
+                      >
+                        <Select.ItemText>Semua Produk</Select.ItemText>
+                        <Select.ItemIndicator className="text-orange-600 ml-2">
+                          <Check className="w-4 h-4" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+
+                      {categories.length > 0 ? (
+                        categories
+                          .filter((cat) => cat.name !== 'Semua Produk')
+                          .map((cat) => (
+                            <Select.Item
+                              key={cat.id || cat.name}
+                              value={cat.name}
+                              className="relative flex items-center justify-between px-3 py-2 text-xs md:text-sm rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 focus:outline-none cursor-pointer select-none font-medium data-[state=checked]:font-bold data-[state=checked]:text-orange-600 data-[state=checked]:bg-orange-50/70"
+                            >
+                              <Select.ItemText>
+                                {cat.icon ? `${cat.icon} ` : ''}{cat.name}
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="text-orange-600 ml-2">
+                                <Check className="w-4 h-4" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                          ))
+                      ) : (
+                        CATEGORIES.filter((c) => c !== 'Semua Produk').map((cat) => (
+                          <Select.Item
+                            key={cat}
+                            value={cat}
+                            className="relative flex items-center justify-between px-3 py-2 text-xs md:text-sm rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 focus:outline-none cursor-pointer select-none font-medium data-[state=checked]:font-bold data-[state=checked]:text-orange-600 data-[state=checked]:bg-orange-50/70"
+                          >
+                            <Select.ItemText>{cat}</Select.ItemText>
+                            <Select.ItemIndicator className="text-orange-600 ml-2">
+                              <Check className="w-4 h-4" />
+                            </Select.ItemIndicator>
+                          </Select.Item>
+                        ))
+                      )}
+                    </Select.Viewport>
+                    <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-slate-600 cursor-default">
+                      <ChevronDown className="w-4 h-4" />
+                    </Select.ScrollDownButton>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
 
               <button
                 onClick={fetchProducts}
@@ -282,19 +290,99 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
             </div>
           </div>
 
-          {/* Products Inventory Table Card */}
+          {/* Products Inventory Card (Responsive: Mobile Cards + Tablet/Desktop Table + Pagination) */}
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+            {/* Card Header */}
             <div className="p-4 md:p-5 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-orange-600" />
                 <h3 className="font-bold text-slate-900 text-sm md:text-base">
-                  Daftar Barang Dagangan ({products.length})
+                  Daftar Barang Dagangan ({totalItems})
                 </h3>
               </div>
-              <span className="text-xs text-slate-400 font-medium">Inventaris Kasir Warung</span>
+              <span className="text-xs text-slate-400 font-medium hidden sm:inline">Inventaris Kasir Warung</span>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile View: Responsive Product Cards (< md) */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {loading ? (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  Memuat data inventaris produk...
+                </div>
+              ) : products.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  Tidak ada produk yang cocok dengan pencarian.
+                </div>
+              ) : (
+                paginatedProducts.map((p) => (
+                  <div key={p.id} className="p-4 space-y-3 hover:bg-slate-50/60 transition-colors">
+                    {/* Top: Icon, Title & Status */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {renderProductIcon(p.iconType, p.bgTint)}
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-slate-900 text-sm truncate">{p.name}</h4>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                            <span className="font-mono text-[11px]">{p.sku || '-'}</span>
+                            <span>·</span>
+                            <span className="text-slate-600">{p.category}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="shrink-0">{renderStockBadge(p.stock)}</div>
+                    </div>
+
+                    {/* Middle: Price & Stock metrics */}
+                    <div className="grid grid-cols-2 gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100/80 text-xs">
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Harga Jual</span>
+                        <span className="font-bold text-slate-900 text-sm tabular-nums">
+                          Rp{p.price.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Sisa Stok</span>
+                        <span className="font-mono font-bold text-slate-900 text-sm tabular-nums">
+                          {p.stock} pcs
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom: Quick Actions */}
+                    <div className="flex items-center justify-between pt-0.5">
+                      {isShopOwner ? (
+                        <div className="flex items-center justify-end w-full gap-2">
+                          <button
+                            onClick={() => handleOpenEdit(p)}
+                            className="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 active:scale-95 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span>Ubah</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(p)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 active:scale-95 rounded-lg transition-all cursor-pointer"
+                            title="Hapus Produk"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full flex items-center justify-center py-1">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                            <Shield className="w-3 h-3 text-slate-400" />
+                            <span>Hanya Baca</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Tablet & Desktop View: High-Density Table (>= md) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -321,103 +409,144 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
                       </td>
                     </tr>
                   ) : (
-                    products.map((p) => {
-                      const isLowStock = (p.stock || 0) < 15;
-                      const isOutOfStock = (p.stock || 0) <= 0;
-
-                      return (
-                        <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-3">
-                              <div
-                                style={{ backgroundColor: p.bgTint || '#FDF8EE' }}
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 shadow-2xs border border-slate-100"
+                    paginatedProducts.map((p) => (
+                      <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            {renderProductIcon(p.iconType, p.bgTint)}
+                            <span className="font-bold text-slate-900">{p.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-xs font-semibold text-slate-500">
+                          {p.sku || '-'}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                            {p.category}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-slate-900 tabular-nums">
+                          Rp{p.price.toLocaleString('id-ID')}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-bold text-slate-900 tabular-nums">
+                          {p.stock} pcs
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {renderStockBadge(p.stock)}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          {isShopOwner ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleOpenEdit(p)}
+                                title="Ubah Data Produk"
+                                className="p-1.5 hover:bg-amber-50 text-slate-500 hover:text-amber-700 rounded-lg transition-colors cursor-pointer"
                               >
-                                {p.iconType === 'noodle' && '🍜'}
-                                {p.iconType === 'water' && '💧'}
-                                {p.iconType === 'milk' && '🥛'}
-                                {p.iconType === 'oil' && '🍾'}
-                                {p.iconType === 'chips' && '🥔'}
-                                {p.iconType === 'rice' && '🌾'}
-                                {p.iconType === 'tea' && '🍵'}
-                                {p.iconType === 'energy' && '⚡'}
-                                {!['noodle', 'water', 'milk', 'oil', 'chips', 'rice', 'tea', 'energy'].includes(
-                                  p.iconType
-                                ) && '📦'}
-                              </div>
-                              <span className="font-bold text-slate-900">{p.name}</span>
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(p)}
+                                title="Hapus Produk"
+                                className="p-1.5 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-xs font-semibold text-slate-500">
-                            {p.sku || '-'}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                              {p.category}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-slate-900 tabular-nums">
-                            Rp{p.price.toLocaleString('id-ID')}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono font-bold text-slate-900 tabular-nums">
-                            {p.stock} pcs
-                          </td>
-                          <td className="py-3.5 px-4">
-                            {isOutOfStock ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
-                                Habis
+                          ) : (
+                            <div className="flex items-center justify-end">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                                <Shield className="w-3 h-3 text-slate-400" />
+                                <span>Hanya Baca</span>
                               </span>
-                            ) : isLowStock ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                                Menipis
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
-                                Tersedia
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            {isShopOwner ? (
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  onClick={() => handleQuickAddStock(p, 10)}
-                                  title="Tambah Stok Cepat (+10 pcs)"
-                                  className="px-2 py-1 bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                                >
-                                  +10
-                                </button>
-                                <button
-                                  onClick={() => handleOpenEdit(p)}
-                                  title="Ubah Data Produk"
-                                  className="p-1.5 hover:bg-amber-50 text-slate-500 hover:text-amber-700 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteProduct(p)}
-                                  title="Hapus Produk"
-                                  className="p-1.5 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-end">
-                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                                  <Shield className="w-3 h-3 text-slate-400" />
-                                  <span>Hanya Baca</span>
-                                </span>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls Bar */}
+            {totalItems > 0 && (
+              <div className="p-3.5 md:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 text-xs text-slate-600">
+                {/* Left: Summary */}
+                <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
+                  <span className="font-medium text-slate-600">
+                    Menampilkan{' '}
+                    <span className="font-bold text-slate-900 tabular-nums">
+                      {startIndex + 1}
+                    </span>
+                    –
+                    <span className="font-bold text-slate-900 tabular-nums">
+                      {endIndex}
+                    </span>{' '}
+                    dari{' '}
+                    <span className="font-bold text-slate-900 tabular-nums">
+                      {totalItems}
+                    </span>{' '}
+                    produk
+                  </span>
+                </div>
+
+                {/* Right: Page Navigation */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={safeCurrentPage === 1}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium cursor-pointer"
+                    aria-label="Halaman Sebelumnya"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline">Sebelumnya</span>
+                  </button>
+
+                  {/* Page Number Buttons */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        if (totalPages <= 5) return true;
+                        return (
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - safeCurrentPage) <= 1
+                        );
+                      })
+                      .map((page, idx, arr) => {
+                        const showEllipsisBefore = idx > 0 && page - arr[idx - 1] > 1;
+                        return (
+                          <React.Fragment key={page}>
+                            {showEllipsisBefore && (
+                              <span className="px-1 text-slate-400 select-none">...</span>
+                            )}
+                            <button
+                              onClick={() => setCurrentPage(page)}
+                              className={`min-w-[32px] h-8 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                                safeCurrentPage === page
+                                  ? 'bg-[#EC6C1A] text-white shadow-2xs'
+                                  : 'border border-slate-200 text-slate-700 hover:bg-slate-100'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={safeCurrentPage === totalPages}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium cursor-pointer"
+                    aria-label="Halaman Selanjutnya"
+                  >
+                    <span className="hidden sm:inline">Selanjutnya</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

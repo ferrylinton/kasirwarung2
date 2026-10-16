@@ -6,7 +6,7 @@ import {
   Trash2,
   Calculator,
   X,
-  CreditCard,
+  Banknote,
   ShoppingBag,
   ShieldAlert,
 } from 'lucide-react';
@@ -305,7 +305,7 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
             disabled={items.length === 0}
             className="w-full bg-[#16A34A] hover:bg-[#15803D] active:scale-[0.99] text-white py-3 rounded-xl font-bold text-sm md:text-base flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            <CreditCard className="w-4 h-4 stroke-[2.5]" />
+            <Banknote className="w-4 h-4 stroke-[2.2]" />
             <span>Bayar</span>
           </button>
         )}

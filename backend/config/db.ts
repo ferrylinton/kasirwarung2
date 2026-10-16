@@ -175,7 +175,7 @@ class FallbackCollection<T extends Record<string, any>> {
 
   async updateOne(
     filter: Record<string, any>,
-    update: { $set?: Partial<T>; $inc?: Record<string, number> },
+    update: { $set?: Partial<T>; $unset?: Record<string, any>; $inc?: Record<string, number> },
     options?: { upsert?: boolean }
   ): Promise<{ matchedCount: number; modifiedCount: number }> {
     const store = this.getStore();
@@ -198,6 +198,11 @@ class FallbackCollection<T extends Record<string, any>> {
     if (update.$set) {
       Object.assign(target, update.$set);
     }
+    if (update.$unset) {
+      for (const k of Object.keys(update.$unset)) {
+        delete target[k];
+      }
+    }
     if (update.$inc) {
       for (const [k, v] of Object.entries(update.$inc)) {
         target[k] = (Number(target[k]) || 0) + v;
@@ -205,6 +210,35 @@ class FallbackCollection<T extends Record<string, any>> {
     }
     store[idx] = target;
     return { matchedCount: 1, modifiedCount: 1 };
+  }
+
+  async updateMany(
+    filter: Record<string, any>,
+    update: { $set?: Partial<T>; $unset?: Record<string, any>; $inc?: Record<string, number> }
+  ): Promise<{ matchedCount: number; modifiedCount: number }> {
+    const store = this.getStore();
+    let count = 0;
+    for (let i = 0; i < store.length; i++) {
+      if (matchesFilter(store[i], filter)) {
+        count++;
+        const target = { ...store[i] };
+        if (update.$set) {
+          Object.assign(target, update.$set);
+        }
+        if (update.$unset) {
+          for (const k of Object.keys(update.$unset)) {
+            delete target[k];
+          }
+        }
+        if (update.$inc) {
+          for (const [k, v] of Object.entries(update.$inc)) {
+            target[k] = (Number(target[k]) || 0) + v;
+          }
+        }
+        store[i] = target;
+      }
+    }
+    return { matchedCount: count, modifiedCount: count };
   }
 
   async deleteOne(filter: Record<string, any>): Promise<{ deletedCount: number }> {

@@ -312,7 +312,6 @@ export async function seedInitialData(): Promise<void> {
           summaryLabel: '3 Item: Beras, Indomie, Teh...',
           cashierName: 'Budi Santoso',
           customerName: 'Bu Rina (Langganan RT 04)',
-          paymentMethod: 'Belum Dibayar',
           items: [
             {
               productId: String((beras as any)._id || 'KW-BRS-006'),
@@ -356,7 +355,6 @@ export async function seedInitialData(): Promise<void> {
           summaryLabel: '2 Item: Minyak Goreng, Indomie...',
           cashierName: 'Budi Santoso',
           customerName: 'Pak Hendra',
-          paymentMethod: 'QRIS',
           items: [
             {
               productId: String((minyak as any)._id || 'KW-MNY-004'),
@@ -433,6 +431,12 @@ export async function seedInitialData(): Promise<void> {
     await ordersCol.updateMany(
       { $or: [{ tenantId: { $exists: false } }, { tenantId: null }] },
       { $set: { tenantId: t1Id } }
+    );
+
+    // Remove legacy paymentMethod from all existing orders
+    await ordersCol.updateMany(
+      { paymentMethod: { $exists: true } },
+      { $unset: { paymentMethod: '' } }
     );
   } catch (err) {
     console.warn('[Seed] Seed warning:', err);
