@@ -38,6 +38,23 @@ export interface Tenant {
   updatedAt?: string;
 }
 
+export interface DeactivationRequestItem {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  tenantCode: string;
+  ownerEmail: string;
+  currentTenantStatus: 'active' | 'inactive';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  reason: string;
+  requestedBy: string;
+  requestedAt: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectReason?: string;
+  cancelledAt?: string;
+}
+
 export interface Cashier {
   id: string;
   name: string;
@@ -328,6 +345,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ action, rejectReason }),
     }),
+  getDeactivationRequests: () => apiRequest('/api/tenants/deactivation-requests'),
   getRecentEmails: () => apiRequest('/api/tenants/recent-emails'),
 
   // Category Management (CRUD by SHOP_OWNER)

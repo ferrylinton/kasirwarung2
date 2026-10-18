@@ -10,6 +10,7 @@ import {
   confirmReactivation,
   verifyTenant,
   getRecentEmails,
+  getDeactivationRequests,
 } from '../controllers/tenantController.ts';
 import { authenticateToken, requireRole } from '../middleware/authMiddleware.ts';
 import { validateBody } from '../middleware/validateMiddleware.ts';
@@ -48,6 +49,7 @@ router.post(
 );
 
 // Admin-only endpoints
+router.get('/deactivation-requests', authenticateToken, requireRole('ADMIN'), getDeactivationRequests);
 router.get('/', authenticateToken, requireRole('ADMIN'), getTenants);
 router.put(
   '/:id/status',

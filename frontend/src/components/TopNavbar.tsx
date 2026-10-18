@@ -13,6 +13,7 @@ import {
   Store,
   Tags,
   Package,
+  ShieldAlert,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -29,6 +30,7 @@ export type ActiveTab =
   | 'tenants'
   | 'admin-products'
   | 'admin-categories'
+  | 'deactivation-requests'
   | 'cashiers'
   | 'store-settings';
 
@@ -56,6 +58,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         return 'Semua Produk Tenan';
       case 'admin-categories':
         return 'Semua Kategori Tenan';
+      case 'deactivation-requests':
+        return 'Histori Penonaktifan Toko';
       case 'cashiers':
         return 'Kelola Staf Kasir';
       case 'store-settings':
@@ -196,6 +200,14 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                   >
                     <Tags className="w-4 h-4 text-purple-600" />
                     <span>Semua Kategori Tenan</span>
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    onSelect={() => onNavigate?.('deactivation-requests')}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 rounded-xl hover:bg-purple-50 focus:bg-purple-50 cursor-pointer outline-none transition-colors"
+                  >
+                    <ShieldAlert className="w-4 h-4 text-purple-600" />
+                    <span>Histori Penonaktifan</span>
                   </DropdownMenu.Item>
                 </>
               )}

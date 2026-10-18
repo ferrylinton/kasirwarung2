@@ -1,4 +1,3 @@
-import React from 'react';
 import { Calculator, Package, History, PieChart, X, Building2, Users, Store, Tags } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -66,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <div
             className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
-              currentTab === 'tenants'
+              currentTab === 'tenants' || currentTab === 'deactivation-requests'
                 ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
                 : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
             }`}
@@ -75,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <span
             className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-              currentTab === 'tenants' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+              currentTab === 'tenants' || currentTab === 'deactivation-requests' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           >
             Tenan
@@ -180,6 +179,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </button>
       )}
+
+
 
       {/* Transaction History */}
       <button

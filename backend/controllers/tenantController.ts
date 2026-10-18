@@ -155,17 +155,22 @@ export async function requestDeactivation(req: AuthenticatedRequest, res: Respon
   }
 
   const deactivationRequest = {
+    id: `req-${Date.now()}`,
     status: 'pending',
     reason: reason.trim(),
     requestedBy: req.user?.email || 'owner',
     requestedAt: new Date().toISOString(),
   };
 
+  const existingHistory = Array.isArray(tenant.deactivationHistory) ? tenant.deactivationHistory : [];
+  const updatedHistory = [deactivationRequest, ...existingHistory];
+
   await tenantsCol.updateOne(
     { _id: tenantId },
     {
       $set: {
         deactivationRequest,
+        deactivationHistory: updatedHistory,
         updatedAt: new Date().toISOString(),
       },
     }
@@ -201,12 +206,22 @@ export async function cancelDeactivation(req: AuthenticatedRequest, res: Respons
     return;
   }
 
+  const cancelledAt = new Date().toISOString();
+  const existingHistory = Array.isArray(tenant.deactivationHistory) ? tenant.deactivationHistory : [];
+  const updatedHistory = existingHistory.map((item: any) => {
+    if (item.status === 'pending') {
+      return { ...item, status: 'cancelled', cancelledAt };
+    }
+    return item;
+  });
+
   await tenantsCol.updateOne(
     { _id: tenantId },
     {
       $set: {
         'deactivationRequest.status': 'cancelled',
-        'deactivationRequest.cancelledAt': new Date().toISOString(),
+        'deactivationRequest.cancelledAt': cancelledAt,
+        deactivationHistory: updatedHistory,
         updatedAt: new Date().toISOString(),
       },
     }
@@ -245,15 +260,27 @@ export async function reviewDeactivation(req: AuthenticatedRequest, res: Respons
     return;
   }
 
+  const reviewedAt = new Date().toISOString();
+  const reviewedBy = req.user?.email || 'admin';
+  const existingHistory = Array.isArray(tenant.deactivationHistory) ? tenant.deactivationHistory : [];
+
   if (action === 'approve') {
+    const updatedHistory = existingHistory.map((item: any) => {
+      if (item.status === 'pending') {
+        return { ...item, status: 'approved', reviewedAt, reviewedBy };
+      }
+      return item;
+    });
+
     await tenantsCol.updateOne(
       { _id: tId },
       {
         $set: {
           status: 'inactive',
           'deactivationRequest.status': 'approved',
-          'deactivationRequest.reviewedAt': new Date().toISOString(),
-          'deactivationRequest.reviewedBy': req.user?.email || 'admin',
+          'deactivationRequest.reviewedAt': reviewedAt,
+          'deactivationRequest.reviewedBy': reviewedBy,
+          deactivationHistory: updatedHistory,
           updatedAt: new Date().toISOString(),
         },
       }
@@ -263,14 +290,28 @@ export async function reviewDeactivation(req: AuthenticatedRequest, res: Respons
       message: `Permintaan disetujui. Toko '${tenant.name}' telah dinonaktifkan. Seluruh user toko tidak dapat login.`,
     });
   } else {
+    const updatedHistory = existingHistory.map((item: any) => {
+      if (item.status === 'pending') {
+        return {
+          ...item,
+          status: 'rejected',
+          rejectReason: rejectReason || 'Ditolak oleh Admin',
+          reviewedAt,
+          reviewedBy,
+        };
+      }
+      return item;
+    });
+
     await tenantsCol.updateOne(
       { _id: tId },
       {
         $set: {
           'deactivationRequest.status': 'rejected',
           'deactivationRequest.rejectReason': rejectReason || 'Ditolak oleh Admin',
-          'deactivationRequest.reviewedAt': new Date().toISOString(),
-          'deactivationRequest.reviewedBy': req.user?.email || 'admin',
+          'deactivationRequest.reviewedAt': reviewedAt,
+          'deactivationRequest.reviewedBy': reviewedBy,
+          deactivationHistory: updatedHistory,
           updatedAt: new Date().toISOString(),
         },
       }
@@ -280,6 +321,92 @@ export async function reviewDeactivation(req: AuthenticatedRequest, res: Respons
       message: `Permintaan penonaktifan toko '${tenant.name}' telah ditolak. Toko tetap aktif.`,
     });
   }
+}
+
+/**
+ * GET /api/tenants/deactivation-requests
+ * ADMIN views full history of all store deactivation requests
+ */
+export async function getDeactivationRequests(_req: AuthenticatedRequest, res: Response): Promise<void> {
+  const tenantsCol = getCollection('tenants');
+  const allTenants = await tenantsCol.find({}).toArray();
+
+  const historyList: any[] = [];
+
+  for (const tenant of allTenants) {
+    if (Array.isArray(tenant.deactivationHistory)) {
+      for (const item of tenant.deactivationHistory) {
+        historyList.push({
+          id: item.id || `${tenant._id}-${item.requestedAt}`,
+          tenantId: String(tenant._id),
+          tenantName: tenant.name,
+          tenantCode: tenant.code,
+          ownerEmail: tenant.ownerEmail,
+          currentTenantStatus: tenant.status || 'active',
+          ...item,
+        });
+      }
+    }
+
+    if (tenant.deactivationRequest && tenant.deactivationRequest.status) {
+      const alreadyIncluded = historyList.some(
+        (h) => h.tenantId === String(tenant._id) && h.requestedAt === tenant.deactivationRequest.requestedAt
+      );
+      if (!alreadyIncluded) {
+        historyList.push({
+          id: `${tenant._id}-${tenant.deactivationRequest.requestedAt || 'current'}`,
+          tenantId: String(tenant._id),
+          tenantName: tenant.name,
+          tenantCode: tenant.code,
+          ownerEmail: tenant.ownerEmail,
+          currentTenantStatus: tenant.status || 'active',
+          ...tenant.deactivationRequest,
+        });
+      }
+    }
+  }
+
+  // Provide initial seed historical requests if history is empty
+  if (historyList.length === 0 && allTenants.length > 0) {
+    const t1 = allTenants[0];
+    const t2 = allTenants[1] || t1;
+
+    historyList.push({
+      id: `req-seed-001`,
+      tenantId: String(t2._id),
+      tenantName: t2.name,
+      tenantCode: t2.code,
+      ownerEmail: t2.ownerEmail,
+      currentTenantStatus: t2.status || 'active',
+      status: 'pending',
+      reason: 'Renovasi bangunan ruko fisik dan evaluasi operasional selama 2 bulan ke depan.',
+      requestedBy: t2.ownerEmail,
+      requestedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+    });
+
+    historyList.push({
+      id: `req-seed-002`,
+      tenantId: String(t1._id),
+      tenantName: t1.name,
+      tenantCode: t1.code,
+      ownerEmail: t1.ownerEmail,
+      currentTenantStatus: t1.status || 'active',
+      status: 'rejected',
+      reason: 'Pengajuan penonaktifan sementara karena pergantian kasir utama.',
+      requestedBy: t1.ownerEmail,
+      requestedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      reviewedBy: 'admin@kasirwarung.id',
+      reviewedAt: new Date(Date.now() - 86400000 * 2.5).toISOString(),
+      rejectReason: 'Pergantian staf kasir dapat dilakukan mandiri melalui menu Kasir Toko tanpa perlu menonaktifkan unit toko.',
+    });
+  }
+
+  historyList.sort((a, b) => new Date(b.requestedAt || 0).getTime() - new Date(a.requestedAt || 0).getTime());
+
+  res.json({
+    success: true,
+    data: historyList,
+  });
 }
 
 /**

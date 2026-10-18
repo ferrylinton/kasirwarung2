@@ -16,6 +16,7 @@ import { HistoryPage } from './pages/HistoryPage.tsx';
 import { TenantsPage } from './pages/TenantsPage.tsx';
 import { CashiersPage } from './pages/CashiersPage.tsx';
 import { StoreSettingsPage } from './pages/StoreSettingsPage.tsx';
+import { AdminDeactivationRequestsPage } from './pages/AdminDeactivationRequestsPage.tsx';
 import { ShiftModal } from './components/ShiftModal.tsx';
 import { IdleTimerModal } from './components/IdleTimerModal.tsx';
 import { useIdleTimer } from './hooks/useIdleTimer.ts';
@@ -104,6 +105,14 @@ const AppContent: React.FC = () => {
       case 'store-settings':
         return (
           <StoreSettingsPage
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
+            onNavigate={setCurrentTab}
+          />
+        );
+      case 'deactivation-requests':
+        return (
+          <TenantsPage
+            initialTab="deactivation-requests"
             onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
