@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   History,
   ArrowLeft,
@@ -8,8 +8,8 @@ import {
   ShieldCheck,
   Calendar,
 } from 'lucide-react';
-import { api } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { useLoginHistory } from '../hooks/useQueries.ts';
 
 interface LoginHistoryPageProps {
   onBackToPos: () => void;
@@ -17,25 +17,12 @@ interface LoginHistoryPageProps {
 }
 
 export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({ onBackToPos, onNavigate }) => {
-  const [historyList, setHistoryList] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchHistory = () => {
-    setLoading(true);
-    api
-      .getLoginHistory()
-      .then((res) => {
-        if (res.success && Array.isArray(res.data)) {
-          setHistoryList(res.data);
-        }
-      })
-      .catch((err) => console.warn('Fetch login history err:', err))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  const {
+    data: historyData,
+    isLoading: loading,
+    refetch: fetchHistory,
+  } = useLoginHistory();
+  const historyList = historyData?.data || [];
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
@@ -142,3 +129,5 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({ onBackToPos,
   </div>
 );
 };
+
+export default LoginHistoryPage;

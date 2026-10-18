@@ -16,9 +16,10 @@ import {
   X,
 } from 'lucide-react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { api, Cashier } from '../services/api.ts';
+import { Cashier } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { useCashiers, useCashierMutations } from '../hooks/useQueries.ts';
 
 interface CashiersPageProps {
   onBackToPos?: () => void;
@@ -27,11 +28,20 @@ interface CashiersPageProps {
 
 export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const [cashiers, setCashiers] = useState<Cashier[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // TanStack Query for cashiers
+  const {
+    data: cashiersData,
+    isLoading: loading,
+    refetch: fetchCashiers,
+  } = useCashiers();
+  const cashiers = cashiersData?.data || [];
+
+  // TanStack Mutations for cashiers
+  const { createCashier, updateCashier, deleteCashier } = useCashierMutations();
 
   // Add / Edit Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -49,24 +59,6 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
   const [editShift, setEditShift] = useState('');
   const [editStatus, setEditStatus] = useState<'active' | 'inactive'>('active');
   const [editPassword, setEditPassword] = useState('');
-
-  const fetchCashiers = async () => {
-    setLoading(true);
-    try {
-      const res = await api.getCashiers();
-      if (res.success && Array.isArray(res.data)) {
-        setCashiers(res.data);
-      }
-    } catch (err: any) {
-      setFeedback({ message: err.message || 'Gagal memuat data staf kasir', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCashiers();
-  }, []);
 
   const handleOpenAdd = () => {
     setName('');
@@ -90,17 +82,16 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
     setActionLoading(true);
     setFeedback(null);
     try {
-      const res = await api.createCashier({
+      const res: any = await createCashier.mutateAsync({
         name,
         username,
         email,
         password,
         shift,
       });
-      if (res.success) {
+      if (res?.success) {
         setFeedback({ message: res.message, type: 'success' });
         setIsAddModalOpen(false);
-        await fetchCashiers();
       }
     } catch (err: any) {
       setFeedback({ message: err.message || 'Gagal menambahkan kasir', type: 'error' });
@@ -124,11 +115,10 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
         updatePayload.password = editPassword.trim();
       }
 
-      const res = await api.updateCashier(editingCashier.id, updatePayload);
-      if (res.success) {
+      const res: any = await updateCashier.mutateAsync({ id: editingCashier.id, data: updatePayload });
+      if (res?.success) {
         setFeedback({ message: res.message, type: 'success' });
         setEditingCashier(null);
-        await fetchCashiers();
       }
     } catch (err: any) {
       setFeedback({ message: err.message || 'Gagal memperbarui kasir', type: 'error' });
@@ -141,10 +131,9 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
     setActionLoading(true);
     setFeedback(null);
     try {
-      const res = await api.deleteCashier(id);
-      if (res.success) {
+      const res: any = await deleteCashier.mutateAsync(id);
+      if (res?.success) {
         setFeedback({ message: res.message, type: 'success' });
-        await fetchCashiers();
       }
     } catch (err: any) {
       setFeedback({ message: err.message || 'Gagal menghapus kasir', type: 'error' });
@@ -616,3 +605,5 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
     </div>
   );
 };
+
+export default CashiersPage;

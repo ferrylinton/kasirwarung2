@@ -3,10 +3,11 @@ import {
   Building2,
   ShieldAlert,
 } from 'lucide-react';
-import { api, Tenant } from '../services/api.ts';
+import { Tenant } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { DeactivationRequests } from '../components/DeactivationRequests.tsx';
 import { TenantsList } from '../components/TenantsList.tsx';
+import { useTenants } from '../hooks/useQueries.ts';
 
 interface TenantsPageProps {
   onBackToPos?: () => void;
@@ -16,31 +17,16 @@ interface TenantsPageProps {
 
 export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab = 'tenants' }) => {
   const [activeSubTab, setActiveSubTab] = useState<'tenants' | 'deactivation-requests'>(initialTab);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (initialTab) {
       setActiveSubTab(initialTab);
     }
   }, [initialTab]);
 
-  const fetchTenants = async () => {
-    setLoading(true);
-    try {
-      const res = await api.getTenants();
-      if (res.success && Array.isArray(res.data)) {
-        setTenants(res.data);
-      }
-    } catch (err: any) {
-      console.error('Gagal memuat data tenan', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTenants();
-  }, []);
+  // TanStack Query for tenants
+  const { data: tenantsData, isLoading: loading, refetch: fetchTenants } = useTenants();
+  const tenants = tenantsData?.data || [];
 
   const pendingRequests = tenants.filter(
     (t) => t.deactivationRequest && t.deactivationRequest.status === 'pending'
@@ -95,13 +81,13 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab
         {activeSubTab === 'deactivation-requests' ? (
           <DeactivationRequests
             onNavigate={onNavigate}
-            onRequestReviewed={fetchTenants}
+            onRequestReviewed={() => { fetchTenants(); }}
           />
         ) : (
           <TenantsList
             tenants={tenants}
             loading={loading}
-            onRefresh={fetchTenants}
+            onRefresh={() => { fetchTenants(); }}
             onNavigate={onNavigate}
           />
         )}
@@ -109,3 +95,5 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab
     </div>
   );
 };
+
+export default TenantsPage;

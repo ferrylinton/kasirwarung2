@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, PackagePlus, Save, Shield } from 'lucide-react';
-import { Product, Category, api } from '../services/api.ts';
+import { Product, Category } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
+import { useCategories, useProductMutations } from '../hooks/useQueries.ts';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -22,26 +23,27 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [name, setName] = useState(initialProduct?.name || '');
   const [sku, setSku] = useState(initialProduct?.sku || '');
   const [category, setCategory] = useState(initialProduct?.category || 'Makanan Instan');
-  const [categories, setCategories] = useState<Category[]>([]);
   const [price, setPrice] = useState(initialProduct?.price || 5000);
   const [stock, setStock] = useState(initialProduct?.stock || 20);
   const [iconType, setIconType] = useState(initialProduct?.iconType || 'box');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // TanStack Query for categories
+  const { data: categoriesData } = useCategories(undefined, { enabled: isOpen });
+  const categories = categoriesData?.data || [];
+
+  // TanStack Mutations for product
+  const { createProduct, updateProduct } = useProductMutations();
+
   useEffect(() => {
     if (isOpen) {
       setError('');
-      api.getCategories().then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-          setCategories(res.data);
-          if (!initialProduct && !res.data.some((c: any) => c.name === category)) {
-            setCategory(res.data[0].name);
-          }
-        }
-      }).catch((err) => console.warn('Could not load categories in modal:', err));
+      if (categories.length > 0 && !initialProduct && !categories.some((c) => c.name === category)) {
+        setCategory(categories[0].name);
+      }
     }
-  }, [isOpen, initialProduct]);
+  }, [isOpen, initialProduct, categories]);
 
   if (!isOpen) return null;
 
@@ -55,14 +57,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setLoading(true);
     try {
       if (initialProduct?.id) {
-        await api.updateProduct(initialProduct.id, {
-          name,
-          category,
-          price: Number(price),
-          stock: Number(stock),
+        await updateProduct.mutateAsync({
+          id: initialProduct.id,
+          data: {
+            name,
+            category,
+            price: Number(price),
+            stock: Number(stock),
+          },
         });
       } else {
-        await api.createProduct({
+        await createProduct.mutateAsync({
           name,
           sku: sku || `KW-${Date.now().toString().slice(-4)}`,
           category,

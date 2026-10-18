@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Select from '@radix-ui/react-select';
 import {
   Package,
@@ -15,10 +15,11 @@ import {
   ChevronRight,
   Check,
 } from 'lucide-react';
-import { Product, Category, api } from '../services/api.ts';
+import { Product, Category } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
+import { useProducts, useCategories, useProductMutations } from '../hooks/useQueries.ts';
 
 interface ProductsPageProps {
   onBackToPos: () => void;
@@ -38,13 +39,24 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
   const { user } = useAuth();
   const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // TanStack Query for products & categories
+  const {
+    data: productsData,
+    isLoading: loading,
+    refetch: fetchProducts,
+  } = useProducts(searchQuery, selectedCategory);
+  const products = productsData?.data || [];
+
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.data || [];
+
+  // TanStack Mutations
+  const { deleteProduct } = useProductMutations();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -104,31 +116,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
     );
   };
 
-  const fetchProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await api.getProducts(searchQuery, selectedCategory);
-      if (res.success && Array.isArray(res.data)) {
-        setProducts(res.data);
-      }
-    } catch (err) {
-      console.warn('Load products note:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchQuery, selectedCategory]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  useEffect(() => {
-    api.getCategories().then((res) => {
-      if (res.success && Array.isArray(res.data)) {
-        setCategories(res.data);
-      }
-    }).catch((err) => console.warn('Could not load categories:', err));
-  }, []);
 
 
   const handleOpenAdd = () => {
@@ -157,11 +144,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
     }
     if (confirm(`Yakin ingin menghapus produk "${p.name}"?`)) {
       try {
-        const res = await api.deleteProduct(p.id);
-        if (res.success) {
-          fetchProducts();
-        } else {
-          alert(res.message || 'Gagal menghapus produk');
+        const res: any = await deleteProduct.mutateAsync(p.id);
+        if (!res?.success) {
+          alert(res?.message || 'Gagal menghapus produk');
         }
       } catch (err: any) {
         alert(err.message || 'Gagal menghapus produk');
@@ -562,3 +547,5 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
     </div>
   );
 };
+
+export default ProductsPage;

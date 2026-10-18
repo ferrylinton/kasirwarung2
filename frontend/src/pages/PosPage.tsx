@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TopHeader } from '../components/TopHeader.tsx';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { SavedOrdersBar } from '../components/SavedOrdersBar.tsx';
@@ -8,9 +8,10 @@ import { OrderDrawer } from '../components/OrderDrawer.tsx';
 import { PaymentModal } from '../components/PaymentModal.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
 import { ShiftModal } from '../components/ShiftModal.tsx';
-import { Product, api } from '../services/api.ts';
+import { Product } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { PackagePlus, RefreshCcw, Shield, Tags } from 'lucide-react';
+import { useProducts, useCategories } from '../hooks/useQueries.ts';
 
 const CATEGORIES = [
   'Semua Produk',
@@ -26,11 +27,8 @@ interface PosPageProps {
 }
 
 export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categoriesList, setCategoriesList] = useState<string[]>(CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true);
 
   // Modals state
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
@@ -40,31 +38,21 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
 
   const { user, logout } = useAuth();
 
-  const fetchProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await api.getProducts(searchQuery, selectedCategory);
-      if (res.success && Array.isArray(res.data)) {
-        setProducts(res.data);
-      }
-    } catch (err) {
-      console.warn('Load products note:', err);
-    } finally {
-      setLoading(false);
+  // TanStack Query for products & categories
+  const {
+    data: productsData,
+    isLoading: loading,
+    refetch: fetchProducts,
+  } = useProducts(searchQuery, selectedCategory);
+  const products = productsData?.data || [];
+
+  const { data: categoriesData } = useCategories();
+  const categoriesList = useMemo(() => {
+    if (categoriesData?.data && categoriesData.data.length > 0) {
+      return ['Semua Produk', ...categoriesData.data.map((c) => c.name)];
     }
-  }, [searchQuery, selectedCategory]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  useEffect(() => {
-    api.getCategories().then((res) => {
-      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-        setCategoriesList(['Semua Produk', ...res.data.map((c: any) => c.name)]);
-      }
-    }).catch(() => {});
-  }, []);
+    return CATEGORIES;
+  }, [categoriesData]);
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
@@ -213,3 +201,5 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
     </div>
   );
 };
+
+export default PosPage;

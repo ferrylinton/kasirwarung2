@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { api, DeactivationRequestItem } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
+import { useDeactivationRequests } from '../hooks/useQueries.ts';
 
 export interface DeactivationRequestsProps {
   onNavigate?: (tab: any) => void;
@@ -28,8 +29,14 @@ export const DeactivationRequests: React.FC<DeactivationRequestsProps> = ({
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
-  const [requests, setRequests] = useState<DeactivationRequestItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  // TanStack Query for deactivation requests
+  const {
+    data: requestsData,
+    isLoading: loading,
+    refetch: fetchRequests,
+  } = useDeactivationRequests();
+  const requests = requestsData?.data || [];
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'pending' | 'approved' | 'rejected' | 'cancelled'>('ALL');
   const [actionLoading, setActionLoading] = useState(false);
@@ -48,24 +55,6 @@ export const DeactivationRequests: React.FC<DeactivationRequestsProps> = ({
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const res = await api.getDeactivationRequests();
-      if (res.success && Array.isArray(res.data)) {
-        setRequests(res.data);
-      }
-    } catch (err: any) {
-      setFeedback({ message: err.message || 'Gagal memuat histori penonaktifan', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRequests();
-  }, []);
 
   // Reset page when filter changes
   useEffect(() => {
@@ -306,7 +295,7 @@ export const DeactivationRequests: React.FC<DeactivationRequestsProps> = ({
             </h2>
           </div>
           <button
-            onClick={fetchRequests}
+            onClick={() => { fetchRequests(); }}
             disabled={loading}
             className="text-xs text-purple-700 hover:text-purple-900 font-semibold inline-flex items-center gap-1 cursor-pointer"
           >

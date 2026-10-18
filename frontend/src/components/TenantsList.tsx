@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { api, Tenant } from '../services/api.ts';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import { useTenants } from '../hooks/useQueries.ts';
 
 export interface TenantsListProps {
   tenants?: Tenant[];
@@ -22,39 +23,30 @@ export const TenantsList: React.FC<TenantsListProps> = ({
   loading: propLoading,
   onRefresh,
 }) => {
-  const [internalTenants, setInternalTenants] = useState<Tenant[]>([]);
-  const [internalLoading, setInternalLoading] = useState(false);
+  const isControlled = propTenants !== undefined;
+
+  // TanStack Query for tenants when not passed via props
+  const {
+    data: internalTenantsData,
+    isLoading: internalLoading,
+    refetch: refetchTenants,
+  } = useTenants({ enabled: !isControlled });
+
+  const internalTenants = internalTenantsData?.data || [];
+  const tenants = isControlled ? propTenants : internalTenants;
+  const loading = propLoading !== undefined ? propLoading : internalLoading;
+
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const isControlled = propTenants !== undefined;
-  const tenants = isControlled ? propTenants : internalTenants;
-  const loading = propLoading !== undefined ? propLoading : internalLoading;
-
   const fetchTenants = async () => {
     if (onRefresh) {
       await onRefresh();
-      return;
-    }
-    setInternalLoading(true);
-    try {
-      const res = await api.getTenants();
-      if (res.success && Array.isArray(res.data)) {
-        setInternalTenants(res.data);
-      }
-    } catch (err: any) {
-      setFeedback({ message: err.message || 'Gagal memuat data tenan', type: 'error' });
-    } finally {
-      setInternalLoading(false);
+    } else {
+      await refetchTenants();
     }
   };
-
-  useEffect(() => {
-    if (!isControlled) {
-      fetchTenants();
-    }
-  }, [isControlled]);
 
   const handleToggleStatus = async (tenant: Tenant, newStatus: 'active' | 'inactive') => {
     setActionLoading(true);

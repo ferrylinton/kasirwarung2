@@ -1,6 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, OrderItem, Order, api } from '../services/api.ts';
 import { useAuth } from './AuthContext.tsx';
+import {
+  useSavedOrders,
+  useSaveOrCheckoutOrderMutation,
+  useDeleteSavedOrderMutation,
+} from '../hooks/useQueries.ts';
 
 interface CartContextType {
   invoiceNo: string;
@@ -87,7 +92,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [items, setItems] = useState<OrderItem[]>(() => {
     return user?.role === 'ADMIN' ? [] : INITIAL_DEMO_ITEMS;
   });
-  const [savedOrders, setSavedOrders] = useState<Order[]>([]);
   const [customerName, setCustomerName] = useState<string>('Pelanggan Umum');
   const [isMobileCartOpen, setIsMobileCartOpen] = useState<boolean>(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
@@ -98,6 +102,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
+  // TanStack Query for saved orders
+  const { data: savedOrdersData, refetch: refreshOrders } = useSavedOrders({
+    enabled: !!user && user.role !== 'ADMIN',
+  });
+  const savedOrders = savedOrdersData?.data || [];
+
+  // TanStack Mutations
+  const saveOrderMutation = useSaveOrCheckoutOrderMutation();
+  const deleteSavedOrderMutation = useDeleteSavedOrderMutation();
+
   const openMobileCart = () => setIsMobileCartOpen(true);
   const closeMobileCart = () => setIsMobileCartOpen(false);
   const toggleMobileCart = () => setIsMobileCartOpen((prev) => !prev);
@@ -105,21 +119,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const openMobileSidebar = () => setIsMobileSidebarOpen(true);
   const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
   const toggleMobileSidebar = () => setIsMobileSidebarOpen((prev) => !prev);
-
-  const refreshOrders = useCallback(async () => {
-    try {
-      const res = await api.getSavedOrders();
-      if (res.success && Array.isArray(res.data)) {
-        setSavedOrders(res.data);
-      }
-    } catch (err) {
-      console.warn('Fetch saved orders error:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshOrders();
-  }, [refreshOrders]);
 
   const findItemQty = (productId: string): number => {
     const found = items.find((i) => i.productId === productId || i.name === productId);
@@ -214,13 +213,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const saveCurrentOrder = async (): Promise<boolean> => {
     if (user?.role === 'ADMIN' || items.length === 0) return false;
     try {
-      await api.createOrSaveOrder({
+      await saveOrderMutation.mutateAsync({
         invoiceNo,
         status: 'saved',
         items,
         customerName,
       });
-      await refreshOrders();
       await startNewTransaction();
       return true;
     } catch (err) {
@@ -237,8 +235,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteSavedOrder = async (inv: string) => {
     try {
-      await api.deleteSavedOrder(inv);
-      await refreshOrders();
+      await deleteSavedOrderMutation.mutateAsync(inv);
     } catch (err) {
       console.error('Failed to delete saved order:', err);
     }
@@ -269,7 +266,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         saveCurrentOrder,
         resumeOrder,
         deleteSavedOrder,
-        refreshOrders,
+        refreshOrders: async () => {
+          await refreshOrders();
+        },
         findItemQty,
         isMobileCartOpen,
         setIsMobileCartOpen,

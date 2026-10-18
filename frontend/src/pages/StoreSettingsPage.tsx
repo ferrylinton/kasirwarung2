@@ -16,6 +16,7 @@ import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { api, Tenant } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { useCurrentTenant } from '../hooks/useQueries.ts';
 
 interface StoreSettingsPageProps {
   onBackToPos?: () => void;
@@ -24,32 +25,20 @@ interface StoreSettingsPageProps {
 
 export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate, onBackToPos }) => {
   const { user } = useAuth();
-  const [tenant, setTenant] = useState<Tenant | null>(null);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // TanStack Query for current tenant
+  const {
+    data: tenantData,
+    isLoading: loading,
+    refetch: fetchTenantInfo,
+  } = useCurrentTenant();
+  const tenant = tenantData?.data || null;
 
   // Deactivation Request Form
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [reason, setReason] = useState('');
-
-  const fetchTenantInfo = async () => {
-    setLoading(true);
-    try {
-      const res = await api.getCurrentTenant();
-      if (res.success && res.data) {
-        setTenant(res.data);
-      }
-    } catch (err: any) {
-      setFeedback({ message: err.message || 'Gagal memuat data toko', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTenantInfo();
-  }, []);
 
   const handleRequestDeactivation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -370,3 +359,5 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
     </div>
   );
 };
+
+export default StoreSettingsPage;

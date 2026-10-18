@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Tags,
   Plus,
@@ -20,7 +20,8 @@ import {
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
-import { api, Category } from '../services/api.ts';
+import { Category } from '../services/api.ts';
+import { useCategories, useCategoryMutations } from '../hooks/useQueries.ts';
 
 const PRESET_ICONS = ['🍜', '🥤', '🌾', '🍿', '🧼', '🍫', '🍞', '🥫', '🍳', '☕', '🧴', '📦', '🏷️'];
 const PRESET_COLORS = [
@@ -47,10 +48,19 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
   const { user } = useAuth();
   const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // TanStack Query for categories
+  const {
+    data: categoriesData,
+    isLoading: loading,
+    refetch: fetchCategories,
+  } = useCategories();
+  const categories = categoriesData?.data || [];
+
+  // TanStack Mutations for category CRUD
+  const { createCategory, updateCategory, deleteCategory } = useCategoryMutations();
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,24 +75,6 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
   // Delete State
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const fetchCategories = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await api.getCategories();
-      if (res.success && Array.isArray(res.data)) {
-        setCategories(res.data);
-      }
-    } catch (err: any) {
-      console.warn('Failed to load categories:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
 
   const handleOpenAdd = () => {
     if (!isShopOwner) {
@@ -130,42 +122,43 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
       setFormError('');
 
       if (editingCategory) {
-        // Update
-        const res = await api.updateCategory(editingCategory.id, {
-          name: formName.trim(),
-          description: formDesc.trim(),
-          icon: formIcon,
-          color: formColor,
+        // Update via TanStack Mutation
+        const res: any = await updateCategory.mutateAsync({
+          id: editingCategory.id,
+          data: {
+            name: formName.trim(),
+            description: formDesc.trim(),
+            icon: formIcon,
+            color: formColor,
+          },
         });
 
-        if (res.success) {
+        if (res?.success) {
           setNotification({
             type: 'success',
             message: `Kategori "${res.data.name}" berhasil diperbarui.`,
           });
           setIsModalOpen(false);
-          fetchCategories();
         } else {
-          setFormError(res.message || 'Gagal memperbarui kategori');
+          setFormError(res?.message || 'Gagal memperbarui kategori');
         }
       } else {
-        // Create
-        const res = await api.createCategory({
+        // Create via TanStack Mutation
+        const res: any = await createCategory.mutateAsync({
           name: formName.trim(),
           description: formDesc.trim(),
           icon: formIcon,
           color: formColor,
         });
 
-        if (res.success) {
+        if (res?.success) {
           setNotification({
             type: 'success',
             message: `Kategori "${res.data.name}" berhasil ditambahkan.`,
           });
           setIsModalOpen(false);
-          fetchCategories();
         } else {
-          setFormError(res.message || 'Gagal menambahkan kategori');
+          setFormError(res?.message || 'Gagal menambahkan kategori');
         }
       }
     } catch (err: any) {
@@ -179,18 +172,17 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
     if (!categoryToDelete) return;
     try {
       setIsDeleting(true);
-      const res = await api.deleteCategory(categoryToDelete.id);
-      if (res.success) {
+      const res: any = await deleteCategory.mutateAsync(categoryToDelete.id);
+      if (res?.success) {
         setNotification({
           type: 'success',
           message: res.message || `Kategori "${categoryToDelete.name}" berhasil dihapus.`,
         });
         setCategoryToDelete(null);
-        fetchCategories();
       } else {
         setNotification({
           type: 'error',
-          message: res.message || 'Gagal menghapus kategori.',
+          message: res?.message || 'Gagal menghapus kategori.',
         });
       }
     } catch (err: any) {
@@ -624,3 +616,5 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
     </div>
   );
 };
+
+export default CategoriesPage;

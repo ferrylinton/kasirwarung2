@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Package,
   Search,
@@ -11,8 +11,9 @@ import {
   ArrowRight,
   Boxes,
 } from 'lucide-react';
-import { Product, Tenant, api } from '../services/api.ts';
+import { Product, Tenant } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { useProducts, useTenants } from '../hooks/useQueries.ts';
 
 interface AdminProductsPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -25,48 +26,28 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
   initialTenantId = 'ALL',
   initialCategory = 'Semua Produk',
 }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTenantId, setSelectedTenantId] = useState<string>(initialTenantId);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
-  const [allCategories, setAllCategories] = useState<string[]>([]);
 
-  // Load list of all tenants for filter dropdown
-  useEffect(() => {
-    api.getTenants()
-      .then((res) => {
-        if (res.success && Array.isArray(res.data)) {
-          setTenants(res.data);
-        }
-      })
-      .catch((err) => console.warn('Could not load tenants:', err));
-  }, []);
+  // TanStack Query for tenants dropdown
+  const { data: tenantsData } = useTenants();
+  const tenants = tenantsData?.data || [];
 
-  const fetchProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await api.getProducts(searchQuery, selectedCategory, selectedTenantId);
-      if (res.success && Array.isArray(res.data)) {
-        setProducts(res.data);
+  // TanStack Query for products across tenants
+  const {
+    data: productsData,
+    isLoading: loading,
+    refetch: fetchProducts,
+  } = useProducts(searchQuery, selectedCategory, selectedTenantId);
+  const products = productsData?.data || [];
 
-        // Collect unique categories across loaded products
-        const uniqueCats = Array.from(
-          new Set(res.data.map((p: Product) => p.category).filter(Boolean))
-        ) as string[];
-        setAllCategories(uniqueCats);
-      }
-    } catch (err) {
-      console.warn('Load admin products error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchQuery, selectedCategory, selectedTenantId]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  // Collect unique categories across loaded products
+  const allCategories = useMemo(() => {
+    return Array.from(
+      new Set(products.map((p: Product) => p.category).filter(Boolean))
+    ) as string[];
+  }, [products]);
 
   // Statistics calculation across all tenants
   const totalSku = products.length;
@@ -229,7 +210,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
 
               {/* Refresh button */}
               <button
-                onClick={fetchProducts}
+                onClick={() => { fetchProducts(); }}
                 title="Segarkan Data"
                 className="p-2 border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-purple-600 transition-colors cursor-pointer"
               >
@@ -359,3 +340,5 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
     </div>
   );
 };
+
+export default AdminProductsPage;

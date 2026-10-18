@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Tags,
   Search,
@@ -9,8 +9,9 @@ import {
   ArrowRight,
   ShieldAlert,
 } from 'lucide-react';
-import { Category, Tenant, api } from '../services/api.ts';
+import { Category, Tenant } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { useCategories, useTenants } from '../hooks/useQueries.ts';
 
 interface AdminCategoriesPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -21,40 +22,20 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
   onNavigate,
   onFilterTenantProducts,
 }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenantId, setSelectedTenantId] = useState('ALL');
 
-  // Load tenants for filter dropdown
-  useEffect(() => {
-    api.getTenants()
-      .then((res) => {
-        if (res.success && Array.isArray(res.data)) {
-          setTenants(res.data);
-        }
-      })
-      .catch((err) => console.warn('Could not load tenants in AdminCategoriesPage:', err));
-  }, []);
+  // TanStack Query for tenants
+  const { data: tenantsData } = useTenants();
+  const tenants = tenantsData?.data || [];
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await api.getCategories(selectedTenantId);
-      if (res.success && Array.isArray(res.data)) {
-        setCategories(res.data);
-      }
-    } catch (err: any) {
-      console.warn('Failed to load admin categories:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedTenantId]);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+  // TanStack Query for categories
+  const {
+    data: categoriesData,
+    isLoading: loading,
+    refetch: fetchCategories,
+  } = useCategories(selectedTenantId);
+  const categories = categoriesData?.data || [];
 
   const filteredCategories = categories.filter((c) => {
     if (!searchQuery) return true;
@@ -99,7 +80,7 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
 
             <div className="flex items-center gap-2.5">
               <button
-                onClick={fetchCategories}
+                onClick={() => { fetchCategories(); }}
                 disabled={loading}
                 title="Muat Ulang Kategori"
                 className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-purple-600 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
@@ -318,3 +299,5 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
     </div>
   );
 };
+
+export default AdminCategoriesPage;

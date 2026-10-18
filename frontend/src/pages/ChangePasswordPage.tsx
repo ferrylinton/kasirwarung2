@@ -179,3 +179,5 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onBackTo
   </div>
 );
 };
+
+export default ChangePasswordPage;

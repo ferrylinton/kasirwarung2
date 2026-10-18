@@ -13,3 +13,5 @@ export const AdminDeactivationRequestsPage: React.FC<AdminDeactivationRequestsPa
 }) => {
   return <TenantsPage initialTab="deactivation-requests" onNavigate={onNavigate} />;
 };
+
+export default AdminDeactivationRequestsPage;

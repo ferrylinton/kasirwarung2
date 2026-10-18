@@ -39,6 +39,11 @@ import {
 import { Order, Tenant, api } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import {
+  useOrderHistory,
+  useTenants,
+  useCleanupOldOrdersMutation,
+} from '../hooks/useQueries.ts';
 
 interface HistoryPageProps {
   onBackToPos: () => void;
@@ -52,9 +57,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
   const isAdmin = user?.role === 'ADMIN';
 
   // Data states
-  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -69,61 +71,49 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
 
   // Cleanup action status
   const [cleanupMessage, setCleanupMessage] = useState<string | null>(null);
-  const [cleaningUp, setCleaningUp] = useState<boolean>(false);
 
   // Boundary: max 3 months retention
   const threeMonthsAgo = useMemo(() => subMonths(new Date(), 3), []);
   const today = useMemo(() => new Date(), []);
 
-  // Fetch tenants for ADMIN
-  useEffect(() => {
-    if (isAdmin) {
-      api
-        .getTenants()
-        .then((res) => {
-          if (res.success && Array.isArray(res.data)) {
-            setTenants(res.data);
-          }
-        })
-        .catch((err) => console.warn('Could not load tenants in HistoryPage:', err));
-    }
-  }, [isAdmin]);
-
-  // Fetch orders from backend
-  const fetchOrders = useCallback(() => {
-    setLoading(true);
-
-    let startIso: string | undefined;
-    let endIso: string | undefined;
+  // Compute ISO date range params
+  const { startIso, endIso } = useMemo(() => {
+    let s: string | undefined;
+    let e: string | undefined;
 
     if (dateMode === 'range' && selectedRange?.from) {
-      startIso = format(startOfDay(selectedRange.from), 'yyyy-MM-dd');
+      s = format(startOfDay(selectedRange.from), 'yyyy-MM-dd');
       if (selectedRange.to) {
-        endIso = format(endOfDay(selectedRange.to), 'yyyy-MM-dd');
+        e = format(endOfDay(selectedRange.to), 'yyyy-MM-dd');
       } else {
-        endIso = startIso;
+        e = s;
       }
     } else if (dateMode === 'single' && selectedSingleDate) {
-      startIso = format(startOfDay(selectedSingleDate), 'yyyy-MM-dd');
-      endIso = format(endOfDay(selectedSingleDate), 'yyyy-MM-dd');
+      s = format(startOfDay(selectedSingleDate), 'yyyy-MM-dd');
+      e = format(endOfDay(selectedSingleDate), 'yyyy-MM-dd');
     }
+    return { startIso: s, endIso: e };
+  }, [dateMode, selectedRange, selectedSingleDate]);
 
-    const tenantQuery = isAdmin ? selectedTenantId : undefined;
+  const tenantQuery = isAdmin ? selectedTenantId : undefined;
 
-    api
-      .getOrderHistory(tenantQuery, startIso, endIso)
-      .then((res) => {
-        if (res.success && Array.isArray(res.data)) {
-          setHistoryOrders(res.data);
-        }
-      })
-      .catch((err) => console.warn('Fetch history error:', err))
-      .finally(() => setLoading(false));
-  }, [isAdmin, selectedTenantId, dateMode, selectedRange, selectedSingleDate]);
+  // TanStack Query: Fetch order history with caching & reactivity
+  const {
+    data: historyOrdersData,
+    isLoading: loading,
+    isFetching,
+    refetch: fetchOrders,
+  } = useOrderHistory(tenantQuery, startIso, endIso);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+  const historyOrders = historyOrdersData?.data || [];
+
+  // TanStack Query: Fetch tenants for ADMIN
+  const { data: tenantsData } = useTenants({ enabled: isAdmin });
+  const tenants = tenantsData?.data || [];
+
+  // TanStack Mutation: Trigger 3-month retention cleanup
+  const cleanupMutation = useCleanupOldOrdersMutation();
+  const cleaningUp = cleanupMutation.isPending;
 
   // Quick preset helper
   const applyPreset = (preset: 'today' | '7days' | '30days' | 'month' | 'all') => {
@@ -205,19 +195,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
     return 'Semua Waktu (Maksimal 3 Bulan)';
   }, [dateMode, selectedRange, selectedSingleDate]);
 
-  // Manual cleanup trigger for Admin
+  // Manual cleanup trigger for Admin using TanStack Mutation
   const handleTriggerCleanup = async () => {
     try {
-      setCleaningUp(true);
-      const res = await api.runOldOrdersCleanup();
-      if (res.success) {
-        setCleanupMessage(res.message || 'Pembersihan otomatis berhasil dijalankan.');
-        fetchOrders();
-      }
+      const res: any = await cleanupMutation.mutateAsync();
+      setCleanupMessage(res?.message || 'Pembersihan otomatis berhasil dijalankan.');
     } catch (err: any) {
       setCleanupMessage('Gagal membersihkan data: ' + (err.message || 'Error server'));
     } finally {
-      setCleaningUp(false);
       setTimeout(() => setCleanupMessage(null), 6000);
     }
   };
@@ -749,3 +734,5 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
     </div>
   );
 };
+
+export default HistoryPage;

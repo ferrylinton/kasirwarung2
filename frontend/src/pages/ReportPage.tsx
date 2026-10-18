@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   TrendingUp,
   Receipt,
@@ -7,28 +7,16 @@ import {
   ArrowUpRight,
   CalendarRange,
 } from 'lucide-react';
-import { api } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
+import { useReportSummary } from '../hooks/useQueries.ts';
 
 interface ReportPageProps {
   onNavigate?: (tab: any) => void;
 }
 
 export const ReportPage: React.FC<ReportPageProps> = ({ onNavigate }) => {
-  const [summary, setSummary] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api
-      .getReportSummary()
-      .then((res) => {
-        if (res.success && res.data) {
-          setSummary(res.data);
-        }
-      })
-      .catch((err) => console.warn('Report summary err:', err))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: reportData, isLoading: loading } = useReportSummary();
+  const summary = reportData?.data;
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
@@ -119,3 +107,5 @@ export const ReportPage: React.FC<ReportPageProps> = ({ onNavigate }) => {
   </div>
 );
 };
+
+export default ReportPage;
