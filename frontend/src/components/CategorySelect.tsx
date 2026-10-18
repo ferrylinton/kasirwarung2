@@ -6,18 +6,20 @@ interface CategorySelectProps {
   value: string;
   onValueChange: (val: string) => void;
   categories: string[];
+  className?: string;
 }
 
 export const CategorySelect: React.FC<CategorySelectProps> = ({
   value,
   onValueChange,
   categories,
+  className = '',
 }) => {
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
         aria-label="Kategori Produk"
-        className="inline-flex items-center justify-between gap-3 px-3.5 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-lg text-xs md:text-sm font-medium text-slate-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[140px] md:min-w-[160px] transition-all"
+        className={`inline-flex items-center justify-between gap-2.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-lg text-xs md:text-sm font-medium text-slate-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[130px] md:min-w-[150px] transition-all ${className}`}
       >
         <div className="flex items-center gap-1.5 truncate">
           <Select.Value placeholder="Pilih Kategori" />

@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import * as Select from '@radix-ui/react-select';
 import {
   Package,
   Plus,
-  Search,
   Edit2,
   Trash2,
   CheckCircle,
   RefreshCw,
   Shield,
-  ChevronDown,
-  ChevronUp,
   ChevronLeft,
   ChevronRight,
-  Check,
 } from 'lucide-react';
 import { Product, Category } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
+import { ProductFilterBar } from '../components/ProductFilterBar.tsx';
 import { useProducts, useCategories, useProductMutations } from '../hooks/useQueries.ts';
 
 interface ProductsPageProps {
@@ -73,23 +69,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
   const startIndex = (safeCurrentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalItems);
   const paginatedProducts = products.slice(startIndex, endIndex);
-
-  const renderProductIcon = (iconType: string, bgTint?: string) => (
-    <div
-      style={{ backgroundColor: bgTint || '#FDF8EE' }}
-      className="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 shadow-2xs border border-slate-100"
-    >
-      {iconType === 'noodle' && '🍜'}
-      {iconType === 'water' && '💧'}
-      {iconType === 'milk' && '🥛'}
-      {iconType === 'oil' && '🍾'}
-      {iconType === 'chips' && '🥔'}
-      {iconType === 'rice' && '🌾'}
-      {iconType === 'tea' && '🍵'}
-      {iconType === 'energy' && '⚡'}
-      {!['noodle', 'water', 'milk', 'oil', 'chips', 'rice', 'tea', 'energy'].includes(iconType) && '📦'}
-    </div>
-  );
 
   const renderStockBadge = (stock: number) => {
     const isLowStock = (stock || 0) < 15;
@@ -163,7 +142,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
           {/* Top Actions */}
           <div className="flex items-center justify-end gap-2.5 flex-wrap">
             <button
-              onClick={fetchProducts}
+              onClick={() => fetchProducts()}
               disabled={loading}
               title="Segarkan Data"
               className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
@@ -188,93 +167,14 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
           </div>
 
 
-          {/* Filter & Search Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari berdasarkan nama produk atau SKU..."
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-slate-50/50"
-              />
-            </div>
-
-            {/* Category Select Filter */}
-            <div className="flex items-center gap-2">
-              <Select.Root value={selectedCategory} onValueChange={(val) => setSelectedCategory(val)}>
-                <Select.Trigger
-                  aria-label="Filter Kategori"
-                  className="inline-flex items-center justify-between gap-2 px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[140px] md:min-w-[170px]"
-                >
-                  <Select.Value placeholder="Semua Produk" />
-                  <Select.Icon className="text-slate-400">
-                    <ChevronDown className="w-4 h-4" />
-                  </Select.Icon>
-                </Select.Trigger>
-
-                <Select.Portal>
-                  <Select.Content
-                    position="popper"
-                    sideOffset={5}
-                    className="overflow-hidden bg-white rounded-xl shadow-xl border border-slate-200 z-50 min-w-[180px] p-1.5 animate-in fade-in-80"
-                  >
-                    <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-slate-600 cursor-default">
-                      <ChevronUp className="w-4 h-4" />
-                    </Select.ScrollUpButton>
-                    <Select.Viewport className="p-1">
-                      <Select.Item
-                        value="Semua Produk"
-                        className="relative flex items-center justify-between px-3 py-2 text-xs md:text-sm rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 focus:outline-none cursor-pointer select-none font-medium data-[state=checked]:font-bold data-[state=checked]:text-orange-600 data-[state=checked]:bg-orange-50/70"
-                      >
-                        <Select.ItemText>Semua Produk</Select.ItemText>
-                        <Select.ItemIndicator className="text-orange-600 ml-2">
-                          <Check className="w-4 h-4" />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-
-                      {categories.length > 0 ? (
-                        categories
-                          .filter((cat) => cat.name !== 'Semua Produk')
-                          .map((cat) => (
-                            <Select.Item
-                              key={cat.id || cat.name}
-                              value={cat.name}
-                              className="relative flex items-center justify-between px-3 py-2 text-xs md:text-sm rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 focus:outline-none cursor-pointer select-none font-medium data-[state=checked]:font-bold data-[state=checked]:text-orange-600 data-[state=checked]:bg-orange-50/70"
-                            >
-                              <Select.ItemText>
-                                {cat.icon ? `${cat.icon} ` : ''}{cat.name}
-                              </Select.ItemText>
-                              <Select.ItemIndicator className="text-orange-600 ml-2">
-                                <Check className="w-4 h-4" />
-                              </Select.ItemIndicator>
-                            </Select.Item>
-                          ))
-                      ) : (
-                        CATEGORIES.filter((c) => c !== 'Semua Produk').map((cat) => (
-                          <Select.Item
-                            key={cat}
-                            value={cat}
-                            className="relative flex items-center justify-between px-3 py-2 text-xs md:text-sm rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 focus:outline-none cursor-pointer select-none font-medium data-[state=checked]:font-bold data-[state=checked]:text-orange-600 data-[state=checked]:bg-orange-50/70"
-                          >
-                            <Select.ItemText>{cat}</Select.ItemText>
-                            <Select.ItemIndicator className="text-orange-600 ml-2">
-                              <Check className="w-4 h-4" />
-                            </Select.ItemIndicator>
-                          </Select.Item>
-                        ))
-                      )}
-                    </Select.Viewport>
-                    <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-slate-600 cursor-default">
-                      <ChevronDown className="w-4 h-4" />
-                    </Select.ScrollDownButton>
-                  </Select.Content>
-                </Select.Portal>
-              </Select.Root>
-            </div>
-          </div>
+          {/* Filter & Search Bar Component */}
+          <ProductFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            categories={categories}
+          />
 
           {/* Products Inventory Card (Responsive: Mobile Cards + Tablet/Desktop Table + Pagination) */}
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
@@ -302,17 +202,14 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
               ) : (
                 paginatedProducts.map((p) => (
                   <div key={p.id} className="p-4 space-y-3 hover:bg-slate-50/60 transition-colors">
-                    {/* Top: Icon, Title & Status */}
+                    {/* Top: Title & Status */}
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {renderProductIcon(p.iconType, p.bgTint)}
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-slate-900 text-sm truncate">{p.name}</h4>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-                            <span className="font-mono text-[11px]">{p.sku || '-'}</span>
-                            <span>·</span>
-                            <span className="text-slate-600">{p.category}</span>
-                          </div>
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-slate-900 text-sm truncate">{p.name}</h4>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                          <span className="font-mono text-[11px]">{p.sku || '-'}</span>
+                          <span>·</span>
+                          <span className="text-slate-600">{p.category}</span>
                         </div>
                       </div>
                       <div className="shrink-0">{renderStockBadge(p.stock)}</div>
@@ -397,11 +294,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavig
                   ) : (
                     paginatedProducts.map((p) => (
                       <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-3">
-                            {renderProductIcon(p.iconType, p.bgTint)}
-                            <span className="font-bold text-slate-900">{p.name}</span>
-                          </div>
+                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                          {p.name}
                         </td>
                         <td className="py-3.5 px-4 font-mono text-xs font-semibold text-slate-500">
                           {p.sku || '-'}

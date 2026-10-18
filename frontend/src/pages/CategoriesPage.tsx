@@ -14,27 +14,12 @@ import {
   ArrowRight,
   Info,
   X,
-  Palette,
-  FolderPlus,
 } from 'lucide-react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Category } from '../services/api.ts';
 import { useCategories, useCategoryMutations } from '../hooks/useQueries.ts';
-
-const PRESET_ICONS = ['🍜', '🥤', '🌾', '🍿', '🧼', '🍫', '🍞', '🥫', '🍳', '☕', '🧴', '📦', '🏷️'];
-const PRESET_COLORS = [
-  '#F59E0B', // Amber
-  '#0EA5E9', // Sky
-  '#16A34A', // Green
-  '#D97706', // Orange
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#EF4444', // Red
-  '#06B6D4', // Cyan
-  '#64748B', // Slate
-];
 
 interface CategoriesPageProps {
   onNavigate?: (tab: any) => void;
@@ -210,7 +195,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
           {/* Top Actions */}
           <div className="flex items-center justify-end gap-2.5 flex-wrap">
             <button
-              onClick={fetchCategories}
+              onClick={() => fetchCategories()}
               disabled={loading}
               title="Muat Ulang Kategori"
               className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
@@ -467,61 +452,6 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
                   onChange={(e) => setFormDesc(e.target.value)}
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 resize-none"
                 />
-              </div>
-
-              {/* Ikon / Emoji Preset */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                  <span>Pilih Ikon / Emoji</span>
-                  <span className="text-xs font-mono font-bold text-slate-500">
-                    Aktif: {formIcon}
-                  </span>
-                </label>
-                <div className="flex items-center gap-2 flex-wrap p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-                  {PRESET_ICONS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => setFormIcon(emoji)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all cursor-pointer ${
-                        formIcon === emoji
-                          ? 'bg-white shadow-xs ring-2 ring-orange-500 scale-110'
-                          : 'hover:bg-white/80 opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Warna Aksen */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                  <span>Warna Aksen Kategori</span>
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className="w-3.5 h-3.5 rounded-full border border-black/10"
-                      style={{ backgroundColor: formColor }}
-                    />
-                    <span className="text-[11px] font-mono text-slate-500">
-                      {formColor}
-                    </span>
-                  </div>
-                </label>
-                <div className="flex items-center gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setFormColor(color)}
-                      style={{ backgroundColor: color }}
-                      className={`w-6 h-6 rounded-full transition-transform cursor-pointer ${
-                        formColor === color ? 'ring-2 ring-offset-2 ring-slate-800 scale-115' : 'hover:scale-105'
-                      }`}
-                    />
-                  ))}
-                </div>
               </div>
 
               {/* Actions */}

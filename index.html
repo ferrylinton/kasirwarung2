@@ -15,22 +15,92 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-      // Ignore HMR WebSocket connection warnings in AI Studio iframe environment
-      window.addEventListener('error', function(e) {
-        if (
-          (e.message && (e.message.indexOf('WebSocket') !== -1 || e.message.indexOf('createWebSocket') !== -1)) ||
-          (e.filename && e.filename.indexOf('@vite/client') !== -1)
-        ) {
-          e.stopImmediatePropagation();
-          e.preventDefault();
+      // Gracefully handle HMR WebSocket in AI Studio iframe environment where HMR is disabled
+      (function() {
+        if (typeof window === 'undefined') return;
+
+        window.addEventListener('error', function(e) {
+          if (
+            (e.message && (e.message.indexOf('WebSocket') !== -1 || e.message.indexOf('createWebSocket') !== -1)) ||
+            (e.filename && e.filename.indexOf('@vite/client') !== -1) ||
+            (e.error && (e.error.message || '').indexOf('WebSocket') !== -1)
+          ) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e.reason && (e.reason.message || String(e.reason));
+          var stack = e.reason && e.reason.stack;
+          if (
+            (reason && (reason.indexOf('WebSocket') !== -1 || reason.indexOf('createWebSocket') !== -1)) ||
+            (stack && (stack.indexOf('@vite/client') !== -1 || stack.indexOf('createWebSocket') !== -1))
+          ) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, true);
+
+        var NativeWebSocket = window.WebSocket;
+        if (!NativeWebSocket) return;
+
+        function ViteHmrStubSocket(url, protocols) {
+          var isViteHmr =
+            protocols === 'vite-hmr' ||
+            (Array.isArray(protocols) && protocols.indexOf('vite-hmr') !== -1) ||
+            (typeof url === 'string' && (url.indexOf('token=') !== -1 || url.indexOf('@vite') !== -1));
+
+          if (!isViteHmr) {
+            return new NativeWebSocket(url, protocols);
+          }
+
+          var target = new EventTarget();
+          target.url = url;
+          target.protocol = 'vite-hmr';
+          target.readyState = 0;
+          target.CONNECTING = 0;
+          target.OPEN = 1;
+          target.CLOSING = 2;
+          target.CLOSED = 3;
+          target.binaryType = 'blob';
+          target.bufferedAmount = 0;
+          target.extensions = '';
+          target.onopen = null;
+          target.onmessage = null;
+          target.onerror = null;
+          target.onclose = null;
+
+          target.send = function() {};
+          target.close = function() {
+            target.readyState = 3;
+            var closeEvt = new Event('close');
+            if (typeof target.onclose === 'function') {
+              try { target.onclose(closeEvt); } catch (_) {}
+            }
+            target.dispatchEvent(closeEvt);
+          };
+
+          setTimeout(function() {
+            target.readyState = 1;
+            var openEvt = new Event('open');
+            if (typeof target.onopen === 'function') {
+              try { target.onopen(openEvt); } catch (_) {}
+            }
+            target.dispatchEvent(openEvt);
+          }, 0);
+
+          return target;
         }
-      }, true);
-      window.addEventListener('unhandledrejection', function(e) {
-        var reason = e.reason && (e.reason.message || String(e.reason));
-        if (reason && (reason.indexOf('WebSocket') !== -1 || reason.indexOf('createWebSocket') !== -1)) {
-          e.preventDefault();
-        }
-      });
+
+        ViteHmrStubSocket.CONNECTING = 0;
+        ViteHmrStubSocket.OPEN = 1;
+        ViteHmrStubSocket.CLOSING = 2;
+        ViteHmrStubSocket.CLOSED = 3;
+        ViteHmrStubSocket.prototype = NativeWebSocket.prototype;
+
+        window.WebSocket = ViteHmrStubSocket;
+      })();
     </script>
   </head>
   <body class="bg-[#F5F6F8] text-slate-900 antialiased selection:bg-orange-500 selection:text-white">

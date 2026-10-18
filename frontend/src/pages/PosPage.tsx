@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { TopHeader } from '../components/TopHeader.tsx';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { SavedOrdersBar } from '../components/SavedOrdersBar.tsx';
-import { CategorySelect } from '../components/CategorySelect.tsx';
+import { ProductFilterBar } from '../components/ProductFilterBar.tsx';
 import { ProductCard } from '../components/ProductCard.tsx';
 import { OrderDrawer } from '../components/OrderDrawer.tsx';
 import { PaymentModal } from '../components/PaymentModal.tsx';
@@ -10,7 +9,7 @@ import { ProductModal } from '../components/ProductModal.tsx';
 import { ShiftModal } from '../components/ShiftModal.tsx';
 import { Product } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { PackagePlus, RefreshCcw, Shield, Tags } from 'lucide-react';
+import { RefreshCcw, Shield } from 'lucide-react';
 import { useProducts, useCategories } from '../hooks/useQueries.ts';
 
 const CATEGORIES = [
@@ -67,13 +66,6 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
       <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
         {/* Center Main POS Area */}
         <main className="flex-1 flex flex-col h-full overflow-y-auto p-4 md:p-6 lg:p-7">
-          {/* Top Header */}
-          <TopHeader
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onOpenSwitchCashier={() => setIsShiftModalOpen(true)}
-          />
-
           {/* ADMIN Notice Banner: role ADMIN tidak bisa bikin order */}
           {user?.role === 'ADMIN' && (
             <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-purple-900 shadow-xs">
@@ -102,37 +94,15 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
           {/* Section: PESANAN DISIMPAN (BELUM DIBAYAR) */}
           <SavedOrdersBar onOpenAllSaved={() => onNavigate?.('history')} />
 
-        {/* Section: Kategori Produk & Radix Select Filter */}
-        <div className="flex items-center justify-between gap-3 mb-4 mt-1">
-          <div className="flex items-center gap-2">
-            <span className="text-orange-500 font-bold text-base">📦</span>
-            <span className="text-xs md:text-sm font-bold text-slate-800">
-              Kategori Produk:
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <CategorySelect
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-              categories={categoriesList}
-            />
-            <button
-              onClick={() => onNavigate?.('categories')}
-              title="Buka Halaman Kategori Produk"
-              className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-orange-600 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
-            >
-              <Tags className="w-4 h-4 text-amber-500" />
-            </button>
-            <button
-              onClick={() => onNavigate?.('products')}
-              title="Buka Halaman Inventaris Produk"
-              className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-orange-600 transition-colors cursor-pointer"
-            >
-              <PackagePlus className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+          {/* ProductFilterBar Component */}
+          <ProductFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            categories={categoriesData?.data && categoriesData.data.length > 0 ? categoriesData.data : categoriesList}
+            className="mb-4 mt-2"
+          />
 
         {/* Product Cards Grid (4 columns on desktop matching screenshot) */}
         {loading ? (
@@ -153,7 +123,7 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
               Coba kata kunci lain atau tambahkan produk baru.
             </p>
             <button
-              onClick={fetchProducts}
+              onClick={() => fetchProducts()}
               className="mt-4 px-3 py-1.5 text-xs font-semibold bg-orange-50 text-orange-600 rounded-lg flex items-center gap-1.5 hover:bg-orange-100"
             >
               <RefreshCcw className="w-3.5 h-3.5" />

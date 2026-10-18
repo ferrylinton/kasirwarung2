@@ -16,7 +16,6 @@ import {
 } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import {
-  ArrowLeft,
   Receipt,
   Search,
   CheckCircle,
@@ -31,9 +30,7 @@ import {
   Check,
   Store,
   CalendarRange,
-  Clock,
   X,
-  Trash2,
   Sparkles,
 } from 'lucide-react';
 import { Order, Tenant, api } from '../services/api.ts';
@@ -42,7 +39,6 @@ import { useAuth } from '../context/AuthContext.tsx';
 import {
   useOrderHistory,
   useTenants,
-  useCleanupOldOrdersMutation,
 } from '../hooks/useQueries.ts';
 
 interface HistoryPageProps {
@@ -68,9 +64,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(undefined);
   const [selectedSingleDate, setSelectedSingleDate] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false);
-
-  // Cleanup action status
-  const [cleanupMessage, setCleanupMessage] = useState<string | null>(null);
 
   // Boundary: max 3 months retention
   const threeMonthsAgo = useMemo(() => subMonths(new Date(), 3), []);
@@ -110,10 +103,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
   // TanStack Query: Fetch tenants for ADMIN
   const { data: tenantsData } = useTenants({ enabled: isAdmin });
   const tenants = tenantsData?.data || [];
-
-  // TanStack Mutation: Trigger 3-month retention cleanup
-  const cleanupMutation = useCleanupOldOrdersMutation();
-  const cleaningUp = cleanupMutation.isPending;
 
   // Quick preset helper
   const applyPreset = (preset: 'today' | '7days' | '30days' | 'month' | 'all') => {
@@ -195,163 +184,80 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
     return 'Semua Waktu (Maksimal 3 Bulan)';
   }, [dateMode, selectedRange, selectedSingleDate]);
 
-  // Manual cleanup trigger for Admin using TanStack Mutation
-  const handleTriggerCleanup = async () => {
-    try {
-      const res: any = await cleanupMutation.mutateAsync();
-      setCleanupMessage(res?.message || 'Pembersihan otomatis berhasil dijalankan.');
-    } catch (err: any) {
-      setCleanupMessage('Gagal membersihkan data: ' + (err.message || 'Error server'));
-    } finally {
-      setTimeout(() => setCleanupMessage(null), 6000);
-    }
-  };
-
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
       <TopNavbar currentTab="history" onNavigate={onNavigate} />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto w-full space-y-6">
-          {/* Top Actions & Retention Info Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <button
-              onClick={onBackToPos}
-              className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-slate-700 hover:text-orange-600 bg-white hover:bg-orange-50 px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs transition-all self-start cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Kembali ke Kasir POS</span>
-            </button>
+          
+          {/* Tenant Scoping Badge / Dropdown */}
+          <div className="flex items-center justify-end">
+            {isAdmin ? (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-xs font-bold text-slate-600">Pilih Tenan:</span>
+                {/* Radix UI Select primitive for ADMIN tenant filtering */}
+                <Select.Root value={selectedTenantId} onValueChange={setSelectedTenantId}>
+                  <Select.Trigger className="inline-flex items-center justify-between gap-2.5 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs md:text-sm font-bold text-slate-800 shadow-2xs hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[200px]">
+                    <div className="flex items-center gap-2">
+                      <Store className="w-4 h-4 text-orange-500 shrink-0" />
+                      <Select.Value placeholder="Pilih Tenan" />
+                    </div>
+                    <Select.Icon>
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    </Select.Icon>
+                  </Select.Trigger>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={fetchOrders}
-                disabled={loading}
-                className="inline-flex items-center gap-1.5 text-xs md:text-sm font-semibold text-slate-600 hover:text-orange-600 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs transition-colors cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-orange-600' : ''}`} />
-                <span>Segarkan</span>
-              </button>
+                  <Select.Portal>
+                    <Select.Content
+                      position="popper"
+                      sideOffset={6}
+                      className="z-50 min-w-[220px] max-h-[300px] overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 animate-in fade-in-80"
+                    >
+                      <Select.ScrollUpButton className="flex items-center justify-center h-6 text-slate-500">
+                        <ChevronUp className="w-4 h-4" />
+                      </Select.ScrollUpButton>
 
-              {isAdmin && (
-                <button
-                  onClick={handleTriggerCleanup}
-                  disabled={cleaningUp}
-                  title="Jalankan scheduler pembersihan data > 3 bulan sekarang"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-red-600 bg-white hover:bg-red-50 px-3 py-2 rounded-xl border border-slate-200 shadow-2xs transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>{cleaningUp ? 'Membersihkan...' : 'Jalankan Cleanup 00:00'}</span>
-                </button>
-              )}
-            </div>
-          </div>
+                      <Select.Viewport className="p-1">
+                        <Select.Item
+                          value="ALL"
+                          className="relative flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-800 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer transition-colors"
+                        >
+                          <Store className="w-3.5 h-3.5 text-slate-400" />
+                          <Select.ItemText>Semua Tenan (Pusat)</Select.ItemText>
+                          <Select.ItemIndicator className="ml-auto text-orange-600">
+                            <Check className="w-4 h-4" />
+                          </Select.ItemIndicator>
+                        </Select.Item>
 
-          {/* Title Header with Retention Notice */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  Riwayat Transaksi Penjualan
-                </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-200/60">
-                  <Clock className="w-3 h-3 text-orange-600" />
-                  <span>Retensi 3 Bulan</span>
-                </span>
-              </div>
-              <p className="text-xs md:text-sm text-slate-500 mt-1">
-                Catatan lengkap nota transaksi penjualan lunas, riwayat kasir, rincian tanggal, dan belanjaan pelanggan.
-              </p>
-            </div>
-
-            {/* Tenant Scoping Badge / Dropdown */}
-            <div>
-              {isAdmin ? (
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <span className="text-xs font-bold text-slate-600">Pilih Tenan:</span>
-                  {/* Radix UI Select primitive for ADMIN tenant filtering */}
-                  <Select.Root value={selectedTenantId} onValueChange={setSelectedTenantId}>
-                    <Select.Trigger className="inline-flex items-center justify-between gap-2.5 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs md:text-sm font-bold text-slate-800 shadow-2xs hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[200px]">
-                      <div className="flex items-center gap-2">
-                        <Store className="w-4 h-4 text-orange-500 shrink-0" />
-                        <Select.Value placeholder="Pilih Tenan" />
-                      </div>
-                      <Select.Icon>
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
-                      </Select.Icon>
-                    </Select.Trigger>
-
-                    <Select.Portal>
-                      <Select.Content
-                        position="popper"
-                        sideOffset={6}
-                        className="z-50 min-w-[220px] max-h-[300px] overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 animate-in fade-in-80"
-                      >
-                        <Select.ScrollUpButton className="flex items-center justify-center h-6 text-slate-500">
-                          <ChevronUp className="w-4 h-4" />
-                        </Select.ScrollUpButton>
-
-                        <Select.Viewport className="p-1">
+                        {tenants.map((t) => (
                           <Select.Item
-                            value="ALL"
-                            className="relative flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-800 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer transition-colors"
+                            key={t.id}
+                            value={t.id}
+                            className="relative flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-800 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer transition-colors"
                           >
-                            <Store className="w-3.5 h-3.5 text-slate-400" />
-                            <Select.ItemText>Semua Tenan (Pusat)</Select.ItemText>
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                            <Select.ItemText>{t.name}</Select.ItemText>
                             <Select.ItemIndicator className="ml-auto text-orange-600">
                               <Check className="w-4 h-4" />
                             </Select.ItemIndicator>
                           </Select.Item>
+                        ))}
+                      </Select.Viewport>
 
-                          {tenants.map((t) => (
-                            <Select.Item
-                              key={t.id}
-                              value={t.id}
-                              className="relative flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-800 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer transition-colors"
-                            >
-                              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                              <Select.ItemText>{t.name}</Select.ItemText>
-                              <Select.ItemIndicator className="ml-auto text-orange-600">
-                                <Check className="w-4 h-4" />
-                              </Select.ItemIndicator>
-                            </Select.Item>
-                          ))}
-                        </Select.Viewport>
-
-                        <Select.ScrollDownButton className="flex items-center justify-center h-6 text-slate-500">
-                          <ChevronDown className="w-4 h-4" />
-                        </Select.ScrollDownButton>
-                      </Select.Content>
-                    </Select.Portal>
-                  </Select.Root>
-                </div>
-              ) : (
-                /* SHOP_OWNER & CASHIER: Scoped to their own tenant automatically */
-                <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
-                  <Building2 className="w-4 h-4 text-orange-600" />
-                  <span>Tenan: {user?.tenantName || 'Warung Berkah Budi'}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Retention Information Banner */}
-          <div className="bg-orange-50/80 border border-orange-200/70 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-orange-950">
-            <div className="flex items-center gap-2.5">
-              <Clock className="w-4 h-4 text-orange-600 shrink-0" />
-              <div>
-                <span className="font-bold">Kebijakan Retensi 3 Bulan: </span>
-                <span>
-                  Sistem menyimpan riwayat transaksi selama 3 bulan terakhir. Scheduler otomatis berjalan setiap hari
-                  pukul <strong>00:00</strong> untuk menghapus transaksi yang telah melampaui 3 bulan.
-                </span>
+                      <Select.ScrollDownButton className="flex items-center justify-center h-6 text-slate-500">
+                        <ChevronDown className="w-4 h-4" />
+                      </Select.ScrollDownButton>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
               </div>
-            </div>
-
-            {cleanupMessage && (
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/90 px-2.5 py-1 rounded-lg shrink-0">
-                {cleanupMessage}
-              </span>
+            ) : (
+              /* SHOP_OWNER & CASHIER: Scoped to their own tenant automatically */
+              <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
+                <Building2 className="w-4 h-4 text-orange-600" />
+                <span>Tenan: {user?.tenantName || 'Warung Berkah Budi'}</span>
+              </div>
             )}
           </div>
 
@@ -434,47 +340,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
                   </button>
                 )}
               </div>
-            </div>
-
-            {/* Quick Presets Bar */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mr-1">
-                Pilihan Cepat:
-              </span>
-              <button
-                onClick={() => applyPreset('all')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                  !selectedRange?.from && !selectedSingleDate
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Semua (3 Bulan)
-              </button>
-              <button
-                onClick={() => applyPreset('today')}
-                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors"
-              >
-                Hari Ini
-              </button>
-              <button
-                onClick={() => applyPreset('7days')}
-                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors"
-              >
-                7 Hari Terakhir
-              </button>
-              <button
-                onClick={() => applyPreset('30days')}
-                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors"
-              >
-                30 Hari Terakhir
-              </button>
-              <button
-                onClick={() => applyPreset('month')}
-                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors"
-              >
-                Bulan Ini
-              </button>
             </div>
 
             {/* react-day-picker Interactive Panel */}

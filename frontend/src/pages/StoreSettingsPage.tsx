@@ -110,7 +110,7 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
           </div>
 
           <button
-            onClick={fetchTenantInfo}
+            onClick={() => fetchTenantInfo()}
             disabled={loading}
             className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
           >
