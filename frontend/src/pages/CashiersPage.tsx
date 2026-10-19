@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Users,
   UserPlus,
   Search,
   CheckCircle2,
@@ -151,54 +150,12 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
     );
   });
 
-  const activeCount = cashiers.filter((c) => c.status === 'active').length;
-  const inactiveCount = cashiers.filter((c) => c.status === 'inactive').length;
-
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
       <TopNavbar currentTab="cashiers" onNavigate={onNavigate} />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="p-2.5 rounded-2xl bg-orange-100 text-orange-600 shadow-2xs">
-              <Users className="w-5 h-5" />
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-                  Kelola Staf Kasir (SHOP_CASHIER)
-                </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">
-                  Pemilik Toko
-                </span>
-              </div>
-              <p className="text-xs md:text-sm text-slate-500">
-                Tambah, ubah data shift, dan kelola akses kasir toko Anda ({user?.tenantName || 'Toko'}).
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => fetchCashiers()}
-              disabled={loading}
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Segarkan</span>
-            </button>
-
-            <button
-              onClick={handleOpenAdd}
-              className="px-4 py-2 bg-[#EC6C1A] hover:bg-orange-600 text-white rounded-xl text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Tambah Kasir</span>
-            </button>
-          </div>
-        </div>
 
         {/* Feedback Alert */}
         {feedback && (
@@ -223,22 +180,6 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
           </div>
         )}
 
-        {/* Overview Stat Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-            <span className="text-xs text-slate-500 font-semibold">Total Staf Kasir</span>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{cashiers.length}</p>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-            <span className="text-xs text-slate-500 font-semibold">Kasir Aktif</span>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">{activeCount}</p>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-            <span className="text-xs text-slate-500 font-semibold">Kasir Nonaktif</span>
-            <p className="text-2xl font-bold text-slate-400 mt-1">{inactiveCount}</p>
-          </div>
-        </div>
-
         {/* Cashier Table Container */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -251,15 +192,34 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama, username, email..."
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-colors"
-              />
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cari nama, username, email..."
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm text-slate-800 focus:outline-none focus:border-orange-500 focus:bg-white transition-colors"
+                />
+              </div>
+
+              <button
+                onClick={() => fetchCashiers()}
+                disabled={loading}
+                title="Segarkan Data"
+                className="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-slate-700 transition-colors cursor-pointer shadow-2xs"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
+              </button>
+
+              <button
+                onClick={handleOpenAdd}
+                className="px-3.5 py-2 bg-[#EC6C1A] hover:bg-orange-600 text-white rounded-xl text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Tambah Kasir</span>
+              </button>
             </div>
           </div>
 

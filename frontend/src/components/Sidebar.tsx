@@ -1,4 +1,4 @@
-import { Calculator, Package, History, PieChart, X, Building2, Users, Store, Tags } from 'lucide-react';
+import { Calculator, Package, History, X, Building2, Users, Store, Tags } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ActiveTab } from './TopNavbar.tsx';
@@ -205,32 +205,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           Riwayat
         </span>
       </button>
-
-      {/* Reports / Analytics */}
-      <button
-        onClick={() => handleSelect('reports')}
-        title="Laporan Penjualan"
-        className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
-      >
-        <div
-          className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
-            currentTab === 'reports'
-              ? 'bg-[#EC6C1A] text-white shadow-orange-600/30'
-              : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
-          }`}
-        >
-          <PieChart className="w-5 h-5 md:w-5.5 md:h-5.5" />
-        </div>
-        <span
-          className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-            currentTab === 'reports' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
-          }`}
-        >
-          Laporan
-        </span>
-      </button>
-
-
 
       {/* SHOP_OWNER ONLY: Staf Kasir & Toko Tabs */}
       {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik') && (

@@ -1,16 +1,13 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import * as Select from '@radix-ui/react-select';
 import { DayPicker } from 'react-day-picker';
 import type { DateRange } from 'react-day-picker';
 import 'react-day-picker/style.css';
 import {
   format,
-  subDays,
   subMonths,
   startOfDay,
   endOfDay,
-  startOfMonth,
-  endOfMonth,
   isWithinInterval,
   isSameDay,
 } from 'date-fns';
@@ -72,6 +69,34 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(undefined);
   const [selectedSingleDate, setSelectedSingleDate] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false);
+  const calendarDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close calendar dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        calendarDropdownRef.current &&
+        !calendarDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCalendarOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsCalendarOpen(false);
+      }
+    };
+
+    if (isCalendarOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isCalendarOpen]);
 
   // Boundary: max 3 months retention
   const threeMonthsAgo = useMemo(() => subMonths(new Date(), 3), []);
@@ -112,27 +137,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
   const { data: tenantsData } = useTenants({ enabled: isAdmin });
   const tenants = tenantsData?.data || [];
 
-  // Quick preset helper
-  const applyPreset = (preset: 'today' | '7days' | '30days' | 'month' | 'all') => {
-    if (preset === 'all') {
-      setSelectedRange(undefined);
-      setSelectedSingleDate(undefined);
-      setIsCalendarOpen(false);
-      return;
-    }
-
-    setDateMode('range');
-    const now = new Date();
-
-    if (preset === 'today') {
-      setSelectedRange({ from: startOfDay(now), to: endOfDay(now) });
-    } else if (preset === '7days') {
-      setSelectedRange({ from: startOfDay(subDays(now, 7)), to: endOfDay(now) });
-    } else if (preset === '30days') {
-      setSelectedRange({ from: startOfDay(subDays(now, 30)), to: endOfDay(now) });
-    } else if (preset === 'month') {
-      setSelectedRange({ from: startOfMonth(now), to: endOfMonth(now) });
-    }
+  // Helper to reset date filter
+  const handleResetDateFilter = () => {
+    setSelectedRange(undefined);
+    setSelectedSingleDate(undefined);
     setIsCalendarOpen(false);
   };
 
@@ -351,118 +359,143 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
                 />
               </div>
 
-              {/* Date Filter Trigger Button */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
-                    selectedRange?.from || selectedSingleDate
-                      ? 'bg-orange-50 border-orange-300 text-orange-700 shadow-2xs'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-orange-300'
-                  }`}
-                >
-                  <CalendarRange className="w-4 h-4 text-orange-600" />
-                  <span>{activeDateLabel}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
-
-                {(selectedRange?.from || selectedSingleDate) && (
+              {/* Date Filter Trigger Button & Dropdown */}
+              <div className="relative" ref={calendarDropdownRef}>
+                <div className="flex items-center gap-1.5">
                   <button
-                    onClick={() => applyPreset('all')}
-                    title="Reset Filter Tanggal"
-                    className="ml-2 inline-flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                    type="button"
+                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                    className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
+                      selectedRange?.from || selectedSingleDate
+                        ? 'bg-orange-50 border-orange-300 text-orange-700 shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-700 hover:border-orange-300'
+                    }`}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <CalendarRange className="w-4 h-4 text-orange-600" />
+                    <span>{activeDateLabel}</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        isCalendarOpen ? 'rotate-180' : ''
+                      }`}
+                    />
                   </button>
-                )}
-              </div>
-            </div>
 
-            {/* react-day-picker Interactive Panel */}
-            {isCalendarOpen && (
-              <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-4 animate-in fade-in-50">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-700">Mode Kalender:</span>
-                    <div className="inline-flex p-1 bg-white rounded-xl border border-slate-200">
+                  {(selectedRange?.from || selectedSingleDate) && (
+                    <button
+                      type="button"
+                      onClick={handleResetDateFilter}
+                      title="Reset Filter Tanggal"
+                      className="inline-flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* react-day-picker Interactive Panel as Dropdown */}
+                {isCalendarOpen && (
+                  <div className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2.5rem)] max-w-sm sm:max-w-none sm:w-[380px] bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 space-y-3.5 animate-in fade-in zoom-in-95">
+                    {/* Dropdown Header: Title & Close */}
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <Calendar className="w-4 h-4 text-orange-600" />
+                        <span>Filter Tanggal Transaksi</span>
+                      </div>
                       <button
+                        type="button"
+                        onClick={() => setIsCalendarOpen(false)}
+                        className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Mode Toggle: Range vs Single */}
+                    <div className="flex items-center justify-between gap-1 p-1 bg-slate-100 rounded-xl text-xs">
+                      <button
+                        type="button"
                         onClick={() => {
                           setDateMode('range');
                           setSelectedSingleDate(undefined);
                         }}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                        className={`flex-1 py-1 px-2 rounded-lg font-bold text-center transition-all cursor-pointer ${
                           dateMode === 'range'
-                            ? 'bg-orange-500 text-white shadow-2xs'
+                            ? 'bg-white text-orange-600 shadow-2xs'
                             : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
-                        Rentang Tanggal (Range Mode)
+                        Rentang Tanggal
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           setDateMode('single');
                           setSelectedRange(undefined);
                         }}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                        className={`flex-1 py-1 px-2 rounded-lg font-bold text-center transition-all cursor-pointer ${
                           dateMode === 'single'
-                            ? 'bg-orange-500 text-white shadow-2xs'
+                            ? 'bg-white text-orange-600 shadow-2xs'
                             : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
                         Satu Tanggal
                       </button>
                     </div>
+
+                    {/* react-day-picker Calendar */}
+                    <div className="flex justify-center bg-slate-50/70 p-2 rounded-xl border border-slate-100 overflow-x-auto">
+                      {dateMode === 'range' ? (
+                        <DayPicker
+                          mode="range"
+                          selected={selectedRange}
+                          onSelect={(range) => setSelectedRange(range)}
+                          locale={localeId}
+                          disabled={[
+                            { before: threeMonthsAgo },
+                            { after: today },
+                          ]}
+                          className="text-xs"
+                        />
+                      ) : (
+                        <DayPicker
+                          mode="single"
+                          selected={selectedSingleDate}
+                          onSelect={(date) => setSelectedSingleDate(date)}
+                          locale={localeId}
+                          disabled={[
+                            { before: threeMonthsAgo },
+                            { after: today },
+                          ]}
+                          className="text-xs"
+                        />
+                      )}
+                    </div>
+
+                    <p className="text-[10px] text-center text-slate-400">
+                      * Rentang dibatasi maksimal 3 bulan terakhir (kebijakan retensi).
+                    </p>
+
+                    {/* Dropdown Footer Actions */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={handleResetDateFilter}
+                        className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Reset Filter
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsCalendarOpen(false)}
+                        className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
+                      >
+                        Terapkan
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <button
-                      onClick={() => applyPreset('all')}
-                      className="px-3 py-1 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-white rounded-lg transition-colors cursor-pointer"
-                    >
-                      Reset
-                    </button>
-                    <button
-                      onClick={() => setIsCalendarOpen(false)}
-                      className="px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-                    >
-                      Terapkan
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex justify-center bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs overflow-x-auto">
-                  {dateMode === 'range' ? (
-                    <DayPicker
-                      mode="range"
-                      selected={selectedRange}
-                      onSelect={(range) => setSelectedRange(range)}
-                      locale={localeId}
-                      disabled={[
-                        { before: threeMonthsAgo },
-                        { after: today },
-                      ]}
-                      className="text-xs md:text-sm"
-                    />
-                  ) : (
-                    <DayPicker
-                      mode="single"
-                      selected={selectedSingleDate}
-                      onSelect={(date) => setSelectedSingleDate(date)}
-                      locale={localeId}
-                      disabled={[
-                        { before: threeMonthsAgo },
-                        { after: today },
-                      ]}
-                      className="text-xs md:text-sm"
-                    />
-                  )}
-                </div>
-
-                <p className="text-[11px] text-center text-slate-400">
-                  * Rentang tanggal dibatasi hingga maksimal 3 bulan terakhir sesuai kebijakan retensi.
-                </p>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Transaction History List Card */}

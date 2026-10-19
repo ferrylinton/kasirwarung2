@@ -11,7 +11,6 @@ import { ActiveTab } from './components/TopNavbar.tsx';
 // React Lazy Loading untuk semua halaman aplikasi
 const PosPage = lazy(() => import('./pages/PosPage.tsx'));
 const LoginPage = lazy(() => import('./pages/LoginPage.tsx'));
-const ReportPage = lazy(() => import('./pages/ReportPage.tsx'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage.tsx'));
 const LoginHistoryPage = lazy(() => import('./pages/LoginHistoryPage.tsx'));
 const ChangePasswordPage = lazy(() => import('./pages/ChangePasswordPage.tsx'));
@@ -210,8 +209,6 @@ const AppContent: React.FC = () => {
             onNavigate={setCurrentTab}
           />
         );
-      case 'reports':
-        return <ReportPage onNavigate={setCurrentTab} />;
       case 'pos':
       default:
         // Role ADMIN tidak bisa akses halaman order/pos, arahkan ke tenants

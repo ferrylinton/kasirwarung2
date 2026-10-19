@@ -23,7 +23,6 @@ export type ActiveTab =
   | 'products'
   | 'categories'
   | 'history'
-  | 'reports'
   | 'profile'
   | 'login-history'
   | 'change-password'
@@ -70,8 +69,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         return 'Histori Login';
       case 'change-password':
         return 'Ubah Password';
-      case 'reports':
-        return 'Laporan & Analitik';
       case 'products':
         return 'Katalog & Stok';
       case 'categories':

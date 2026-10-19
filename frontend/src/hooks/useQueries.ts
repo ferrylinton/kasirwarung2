@@ -17,7 +17,6 @@ export const queryKeys = {
   ordersHistory: (tenantId = '', startDate = '', endDate = '') =>
     ['orders-history', { tenantId, startDate, endDate }] as const,
   savedOrders: () => ['orders-saved'] as const,
-  reportSummary: () => ['report-summary'] as const,
   tenants: () => ['tenants'] as const,
   currentTenant: () => ['current-tenant'] as const,
   cashiers: () => ['cashiers'] as const,
@@ -49,36 +48,7 @@ export function useOrderHistory(
   });
 }
 
-// 2. Report Summary Query (used by ReportPage)
-export function useReportSummary() {
-  return useQuery<{
-    success: boolean;
-    data: {
-      totalRevenue: number;
-      totalTax?: number;
-      totalTransactions?: number;
-      savedOrdersCount?: number;
-      totalProducts?: number;
-      recentPaidCount?: number;
-      totalOrders?: number;
-      totalItemsSold?: number;
-      lowStockCount?: number;
-      todayRevenue?: number;
-      todayOrders?: number;
-      recentOrders?: Order[];
-      topSelling?: { name: string; qty: number; revenue: number }[];
-    };
-  }>({
-    queryKey: queryKeys.reportSummary(),
-    queryFn: async () => {
-      const res = await api.getReportSummary();
-      return res;
-    },
-    staleTime: 1000 * 30,
-  });
-}
-
-// 3. Products Query (used by PosPage, ProductsPage, AdminProductsPage)
+// 2. Products Query (used by PosPage, ProductsPage, AdminProductsPage)
 export function useProducts(
   searchQuery = '',
   category = 'Semua Produk',
@@ -195,7 +165,6 @@ export function useCleanupOldOrdersMutation() {
     mutationFn: () => api.runOldOrdersCleanup(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders-history'] });
-      queryClient.invalidateQueries({ queryKey: queryKeys.reportSummary() });
     },
   });
 }
@@ -207,7 +176,6 @@ export function useSaveOrCheckoutOrderMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders-history'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.savedOrders() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.reportSummary() });
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
@@ -230,7 +198,6 @@ export function useProductMutations() {
     mutationFn: (data: any) => api.createProduct(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: queryKeys.reportSummary() });
     },
   });
 
@@ -238,7 +205,6 @@ export function useProductMutations() {
     mutationFn: ({ id, data }: { id: string; data: any }) => api.updateProduct(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: queryKeys.reportSummary() });
     },
   });
 
@@ -246,7 +212,6 @@ export function useProductMutations() {
     mutationFn: (id: string) => api.deleteProduct(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: queryKeys.reportSummary() });
     },
   });
 
