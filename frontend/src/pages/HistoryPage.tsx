@@ -27,6 +27,10 @@ import {
   Building2,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Check,
   Store,
   CalendarRange,
@@ -58,6 +62,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
 
   // Tenant filter state (ADMIN only)
   const [selectedTenantId, setSelectedTenantId] = useState<string>('ALL');
+
+  // Pagination state (10 items per page)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 10;
 
   // Date filter states using react-day-picker
   const [dateMode, setDateMode] = useState<DateSelectionMode>('range');
@@ -183,6 +191,34 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
     }
     return 'Semua Waktu (Maksimal 3 Bulan)';
   }, [dateMode, selectedRange, selectedSingleDate]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedTenantId, selectedRange, selectedSingleDate, dateMode]);
+
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / itemsPerPage));
+  const activePage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (activePage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredOrders.length);
+
+  const paginatedOrders = useMemo(() => {
+    return filteredOrders.slice(startIndex, endIndex);
+  }, [filteredOrders, startIndex, endIndex]);
+
+  const getPageNumbers = () => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (activePage <= 3) {
+      return [1, 2, 3, 4, '...', totalPages];
+    }
+    if (activePage >= totalPages - 2) {
+      return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', activePage - 1, activePage, activePage + 1, '...', totalPages];
+  };
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
@@ -438,7 +474,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
                   Daftar Transaksi Penjualan ({filteredOrders.length})
                 </h3>
               </div>
-              <span className="text-xs text-slate-400 font-medium">Terverifikasi Lunas</span>
+              <div className="flex items-center gap-2">
+                {totalPages > 1 && (
+                  <span className="text-xs text-slate-500 font-medium hidden sm:inline-block">
+                    Halaman {activePage} dari {totalPages}
+                  </span>
+                )}
+                <span className="text-xs text-slate-400 font-medium">Terverifikasi Lunas</span>
+              </div>
             </div>
 
             <div className="divide-y divide-slate-100">
@@ -454,7 +497,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
                   <p className="text-slate-400">Coba ubah filter tanggal atau kata kunci pencarian nota.</p>
                 </div>
               ) : (
-                filteredOrders.map((order) => (
+                paginatedOrders.map((order) => (
                   <div
                     key={order.id || order.invoiceNo}
                     className="p-4 md:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors"
@@ -531,6 +574,72 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
                 ))
               )}
             </div>
+
+            {/* Pagination Controls */}
+            {!loading && filteredOrders.length > 0 && totalPages > 1 && (
+              <div className="p-4 md:p-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-center">
+                {/* Page Navigation Buttons */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={activePage === 1}
+                    title="Halaman Pertama"
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    <ChevronsLeft className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={activePage === 1}
+                    title="Halaman Sebelumnya"
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {getPageNumbers().map((pageNum, idx) =>
+                      pageNum === '...' ? (
+                        <span key={`dots-${idx}`} className="px-1 text-xs text-slate-400 select-none">
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={`page-${pageNum}`}
+                          onClick={() => setCurrentPage(Number(pageNum))}
+                          className={`min-w-8 h-8 px-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                            activePage === pageNum
+                              ? 'bg-orange-600 text-white shadow-xs'
+                              : 'bg-white border border-slate-200 hover:bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      )
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={activePage === totalPages}
+                    title="Halaman Berikutnya"
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={activePage === totalPages}
+                    title="Halaman Terakhir"
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    <ChevronsRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
