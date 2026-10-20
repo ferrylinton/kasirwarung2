@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { CartProvider } from './context/CartContext.tsx';
@@ -8,32 +8,21 @@ import { IdleTimerModal } from './components/IdleTimerModal.tsx';
 import { useIdleTimer } from './hooks/useIdleTimer.ts';
 import { ActiveTab } from './components/TopNavbar.tsx';
 
-// React Lazy Loading untuk semua halaman aplikasi
-const PosPage = lazy(() => import('./pages/PosPage.tsx'));
-const LoginPage = lazy(() => import('./pages/LoginPage.tsx'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage.tsx'));
-const LoginHistoryPage = lazy(() => import('./pages/LoginHistoryPage.tsx'));
-const ChangePasswordPage = lazy(() => import('./pages/ChangePasswordPage.tsx'));
-const ProductsPage = lazy(() => import('./pages/ProductsPage.tsx'));
-const CategoriesPage = lazy(() => import('./pages/CategoriesPage.tsx'));
-const AdminProductsPage = lazy(() => import('./pages/AdminProductsPage.tsx'));
-const AdminCategoriesPage = lazy(() => import('./pages/AdminCategoriesPage.tsx'));
-const HistoryPage = lazy(() => import('./pages/HistoryPage.tsx'));
-const TenantsPage = lazy(() => import('./pages/TenantsPage.tsx'));
-const CashiersPage = lazy(() => import('./pages/CashiersPage.tsx'));
-const StoreSettingsPage = lazy(() => import('./pages/StoreSettingsPage.tsx'));
-const AdminDeactivationRequestsPage = lazy(() => import('./pages/AdminDeactivationRequestsPage.tsx'));
-
-const PageLoadingFallback: React.FC<{ message?: string }> = ({ message = 'Memuat halaman...' }) => (
-  <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[400px] w-full animate-in fade-in duration-200">
-    <div className="flex flex-col items-center space-y-3">
-      <div className="w-9 h-9 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      <span className="text-xs font-semibold text-slate-500 tracking-wide font-mono">
-        {message}
-      </span>
-    </div>
-  </div>
-);
+// Direct component imports to ensure single React instance and avoid lazy chunk skews
+import PosPage from './pages/PosPage.tsx';
+import LoginPage from './pages/LoginPage.tsx';
+import ProfilePage from './pages/ProfilePage.tsx';
+import LoginHistoryPage from './pages/LoginHistoryPage.tsx';
+import ChangePasswordPage from './pages/ChangePasswordPage.tsx';
+import ProductsPage from './pages/ProductsPage.tsx';
+import CategoriesPage from './pages/CategoriesPage.tsx';
+import AdminProductsPage from './pages/AdminProductsPage.tsx';
+import AdminCategoriesPage from './pages/AdminCategoriesPage.tsx';
+import HistoryPage from './pages/HistoryPage.tsx';
+import TenantsPage from './pages/TenantsPage.tsx';
+import CashiersPage from './pages/CashiersPage.tsx';
+import StoreSettingsPage from './pages/StoreSettingsPage.tsx';
+import AdminDeactivationRequestsPage from './pages/AdminDeactivationRequestsPage.tsx';
 
 const AppContent: React.FC = () => {
   const { user, loading, logout, idleTimeoutMinutes } = useAuth();
@@ -75,22 +64,7 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return (
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-[#181A1F] flex items-center justify-center">
-            <div className="text-center space-y-3">
-              <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-xs text-slate-400 font-mono tracking-wider">
-                MEMUAT HALAMAN MASUK...
-              </p>
-            </div>
-          </div>
-        }
-      >
-        <LoginPage />
-      </Suspense>
-    );
+    return <LoginPage />;
   }
 
   const defaultHomeTab: ActiveTab = user.role === 'ADMIN' ? 'tenants' : 'pos';
@@ -236,11 +210,9 @@ const AppContent: React.FC = () => {
         onLogout={logout}
       />
 
-      {/* Main View Area with React Lazy Suspense Boundary */}
+      {/* Main View Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <Suspense fallback={<PageLoadingFallback />}>
-          {renderCurrentPage()}
-        </Suspense>
+        {renderCurrentPage()}
       </div>
 
       {/* Shift Switch Handover Modal */}

@@ -3,17 +3,13 @@ import {
   Package,
   Search,
   Building2,
-  TrendingUp,
   RefreshCw,
-  Layers,
-  Store,
-  ShieldAlert,
-  ArrowRight,
-  Boxes,
 } from 'lucide-react';
 import { Product, Tenant } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
-import { useProducts, useTenants } from '../hooks/useQueries.ts';
+import { useProducts, useTenants, useCategories } from '../hooks/useQueries.ts';
+import { CategorySelect } from '../components/CategorySelect.tsx';
+import { TenantSelect } from '../components/TenantSelect.tsx';
 
 interface AdminProductsPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -42,18 +38,33 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
   } = useProducts(searchQuery, selectedCategory, selectedTenantId);
   const products = productsData?.data || [];
 
-  // Collect unique categories across loaded products
-  const allCategories = useMemo(() => {
-    return Array.from(
-      new Set(products.map((p: Product) => p.category).filter(Boolean))
-    ) as string[];
-  }, [products]);
+  // TanStack Query for categories
+  const { data: categoriesData } = useCategories(
+    selectedTenantId === 'ALL' ? undefined : selectedTenantId
+  );
+  const categoriesList = categoriesData?.data || [];
 
-  // Statistics calculation across all tenants
-  const totalSku = products.length;
-  const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
-  const totalValue = products.reduce((sum, p) => sum + (p.price || 0) * (p.stock || 0), 0);
-  const uniqueTenantsCount = new Set(products.map((p) => p.tenantId).filter(Boolean)).size;
+  // Collect unique categories across categories list and loaded products
+  const categoryOptions = useMemo(() => {
+    const list = ['Semua Produk'];
+    const added = new Set<string>(['Semua Produk']);
+
+    categoriesList.forEach((c) => {
+      if (c.name && !added.has(c.name)) {
+        added.add(c.name);
+        list.push(c.name);
+      }
+    });
+
+    products.forEach((p: Product) => {
+      if (p.category && !added.has(p.category)) {
+        added.add(p.category);
+        list.push(p.category);
+      }
+    });
+
+    return list;
+  }, [categoriesList, products]);
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8FAFC]">
@@ -61,106 +72,6 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header Banner for Admin */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 md:p-6 rounded-3xl border border-slate-200/80 shadow-xs">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/25 shrink-0">
-                <Package className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
-                    Semua Produk Tenan
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-700 border border-purple-200/80">
-                    Mode Administrator
-                  </span>
-                </div>
-                <p className="text-xs md:text-sm text-slate-500 mt-1">
-                  Monitoring seluruh produk, SKU, harga, dan sisa stok barang dari semua tenan warung/toko terdaftar.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 self-start md:self-auto">
-              <button
-                onClick={() => onNavigate?.('admin-categories')}
-                className="px-3.5 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs md:text-sm flex items-center gap-2 border border-purple-200/60 transition-colors cursor-pointer"
-              >
-                <Layers className="w-4 h-4 text-purple-600" />
-                <span>Lihat Semua Kategori Tenan</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Role Disclaimer Notice */}
-          <div className="p-4 bg-purple-50/70 border border-purple-200/70 rounded-2xl flex items-start gap-3 text-xs text-purple-900">
-            <ShieldAlert className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-purple-900">
-                Akses Monitoring Global Platform (Read-Only)
-              </p>
-              <p className="text-purple-700 text-[11px] mt-0.5">
-                Role ADMIN memiliki wewenang memantau data inventaris seluruh tenan. Hak menambah, mengubah, dan menghapus produk dipegang secara independen oleh masing-masing Pemilik Toko (SHOP_OWNER).
-              </p>
-            </div>
-          </div>
-
-          {/* Metric Overview Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Total Macam Produk
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-slate-900 mt-1">
-                {totalSku} SKU
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                <Boxes className="w-3.5 h-3.5 text-purple-600" />
-                Semua tenan aktif
-              </p>
-            </div>
-
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Total Fisik Stok
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-slate-900 mt-1">
-                {totalStock.toLocaleString('id-ID')} pcs
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                <Store className="w-3.5 h-3.5 text-blue-600" />
-                Akumulasi seluruh gudang
-              </p>
-            </div>
-
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Estimasi Nilai Inventaris
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-emerald-600 tabular-nums mt-1">
-                Rp{totalValue.toLocaleString('id-ID')}
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-                Nilai jual seluruh barang
-              </p>
-            </div>
-
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Tenan dengan Produk
-              </span>
-              <div className="text-xl md:text-2xl font-extrabold text-purple-700 mt-1">
-                {uniqueTenantsCount} Tenan
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-purple-600" />
-                Dari total {tenants.length} tenan terdaftar
-              </p>
-            </div>
-          </div>
 
           {/* Filters Bar: Tenant, Category, Search, Refresh */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -178,35 +89,20 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
 
             <div className="flex items-center gap-2 flex-wrap">
               {/* Tenant Filter */}
-              <div className="flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-slate-400" />
-                <select
-                  value={selectedTenantId}
-                  onChange={(e) => setSelectedTenantId(e.target.value)}
-                  className="px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 cursor-pointer"
-                >
-                  <option value="ALL">🏢 Semua Tenan ({tenants.length})</option>
-                  {tenants.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} ({t.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <TenantSelect
+                value={selectedTenantId}
+                onValueChange={(val) => setSelectedTenantId(val)}
+                tenants={tenants}
+                className="border-slate-200 focus:ring-purple-500/20"
+              />
 
               {/* Category Filter */}
-              <select
+              <CategorySelect
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 cursor-pointer"
-              >
-                <option value="Semua Produk">Semua Kategori</option>
-                {allCategories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(val) => setSelectedCategory(val)}
+                categories={categoryOptions}
+                className="py-2 rounded-xl text-xs md:text-sm font-semibold border-slate-200 focus:ring-purple-500/20"
+              />
 
               {/* Refresh button */}
               <button

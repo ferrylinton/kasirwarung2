@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import * as Select from '@radix-ui/react-select';
 import { DayPicker } from 'react-day-picker';
 import type { DateRange } from 'react-day-picker';
 import 'react-day-picker/style.css';
@@ -23,12 +22,10 @@ import {
   Eye,
   Building2,
   ChevronDown,
-  ChevronUp,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Check,
   Store,
   CalendarRange,
   X,
@@ -41,6 +38,7 @@ import {
   useOrderHistory,
   useTenants,
 } from '../hooks/useQueries.ts';
+import { TenantSelect } from '../components/TenantSelect.tsx';
 
 interface HistoryPageProps {
   onBackToPos: () => void;
@@ -241,60 +239,13 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onBackToPos, onNavigat
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <span className="text-xs font-bold text-slate-600">Pilih Tenan:</span>
                 {/* Radix UI Select primitive for ADMIN tenant filtering */}
-                <Select.Root value={selectedTenantId} onValueChange={setSelectedTenantId}>
-                  <Select.Trigger className="inline-flex items-center justify-between gap-2.5 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs md:text-sm font-bold text-slate-800 shadow-2xs hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[200px]">
-                    <div className="flex items-center gap-2">
-                      <Store className="w-4 h-4 text-orange-500 shrink-0" />
-                      <Select.Value placeholder="Pilih Tenan" />
-                    </div>
-                    <Select.Icon>
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
-                    </Select.Icon>
-                  </Select.Trigger>
-
-                  <Select.Portal>
-                    <Select.Content
-                      position="popper"
-                      sideOffset={6}
-                      className="z-50 min-w-[220px] max-h-[300px] overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 animate-in fade-in-80"
-                    >
-                      <Select.ScrollUpButton className="flex items-center justify-center h-6 text-slate-500">
-                        <ChevronUp className="w-4 h-4" />
-                      </Select.ScrollUpButton>
-
-                      <Select.Viewport className="p-1">
-                        <Select.Item
-                          value="ALL"
-                          className="relative flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-800 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer transition-colors"
-                        >
-                          <Store className="w-3.5 h-3.5 text-slate-400" />
-                          <Select.ItemText>Semua Tenan (Pusat)</Select.ItemText>
-                          <Select.ItemIndicator className="ml-auto text-orange-600">
-                            <Check className="w-4 h-4" />
-                          </Select.ItemIndicator>
-                        </Select.Item>
-
-                        {tenants.map((t) => (
-                          <Select.Item
-                            key={t.id}
-                            value={t.id}
-                            className="relative flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-800 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer transition-colors"
-                          >
-                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                            <Select.ItemText>{t.name}</Select.ItemText>
-                            <Select.ItemIndicator className="ml-auto text-orange-600">
-                              <Check className="w-4 h-4" />
-                            </Select.ItemIndicator>
-                          </Select.Item>
-                        ))}
-                      </Select.Viewport>
-
-                      <Select.ScrollDownButton className="flex items-center justify-center h-6 text-slate-500">
-                        <ChevronDown className="w-4 h-4" />
-                      </Select.ScrollDownButton>
-                    </Select.Content>
-                  </Select.Portal>
-                </Select.Root>
+                <TenantSelect
+                  value={selectedTenantId}
+                  onValueChange={setSelectedTenantId}
+                  tenants={tenants}
+                  allOptionLabel="Semua Tenan (Pusat)"
+                  className="hover:border-orange-500 focus:ring-orange-500/20"
+                />
               </div>
             ) : (
               /* SHOP_OWNER & CASHIER: Scoped to their own tenant automatically */
