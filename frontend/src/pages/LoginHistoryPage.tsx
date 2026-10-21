@@ -6,8 +6,6 @@ import {
   ChevronDown,
   Search,
   X,
-  RefreshCw,
-  ArrowLeft,
   Building2,
   Users,
   Laptop,
@@ -17,7 +15,6 @@ import {
   AlertCircle,
   Filter,
   Globe,
-  Clock,
   KeyRound,
   ShieldAlert,
 } from 'lucide-react';
@@ -60,9 +57,8 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
   // Admin tenant filter state
   const [selectedTenantId, setSelectedTenantId] = useState<string>('ALL');
 
-  // Search & role filter state
+  // Search filter state
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string>('ALL');
 
   // Date filter states using react-day-picker in dropdown
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -138,7 +134,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
     startDate: formattedStartDate,
     endDate: formattedEndDate,
     search: searchQuery,
-    role: selectedRole !== 'ALL' ? selectedRole : undefined,
   });
 
   const rawLogs: LoginHistoryItem[] = historyData?.data || [];
@@ -146,21 +141,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
   // Filter logs locally as well for immediate interactive feedback
   const filteredLogs = useMemo(() => {
     return rawLogs.filter((log) => {
-      // Role filter
-      if (selectedRole !== 'ALL') {
-        if (selectedRole === 'MANAGER' || selectedRole === 'SHOP_OWNER') {
-          if (
-            log.role !== 'MANAGER' &&
-            log.role !== 'SHOP_OWNER' &&
-            log.role !== 'pemilik'
-          ) {
-            return false;
-          }
-        } else if (log.role !== selectedRole) {
-          return false;
-        }
-      }
-
       // Tenant filter for Admin
       if (isAdmin && selectedTenantId !== 'ALL') {
         if (log.tenantId && log.tenantId !== selectedTenantId) {
@@ -213,7 +193,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
     });
   }, [
     rawLogs,
-    selectedRole,
     selectedTenantId,
     isAdmin,
     dateMode,
@@ -261,25 +240,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
     }
   }, [dateMode, selectedRange, selectedSingleDate, today]);
 
-  // Statistics calculation
-  const totalLogins = filteredLogs.length;
-  const uniqueUsers = useMemo(() => {
-    const emails = new Set(filteredLogs.map((l) => l.email));
-    return emails.size;
-  }, [filteredLogs]);
-
-  const uniqueDevices = useMemo(() => {
-    const devices = new Set(filteredLogs.map((l) => l.device));
-    return devices.size;
-  }, [filteredLogs]);
-
-  const successRate = useMemo(() => {
-    if (filteredLogs.length === 0) return 100;
-    const successes = filteredLogs.filter(
-      (l) => l.status?.toLowerCase() === 'berhasil'
-    ).length;
-    return Math.round((successes / filteredLogs.length) * 100);
-  }, [filteredLogs]);
 
   // Device icon helper
   const getDeviceIcon = (deviceStr: string) => {
@@ -327,105 +287,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto w-full space-y-6">
-          {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onBackToPos}
-                className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-slate-700 hover:text-orange-600 bg-white hover:bg-orange-50 px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs transition-all cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>{isAdmin ? 'Kembali' : 'Kembali ke Kasir'}</span>
-              </button>
-
-              <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                    <ShieldCheck className="w-6 h-6 text-purple-600" />
-                    <span>Histori & Audit Login</span>
-                  </h1>
-
-                  {isAdmin ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-purple-100 text-purple-700 rounded-lg border border-purple-200">
-                      Semua Tenan Platform
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded-lg border border-orange-200">
-                      🏢 {user?.tenantName || 'Tenan Milik Anda'}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {isAdmin
-                    ? 'Monitoring sesi login dan aktivitas autentikasi seluruh user dan kasir lintas tenan.'
-                    : `Monitoring riwayat login seluruh user dan staf kasir di toko ${user?.tenantName || 'Anda'}.`}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => refetch()}
-                disabled={loading || isRefetching}
-                title="Segarkan data login history"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors cursor-pointer"
-              >
-                <RefreshCw
-                  className={`w-3.5 h-3.5 text-slate-500 ${
-                    loading || isRefetching ? 'animate-spin text-orange-600' : ''
-                  }`}
-                />
-                <span>Segarkan Data</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Stat Overview Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Total Sesi Login</span>
-                <Clock className="w-4 h-4 text-purple-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 mt-2">{totalLogins}</p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">
-                {dateMode === 'range' && (selectedRange?.from || selectedRange?.to)
-                  ? 'Dalam rentang tanggal terpilih'
-                  : 'Seluruh riwayat sesi tercatat'}
-              </span>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Pengguna Unik</span>
-                <Users className="w-4 h-4 text-blue-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 mt-2">{uniqueUsers}</p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">Akun terotentikasi aktif</span>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Perangkat Aktif</span>
-                <Laptop className="w-4 h-4 text-emerald-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 mt-2">{uniqueDevices}</p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">POS terminal, tablet, & browser</span>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Tingkat Keberhasilan</span>
-                <CheckCircle className="w-4 h-4 text-green-600" />
-              </div>
-              <p className="text-2xl font-black text-emerald-600 mt-2">{successRate}%</p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">Audit keamanan sesi masuk</span>
-            </div>
-          </div>
 
           {/* Filter Bar with TenantSelect & react-day-picker Dropdown */}
           <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
@@ -467,56 +328,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
                     />
                   </div>
                 )}
-
-                {/* 2. Role Filter */}
-                <div className="inline-flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('ALL')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                      selectedRole === 'ALL'
-                        ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Semua Role
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('SHOP_OWNER')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                      selectedRole === 'SHOP_OWNER'
-                        ? 'bg-white text-orange-600 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Manager
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('SHOP_CASHIER')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                      selectedRole === 'SHOP_CASHIER'
-                        ? 'bg-white text-emerald-600 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Kasir
-                  </button>
-                  {isAdmin && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole('ADMIN')}
-                      className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                        selectedRole === 'ADMIN'
-                          ? 'bg-white text-purple-600 shadow-2xs font-bold'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Admin
-                    </button>
-                  )}
-                </div>
 
                 {/* 3. react-day-picker Dropdown Filter */}
                 <div className="relative" ref={calendarDropdownRef}>
@@ -658,8 +469,7 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
             </div>
 
             {/* Active Filter Indicators */}
-            {(selectedRole !== 'ALL' ||
-              (isAdmin && selectedTenantId !== 'ALL') ||
+            {((isAdmin && selectedTenantId !== 'ALL') ||
               searchQuery ||
               selectedRange?.from ||
               selectedSingleDate) && (
@@ -673,19 +483,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
                       type="button"
                       onClick={() => setSelectedTenantId('ALL')}
                       className="hover:text-purple-900"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-
-                {selectedRole !== 'ALL' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-orange-50 text-orange-700 text-[11px] font-semibold border border-orange-200">
-                    <span>Role: {selectedRole}</span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole('ALL')}
-                      className="hover:text-orange-900"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -721,7 +518,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedRole('ALL');
                     setSelectedTenantId('ALL');
                     setSearchQuery('');
                     handleResetDateFilter();
@@ -765,7 +561,6 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedRole('ALL');
                     setSelectedTenantId('ALL');
                     setSearchQuery('');
                     handleResetDateFilter();

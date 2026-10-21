@@ -19,7 +19,7 @@ import ProductsPage from './pages/ProductsPage.tsx';
 import CategoriesPage from './pages/CategoriesPage.tsx';
 import AdminProductsPage from './pages/AdminProductsPage.tsx';
 import AdminCategoriesPage from './pages/AdminCategoriesPage.tsx';
-import HistoryPage from './pages/HistoryPage.tsx';
+import OrderHistoryPage from './pages/OrderHistoryPage.tsx';
 import TenantsPage from './pages/TenantsPage.tsx';
 import CashiersPage from './pages/CashiersPage.tsx';
 import StoreSettingsPage from './pages/StoreSettingsPage.tsx';
@@ -155,7 +155,7 @@ const AppContent: React.FC = () => {
         );
       case 'history':
         return (
-          <HistoryPage
+          <OrderHistoryPage
             onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />

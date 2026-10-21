@@ -8,7 +8,6 @@ import {
   Search,
   X,
   RefreshCw,
-  ArrowLeft,
   Building2,
   Users,
   Laptop,
@@ -66,7 +65,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
   // Filters
   const [selectedTenantId, setSelectedTenantId] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string>('ALL');
 
   // Date filter using react-day-picker in dropdown
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -154,7 +152,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
     startDate: formattedStartDate,
     endDate: formattedEndDate,
     search: searchQuery,
-    role: selectedRole !== 'ALL' ? selectedRole : undefined,
   });
 
   const blacklistMutation = useBlacklistToken();
@@ -164,21 +161,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
   // Local filter for instant responsiveness
   const filteredTokens = useMemo(() => {
     return rawTokens.filter((item) => {
-      // Role filter
-      if (selectedRole !== 'ALL') {
-        if (selectedRole === 'MANAGER' || selectedRole === 'SHOP_OWNER') {
-          if (
-            item.role !== 'MANAGER' &&
-            item.role !== 'SHOP_OWNER' &&
-            item.role !== 'pemilik'
-          ) {
-            return false;
-          }
-        } else if (item.role !== selectedRole) {
-          return false;
-        }
-      }
-
       // Tenant filter for Admin
       if (isAdmin && selectedTenantId !== 'ALL') {
         if (item.tenantId && item.tenantId !== selectedTenantId) {
@@ -233,7 +215,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
     });
   }, [
     rawTokens,
-    selectedRole,
     selectedTenantId,
     isAdmin,
     dateMode,
@@ -383,105 +364,7 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
             </div>
           )}
 
-          {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onBackToPos}
-                className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-slate-700 hover:text-orange-600 bg-white hover:bg-orange-50 px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs transition-all cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>{isAdmin ? 'Kembali' : 'Kembali ke Kasir'}</span>
-              </button>
 
-              <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                    <KeyRound className="w-6 h-6 text-purple-600" />
-                    <span>Access Token Aktif di Redis</span>
-                  </h1>
-
-                  {isAdmin ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-purple-100 text-purple-700 rounded-lg border border-purple-200">
-                      Semua Tenan Platform
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded-lg border border-orange-200">
-                      🏢 {user?.tenantName || 'Tenan Milik Anda'}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {isAdmin
-                    ? 'Memantau seluruh sesi JWT access token aktif di Redis untuk semua user dan toko, dengan opsi blacklist instan.'
-                    : `Memantau sesi access token aktif staf dan pemilik toko ${user?.tenantName || 'Anda'} dengan TTL dinamis.`}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => refetch()}
-                disabled={loading || isRefetching}
-                title="Segarkan data token aktif"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors cursor-pointer"
-              >
-                <RefreshCw
-                  className={`w-3.5 h-3.5 text-slate-500 ${
-                    loading || isRefetching ? 'animate-spin text-purple-600' : ''
-                  }`}
-                />
-                <span>Segarkan Token</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Stat Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Sesi Token Aktif</span>
-                <KeyRound className="w-4 h-4 text-purple-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 mt-2">{filteredTokens.length}</p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">Tersimpan di Upstash Redis</span>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Pengguna Terotentikasi</span>
-                <Users className="w-4 h-4 text-blue-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-900 mt-2">
-                {new Set(filteredTokens.map((t) => t.email)).size}
-              </p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">Akun aktif saat ini</span>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Sesi Kasir (CASHIER)</span>
-                <Laptop className="w-4 h-4 text-emerald-600" />
-              </div>
-              <p className="text-2xl font-black text-emerald-600 mt-2">
-                {filteredTokens.filter((t) => t.role === 'SHOP_CASHIER' || t.role === 'kasir').length}
-              </p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">POS terminal terhubung</span>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Masa Berlaku Maksimal</span>
-                <Clock className="w-4 h-4 text-orange-600" />
-              </div>
-              <p className="text-2xl font-black text-orange-600 mt-2">15 Menit</p>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">TTL Otomatis di Redis</span>
-            </div>
-          </div>
 
           {/* Filter Bar with TenantSelect & react-day-picker Dropdown */}
           <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
@@ -524,55 +407,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
                   </div>
                 )}
 
-                {/* 2. Role Filter */}
-                <div className="inline-flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('ALL')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                      selectedRole === 'ALL'
-                        ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Semua
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('SHOP_OWNER')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                      selectedRole === 'SHOP_OWNER'
-                        ? 'bg-white text-orange-600 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Manager
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('SHOP_CASHIER')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                      selectedRole === 'SHOP_CASHIER'
-                        ? 'bg-white text-emerald-600 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Kasir
-                  </button>
-                  {isAdmin && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole('ADMIN')}
-                      className={`px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                        selectedRole === 'ADMIN'
-                          ? 'bg-white text-purple-600 shadow-2xs font-bold'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Admin
-                    </button>
-                  )}
-                </div>
 
                 {/* 3. react-day-picker Dropdown Filter */}
                 <div className="relative" ref={calendarDropdownRef}>
@@ -710,8 +544,7 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
             </div>
 
             {/* Active filter badges */}
-            {(selectedRole !== 'ALL' ||
-              (isAdmin && selectedTenantId !== 'ALL') ||
+            {((isAdmin && selectedTenantId !== 'ALL') ||
               searchQuery ||
               selectedRange?.from ||
               selectedSingleDate) && (
@@ -725,19 +558,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
                       type="button"
                       onClick={() => setSelectedTenantId('ALL')}
                       className="hover:text-purple-900"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-
-                {selectedRole !== 'ALL' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-orange-50 text-orange-700 text-[11px] font-semibold border border-orange-200">
-                    <span>Role: {selectedRole}</span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole('ALL')}
-                      className="hover:text-orange-900"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -773,7 +593,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedRole('ALL');
                     setSelectedTenantId('ALL');
                     setSearchQuery('');
                     handleResetDateFilter();
@@ -818,7 +637,6 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedRole('ALL');
                     setSelectedTenantId('ALL');
                     setSearchQuery('');
                     handleResetDateFilter();
