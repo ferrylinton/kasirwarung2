@@ -9,6 +9,24 @@ const memoryBlacklist = new Map<string, number>();
 const memoryRefreshStore = new Map<string, number>();
 const memoryRateBuckets = new Map<string, { tokens: number; lastRefill: number }>();
 
+export interface ActiveAccessTokenData {
+  token: string;
+  userId: string;
+  email: string;
+  name: string;
+  username?: string;
+  role: string;
+  tenantId?: string | null;
+  tenantName?: string;
+  ipAddress: string;
+  device: string;
+  issuedAt: string;
+  expiresAt: string;
+  remainingSeconds?: number;
+}
+
+const memoryActiveTokens = new Map<string, { data: ActiveAccessTokenData; expiresAt: number }>();
+
 export function initRedis(): Redis | null {
   if (redisClient) return redisClient;
   if (!env.REDIS_URL) {
@@ -219,3 +237,127 @@ export async function consumeRateLimitToken(
     };
   }
 }
+
+/**
+ * Store an active access token in Redis with TTL matching token validity
+ */
+export async function storeActiveAccessToken(
+  token: string,
+  data: Omit<ActiveAccessTokenData, 'token'>,
+  ttlSeconds: number
+): Promise<void> {
+  const ttl = Math.max(1, Math.floor(ttlSeconds));
+  const expiresAtMs = Date.now() + ttl * 1000;
+  const sessionItem: ActiveAccessTokenData = {
+    ...data,
+    token,
+    remainingSeconds: ttl,
+    expiresAt: data.expiresAt || new Date(expiresAtMs).toISOString(),
+  };
+
+  memoryActiveTokens.set(token, { data: sessionItem, expiresAt: expiresAtMs });
+
+  if (redisClient && redisConnected) {
+    try {
+      const key = `kw:act:${token}`;
+      await redisClient.set(key, JSON.stringify(sessionItem), 'EX', ttl);
+    } catch {
+      // Memory fallback already handled
+    }
+  }
+}
+
+/**
+ * Remove an access token from the active session store (e.g. upon logout or blacklist)
+ */
+export async function removeActiveAccessToken(token: string): Promise<void> {
+  memoryActiveTokens.delete(token);
+
+  if (redisClient && redisConnected) {
+    try {
+      const key = `kw:act:${token}`;
+      await redisClient.del(key);
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+/**
+ * Get all active access tokens from Redis (with live TTL calculation)
+ */
+export async function getAllActiveAccessTokens(): Promise<ActiveAccessTokenData[]> {
+  const now = Date.now();
+
+  // Purge expired tokens from memory map
+  for (const [t, entry] of memoryActiveTokens.entries()) {
+    if (entry.expiresAt <= now) {
+      memoryActiveTokens.delete(t);
+    }
+  }
+
+  if (redisClient && redisConnected) {
+    try {
+      const keys = await redisClient.keys('kw:act:*');
+      if (keys && keys.length > 0) {
+        const pipeline = redisClient.pipeline();
+        for (const k of keys) {
+          pipeline.get(k);
+          pipeline.ttl(k);
+        }
+        const results = await pipeline.exec();
+        const activeList: ActiveAccessTokenData[] = [];
+
+        if (results) {
+          for (let i = 0; i < keys.length; i++) {
+            const getRes = results[i * 2];
+            const ttlRes = results[i * 2 + 1];
+            if (getRes && !getRes[0] && getRes[1]) {
+              try {
+                const parsed = JSON.parse(getRes[1] as string) as ActiveAccessTokenData;
+                const ttl = typeof ttlRes?.[1] === 'number' ? ttlRes[1] : 0;
+                if (ttl > 0) {
+                  parsed.remainingSeconds = ttl;
+                  activeList.push(parsed);
+                }
+              } catch {
+                // Ignore parse errors
+              }
+            }
+          }
+        }
+
+        if (activeList.length > 0) {
+          return activeList;
+        }
+      }
+    } catch {
+      // Fallback to memory
+    }
+  }
+
+  // Fallback to memory active tokens
+  const memoryList: ActiveAccessTokenData[] = [];
+  for (const [_, entry] of memoryActiveTokens.entries()) {
+    if (entry.expiresAt > now) {
+      const remaining = Math.max(1, Math.floor((entry.expiresAt - now) / 1000));
+      memoryList.push({
+        ...entry.data,
+        remainingSeconds: remaining,
+      });
+    }
+  }
+
+  return memoryList;
+}
+
+/**
+ * Blacklist an access token in Redis with TTL matching its remaining validity,
+ * and purge it from active access tokens so it cannot be used anymore.
+ */
+export async function blacklistAccessToken(token: string, ttlSeconds: number): Promise<void> {
+  const ttl = Math.max(1, Math.floor(ttlSeconds));
+  await blacklistToken(token, ttl);
+  await removeActiveAccessToken(token);
+}
+

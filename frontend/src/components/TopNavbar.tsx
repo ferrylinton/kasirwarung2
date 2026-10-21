@@ -14,6 +14,7 @@ import {
   Tags,
   Package,
   ShieldAlert,
+  ShieldCheck,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -25,6 +26,7 @@ export type ActiveTab =
   | 'history'
   | 'profile'
   | 'login-history'
+  | 'active-tokens'
   | 'change-password'
   | 'tenants'
   | 'admin-products'
@@ -66,7 +68,9 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
       case 'profile':
         return 'Profil Pengguna';
       case 'login-history':
-        return 'Histori Login';
+        return user?.role === 'ADMIN' ? 'Histori Login Seluruh Tenan' : 'Histori Login Pengguna Toko';
+      case 'active-tokens':
+        return user?.role === 'ADMIN' ? 'Access Token Aktif (Semua Tenan)' : 'Access Token Aktif Toko';
       case 'change-password':
         return 'Ubah Password';
       case 'products':
@@ -244,6 +248,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               >
                 <History className="w-4 h-4 text-slate-400" />
                 <span>Histori Login</span>
+              </DropdownMenu.Item>
+
+              {/* Sesi Access Token Aktif */}
+              <DropdownMenu.Item
+                onSelect={() => onNavigate?.('active-tokens')}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
+              >
+                <ShieldCheck className="w-4 h-4 text-slate-400" />
+                <span>Sesi Token Aktif (Redis)</span>
               </DropdownMenu.Item>
 
               {/* Ubah password: membuka halaman ubah password */}

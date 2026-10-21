@@ -100,7 +100,7 @@ export function requireRole(...allowedRoles: string[]) {
     const matches = allowedRoles.some((role) => {
       if (role === userRole) return true;
       if (role === 'ADMIN' && (userRole === 'admin' || userRole === 'ADMIN')) return true;
-      if (role === 'SHOP_OWNER' && (userRole === 'pemilik' || userRole === 'SHOP_OWNER')) return true;
+      if ((role === 'SHOP_OWNER' || role === 'MANAGER') && (userRole === 'pemilik' || userRole === 'SHOP_OWNER' || userRole === 'MANAGER')) return true;
       if (role === 'SHOP_CASHIER' && (userRole === 'kasir' || userRole === 'SHOP_CASHIER')) return true;
       return false;
     });

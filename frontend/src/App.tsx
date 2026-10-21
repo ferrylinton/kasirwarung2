@@ -13,6 +13,7 @@ import PosPage from './pages/PosPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
 import LoginHistoryPage from './pages/LoginHistoryPage.tsx';
+import ActiveTokensPage from './pages/ActiveTokensPage.tsx';
 import ChangePasswordPage from './pages/ChangePasswordPage.tsx';
 import ProductsPage from './pages/ProductsPage.tsx';
 import CategoriesPage from './pages/CategoriesPage.tsx';
@@ -172,6 +173,13 @@ const AppContent: React.FC = () => {
       case 'login-history':
         return (
           <LoginHistoryPage
+            onBackToPos={() => setCurrentTab(defaultHomeTab)}
+            onNavigate={setCurrentTab}
+          />
+        );
+      case 'active-tokens':
+        return (
+          <ActiveTokensPage
             onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />

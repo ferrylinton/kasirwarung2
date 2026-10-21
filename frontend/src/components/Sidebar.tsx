@@ -1,4 +1,4 @@
-import { Calculator, Package, History, X, Building2, Users, Store, Tags } from 'lucide-react';
+import { Calculator, Package, History, X, Building2, Users, Store, Tags, ShieldCheck, KeyRound } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ActiveTab } from './TopNavbar.tsx';
@@ -191,7 +191,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
             currentTab === 'history'
-              ? 'bg-[#EC6C1A] text-white shadow-orange-600/30'
+              ? user?.role === 'ADMIN'
+                ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
+                : 'bg-[#EC6C1A] text-white shadow-orange-600/30'
               : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
           }`}
         >
@@ -199,15 +201,68 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <span
           className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-            currentTab === 'history' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+            currentTab === 'history'
+              ? user?.role === 'ADMIN' ? 'text-purple-400 font-bold' : 'text-orange-400 font-semibold'
+              : 'text-slate-400 group-hover:text-slate-200'
           }`}
         >
           Riwayat
         </span>
       </button>
 
-      {/* SHOP_OWNER ONLY: Staf Kasir & Toko Tabs */}
-      {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik') && (
+      {/* ADMIN ONLY: Histori Login & Sesi Token Active in Redis */}
+      {user?.role === 'ADMIN' && (
+        <>
+          <button
+            onClick={() => handleSelect('login-history')}
+            title="Histori Login Pengguna Seluruh Tenan"
+            className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          >
+            <div
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentTab === 'login-history'
+                  ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
+                  : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
+              }`}
+            >
+              <ShieldCheck className="w-5 h-5 md:w-5.5 md:h-5.5" />
+            </div>
+            <span
+              className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+                currentTab === 'login-history' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+              }`}
+            >
+              Audit Login
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleSelect('active-tokens')}
+            title="Access Token Aktif Seluruh Tenan (Redis)"
+            className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          >
+            <div
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentTab === 'active-tokens'
+                  ? 'bg-purple-600 text-white shadow-purple-600/30 shadow-md'
+                  : 'text-purple-400 group-hover:text-white group-hover:bg-purple-600/20'
+              }`}
+            >
+              <KeyRound className="w-5 h-5 md:w-5.5 md:h-5.5" />
+            </div>
+            <span
+              className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+                currentTab === 'active-tokens' ? 'text-purple-400 font-bold' : 'text-slate-400 group-hover:text-slate-200'
+              }`}
+            >
+              Sesi Token
+            </span>
+          </button>
+        </>
+      )}
+
+      {/* MANAGER / SHOP_OWNER ONLY: Staf Kasir, Audit Login, Sesi Token & Toko Tabs */}
+      {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik' || user?.role === 'MANAGER') && (
         <>
           <button
             onClick={() => handleSelect('cashiers')}
@@ -229,6 +284,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
             >
               Kasir Toko
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleSelect('login-history')}
+            title="Histori Login Staf & Akun Tenan"
+            className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          >
+            <div
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentTab === 'login-history'
+                  ? 'bg-[#EC6C1A] text-white shadow-orange-600/30 shadow-md'
+                  : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+              }`}
+            >
+              <ShieldCheck className="w-5 h-5 md:w-5.5 md:h-5.5" />
+            </div>
+            <span
+              className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+                currentTab === 'login-history' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+              }`}
+            >
+              Audit Login
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleSelect('active-tokens')}
+            title="Access Token Aktif Toko (Redis)"
+            className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          >
+            <div
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentTab === 'active-tokens'
+                  ? 'bg-[#EC6C1A] text-white shadow-orange-600/30 shadow-md'
+                  : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+              }`}
+            >
+              <KeyRound className="w-5 h-5 md:w-5.5 md:h-5.5" />
+            </div>
+            <span
+              className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
+                currentTab === 'active-tokens' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+              }`}
+            >
+              Sesi Token
             </span>
           </button>
 

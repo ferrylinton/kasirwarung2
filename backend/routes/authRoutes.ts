@@ -9,6 +9,8 @@ import {
   switchCashier,
   changePassword,
   getLoginHistory,
+  getActiveTokens,
+  blacklistActiveTokenController,
 } from '../controllers/authController.ts';
 import { validateBody } from '../middleware/validateMiddleware.ts';
 import { authenticateToken } from '../middleware/authMiddleware.ts';
@@ -29,5 +31,7 @@ router.get('/me', authenticateToken, getMe);
 router.post('/switch-cashier', switchCashier);
 router.post('/change-password', authenticateToken, changePassword);
 router.get('/login-history', authenticateToken, getLoginHistory);
+router.get('/active-tokens', authenticateToken, getActiveTokens);
+router.post('/blacklist-token', authenticateToken, blacklistActiveTokenController);
 
 export default router;

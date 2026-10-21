@@ -6,6 +6,8 @@ import {
   Order,
   Tenant,
   Cashier,
+  LoginHistoryItem,
+  ActiveTokenItem,
   DeactivationRequestItem,
 } from '../services/api.ts';
 
@@ -20,7 +22,10 @@ export const queryKeys = {
   tenants: () => ['tenants'] as const,
   currentTenant: () => ['current-tenant'] as const,
   cashiers: () => ['cashiers'] as const,
-  loginHistory: () => ['login-history'] as const,
+  loginHistory: (tenantId = '', startDate = '', endDate = '', search = '', role = '') =>
+    ['login-history', { tenantId, startDate, endDate, search, role }] as const,
+  activeTokens: (tenantId = '', startDate = '', endDate = '', search = '', role = '') =>
+    ['active-tokens', { tenantId, startDate, endDate, search, role }] as const,
   deactivationRequests: () => ['deactivation-requests'] as const,
   health: () => ['health'] as const,
 };
@@ -132,19 +137,58 @@ export function useCashiers(options?: { enabled?: boolean }) {
 }
 
 // 9. Login History Query (used by LoginHistoryPage)
-export function useLoginHistory(options?: { enabled?: boolean }) {
-  return useQuery<{ success: boolean; data: any[] }>({
-    queryKey: queryKeys.loginHistory(),
+export function useLoginHistory(params?: {
+  tenantId?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  role?: string;
+  enabled?: boolean;
+}) {
+  return useQuery<{ success: boolean; data: LoginHistoryItem[] }>({
+    queryKey: queryKeys.loginHistory(
+      params?.tenantId || '',
+      params?.startDate || '',
+      params?.endDate || '',
+      params?.search || '',
+      params?.role || ''
+    ),
     queryFn: async () => {
-      const res = await api.getLoginHistory();
+      const res = await api.getLoginHistory(params);
       return res;
     },
-    enabled: options?.enabled ?? true,
+    enabled: params?.enabled ?? true,
     staleTime: 1000 * 20,
   });
 }
 
-// 10. Deactivation Requests Query (used by DeactivationRequests component)
+// 10. Active Access Tokens Query (used by ActiveTokensPage)
+export function useActiveTokens(params?: {
+  tenantId?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  role?: string;
+  enabled?: boolean;
+}) {
+  return useQuery<{ success: boolean; data: ActiveTokenItem[] }>({
+    queryKey: queryKeys.activeTokens(
+      params?.tenantId || '',
+      params?.startDate || '',
+      params?.endDate || '',
+      params?.search || '',
+      params?.role || ''
+    ),
+    queryFn: async () => {
+      const res = await api.getActiveTokens(params);
+      return res;
+    },
+    enabled: params?.enabled ?? true,
+    refetchInterval: 1000 * 5, // auto refresh every 5s for live TTL countdowns
+  });
+}
+
+// 11. Deactivation Requests Query (used by DeactivationRequests component)
 export function useDeactivationRequests(options?: { enabled?: boolean }) {
   return useQuery<{ success: boolean; data: DeactivationRequestItem[] }>({
     queryKey: queryKeys.deactivationRequests(),
@@ -272,3 +316,16 @@ export function useCashierMutations() {
 
   return { createCashier, updateCashier, deleteCashier };
 }
+
+export function useBlacklistToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ token, reason }: { token: string; reason?: string }) =>
+      api.blacklistToken(token, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-tokens'] });
+      queryClient.invalidateQueries({ queryKey: ['login-history'] });
+    },
+  });
+}
+

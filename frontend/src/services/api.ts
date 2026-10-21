@@ -66,6 +66,37 @@ export interface Cashier {
   createdAt?: string;
 }
 
+export interface LoginHistoryItem {
+  id: string;
+  userId?: string;
+  tenantId?: string | null;
+  tenantName?: string;
+  name: string;
+  username?: string;
+  email: string;
+  role: string;
+  ipAddress: string;
+  device: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface ActiveTokenItem {
+  token: string;
+  userId: string;
+  email: string;
+  name: string;
+  username?: string;
+  role: string;
+  tenantId?: string | null;
+  tenantName?: string;
+  ipAddress: string;
+  device: string;
+  issuedAt: string;
+  expiresAt: string;
+  remainingSeconds?: number;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -255,7 +286,43 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
-  getLoginHistory: () => apiRequest('/api/auth/login-history'),
+  getLoginHistory: (params?: {
+    tenantId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+    role?: string;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.tenantId && params.tenantId !== 'ALL') q.set('tenantId', params.tenantId);
+    if (params?.startDate) q.set('startDate', params.startDate);
+    if (params?.endDate) q.set('endDate', params.endDate);
+    if (params?.search) q.set('search', params.search);
+    if (params?.role && params.role !== 'ALL') q.set('role', params.role);
+    const qs = q.toString();
+    return apiRequest(`/api/auth/login-history${qs ? `?${qs}` : ''}`);
+  },
+  getActiveTokens: (params?: {
+    tenantId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+    role?: string;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.tenantId && params.tenantId !== 'ALL') q.set('tenantId', params.tenantId);
+    if (params?.startDate) q.set('startDate', params.startDate);
+    if (params?.endDate) q.set('endDate', params.endDate);
+    if (params?.search) q.set('search', params.search);
+    if (params?.role && params.role !== 'ALL') q.set('role', params.role);
+    const qs = q.toString();
+    return apiRequest(`/api/auth/active-tokens${qs ? `?${qs}` : ''}`);
+  },
+  blacklistToken: (token: string, reason?: string) =>
+    apiRequest('/api/auth/blacklist-token', {
+      method: 'POST',
+      body: JSON.stringify({ token, reason }),
+    }),
 
   // Products
   getProducts: (search = '', category = 'Semua Produk', tenantId?: string) => {

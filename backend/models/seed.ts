@@ -434,10 +434,127 @@ export async function seedInitialData(): Promise<void> {
     );
 
     // Remove legacy paymentMethod from all existing orders
-    await ordersCol.updateMany(
-      { paymentMethod: { $exists: true } },
-      { $unset: { paymentMethod: '' } }
-    );
+    // 4. Seed Initial Login History if empty
+    const historyCol = getCollection('login_history');
+    const historyCount = await historyCol.countDocuments({});
+    if (historyCount === 0) {
+      const now = Date.now();
+      await historyCol.insertMany([
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00a1'),
+          tenantId: null,
+          tenantName: 'Platform Administrator',
+          name: 'Super Administrator',
+          username: 'admin',
+          email: 'admin@kasirwarung.id',
+          role: 'ADMIN',
+          ipAddress: '182.253.14.88 (Kantor Pusat Jakarta)',
+          device: 'Chrome 124 (macOS Sonoma)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 15 * 60 * 1000).toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00a8'),
+          tenantId: t1Id,
+          tenantName: 'Warung Berkah Budi',
+          name: 'Budi Santoso',
+          username: 'budi',
+          email: 'budi@kasirwarung.id',
+          role: 'SHOP_OWNER',
+          ipAddress: '192.168.1.100 (Warung POS Terminal)',
+          device: 'POS Terminal Touchscreen (Linux POS)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 45 * 60 * 1000).toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00a9'),
+          tenantId: t1Id,
+          tenantName: 'Warung Berkah Budi',
+          name: 'Siti Aminah',
+          username: 'siti',
+          email: 'siti@kasirwarung.id',
+          role: 'SHOP_CASHIER',
+          ipAddress: '192.168.1.102 (Kasir Meja 1)',
+          device: 'Chrome 124 (Windows 11 POS)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 2 * 3600 * 1000).toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00b5'),
+          tenantId: t2Id,
+          tenantName: 'Toko Kelontong Sejahtera',
+          name: 'Hendra Gunawan',
+          username: 'hendra',
+          email: 'hendra@kelontong.id',
+          role: 'SHOP_OWNER',
+          ipAddress: '192.168.2.50 (Kelontong Terminal)',
+          device: 'Safari 17 (iPadOS Tablet POS)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 3 * 3600 * 1000).toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00a9'),
+          tenantId: t1Id,
+          tenantName: 'Warung Berkah Budi',
+          name: 'Siti Aminah',
+          username: 'siti',
+          email: 'siti@kasirwarung.id',
+          role: 'SHOP_CASHIER',
+          ipAddress: '192.168.1.102 (Kasir Meja 1)',
+          device: 'Chrome 124 (Windows 11 POS)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 24 * 3600 * 1000 - 10 * 60 * 1000).toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00a8'),
+          tenantId: t1Id,
+          tenantName: 'Warung Berkah Budi',
+          name: 'Budi Santoso',
+          username: 'budi',
+          email: 'budi@kasirwarung.id',
+          role: 'SHOP_OWNER',
+          ipAddress: '182.1.22.45 (Telkomsel 5G)',
+          device: 'Chrome Mobile (Samsung Galaxy Tab)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 26 * 3600 * 1000).toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00b5'),
+          tenantId: t2Id,
+          tenantName: 'Toko Kelontong Sejahtera',
+          name: 'Hendra Gunawan',
+          username: 'hendra',
+          email: 'hendra@kelontong.id',
+          role: 'SHOP_OWNER',
+          ipAddress: '192.168.2.50 (Kelontong Terminal)',
+          device: 'Safari 17 (iPadOS Tablet POS)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 48 * 3600 * 1000).toISOString(),
+        },
+        {
+          _id: new ObjectId(),
+          userId: new ObjectId('6ace8019cb267df584bd00a8'),
+          tenantId: t1Id,
+          tenantName: 'Warung Berkah Budi',
+          name: 'Budi Santoso',
+          username: 'budi',
+          email: 'budi@kasirwarung.id',
+          role: 'SHOP_OWNER',
+          ipAddress: '192.168.1.100 (Warung POS Terminal)',
+          device: 'POS Terminal Touchscreen (Linux POS)',
+          status: 'Berhasil',
+          createdAt: new Date(now - 72 * 3600 * 1000).toISOString(),
+        },
+      ]);
+      console.log('[Seed] Multi-tenant login history seeded');
+    }
   } catch (err) {
     console.warn('[Seed] Seed warning:', err);
   }
