@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Calculator,
   Package,
@@ -21,7 +22,6 @@ import { ActiveTab } from './TopNavbar.tsx';
 interface SidebarProps {
   currentTab: ActiveTab;
   onSelectTab: (tab: ActiveTab) => void;
-  onOpenSettings?: () => void;
   onLogout?: () => void;
 }
 
@@ -29,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onSelectTab,
 }) => {
+  const { t } = useTranslation();
   const { items, isMobileSidebarOpen, closeMobileSidebar } = useCart();
   const { user } = useAuth();
   const totalItemCount = items.reduce((sum, i) => sum + i.qty, 0);
@@ -54,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {user?.role !== 'ADMIN' ? (
         <button
           onClick={() => handleSelect('pos')}
-          title="Kasir POS"
+          title={t('nav.pos', 'Pesanan')}
           className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
         >
           <div className="relative">
@@ -78,14 +79,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               currentTab === 'pos' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           >
-            Kasir
+            {t('nav.pos', 'Pesanan')}
           </span>
         </button>
       ) : (
         /* ADMIN ONLY: Primary Tenants Management Tab */
         <button
           onClick={() => handleSelect('tenants')}
-          title="Kelola Seluruh Tenan"
+          title={t('nav.tenants', 'Kelola Seluruh Tenan')}
           className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
         >
           <div
@@ -102,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               currentTab === 'tenants' || currentTab === 'deactivation-requests' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           >
-            Tenan
+            {t('nav.tenants', 'Tenan')}
           </span>
         </button>
       )}
@@ -110,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Transaction History */}
       <button
         onClick={() => handleSelect('history')}
-        title="Riwayat Transaksi"
+        title={t('nav.history', 'Riwayat Transaksi')}
         className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
       >
         <div
@@ -127,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             currentTab === 'history' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
           }`}
         >
-          Riwayat
+          {t('nav.history', 'Riwayat')}
         </span>
       </button>
 
@@ -135,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik' || user?.role === 'MANAGER') && (
         <button
           onClick={() => handleSelect('store-settings')}
-          title="Pengaturan Toko & Akun Tenan"
+          title={t('nav.storeSettings', 'Pengaturan Toko & Akun Tenan')}
           className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
         >
           <div
@@ -152,7 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               currentTab === 'store-settings' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           >
-            Toko
+            {t('nav.storeSettings', 'Toko')}
           </span>
         </button>
       )}

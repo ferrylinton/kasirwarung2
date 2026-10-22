@@ -23,6 +23,9 @@ export interface Tenant {
   code: string;
   ownerEmail: string;
   status: 'active' | 'inactive' | 'pending_verification';
+  taxEnabled?: boolean;
+  taxRate?: number;
+  taxType?: 'percentage' | 'fixed';
   cashierCount?: number;
   productCount?: number;
   orderCount?: number;
@@ -188,12 +191,19 @@ function onRefreshed(token: string) {
   refreshSubscribers = [];
 }
 
+import i18n from '../i18n.ts';
+
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const accessToken = tokenStorage.getAccessToken();
   const headers = new Headers(options.headers || {});
+
+  const currentLang = i18n.language?.startsWith('en') ? 'en' : 'id';
+  if (!headers.has('Accept-Language')) {
+    headers.set('Accept-Language', currentLang);
+  }
 
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
@@ -393,6 +403,16 @@ export const api = {
     }),
   getTenants: () => apiRequest('/api/tenants'),
   getCurrentTenant: () => apiRequest('/api/tenants/current'),
+  updateTenantSettings: (settings: {
+    taxEnabled?: boolean;
+    taxRate?: number;
+    taxType?: 'percentage' | 'fixed';
+    tenantId?: string;
+  }) =>
+    apiRequest('/api/tenants/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
   updateTenantStatus: (id: string, status: 'active' | 'inactive') =>
     apiRequest(`/api/tenants/${id}/status`, {
       method: 'PUT',

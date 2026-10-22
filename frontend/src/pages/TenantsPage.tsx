@@ -10,7 +10,6 @@ import { TenantsList } from '../components/TenantsList.tsx';
 import { useTenants } from '../hooks/useQueries.ts';
 
 interface TenantsPageProps {
-  onBackToPos?: () => void;
   onNavigate?: (tab: any) => void;
   initialTab?: 'tenants' | 'deactivation-requests';
 }

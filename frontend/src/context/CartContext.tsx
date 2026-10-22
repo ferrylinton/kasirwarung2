@@ -5,6 +5,7 @@ import {
   useSavedOrders,
   useSaveOrCheckoutOrderMutation,
   useDeleteSavedOrderMutation,
+  useCurrentTenant,
 } from '../hooks/useQueries.ts';
 
 interface CartContextType {
@@ -14,6 +15,9 @@ interface CartContextType {
   savedOrdersCount: number;
   subtotal: number;
   tax: number;
+  taxEnabled: boolean;
+  taxRate: number;
+  taxType: 'percentage' | 'fixed';
   total: number;
   customerName: string;
   setCustomerName: (name: string) => void;
@@ -241,9 +245,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const { data: tenantData } = useCurrentTenant({ enabled: !!user && user.role !== 'ADMIN' });
+  const tenant = tenantData?.data;
+  const taxEnabled = tenant?.taxEnabled !== undefined ? Boolean(tenant.taxEnabled) : true;
+  const taxRate = typeof tenant?.taxRate === 'number' ? tenant.taxRate : 11;
+  const taxType = tenant?.taxType || 'percentage';
+
   // Calculations
   const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const tax = Math.round(subtotal * 0.11);
+  let tax = 0;
+  if (taxEnabled && subtotal > 0) {
+    if (taxType === 'fixed') {
+      tax = Math.round(taxRate);
+    } else {
+      tax = Math.round(subtotal * (taxRate / 100));
+    }
+  }
   const total = subtotal + tax;
 
   return (
@@ -255,6 +272,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         savedOrdersCount: savedOrders.length,
         subtotal,
         tax,
+        taxEnabled,
+        taxRate,
+        taxType,
         total,
         customerName,
         setCustomerName,

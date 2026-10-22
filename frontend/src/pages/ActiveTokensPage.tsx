@@ -45,14 +45,12 @@ import {
 import { ActiveTokenItem } from '../services/api.ts';
 
 interface ActiveTokensPageProps {
-  onBackToPos: () => void;
   onNavigate?: (tab: ActiveTab) => void;
 }
 
 type DateSelectionMode = 'range' | 'single';
 
 export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
-  onBackToPos,
   onNavigate,
 }) => {
   const { user } = useAuth();

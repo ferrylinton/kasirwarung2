@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  Store,
   ShieldAlert,
   Clock,
   CheckCircle2,
   AlertTriangle,
-  RefreshCw,
   Ban,
-  ArrowLeft,
   XCircle,
-  Mail,
   Info,
+  Percent,
+  Save,
+  Check,
+  Calculator,
+  Globe,
 } from 'lucide-react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { api, Tenant } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCurrentTenant } from '../hooks/useQueries.ts';
+import { LanguageSelector } from '../components/LanguageSelector.tsx';
 
 interface StoreSettingsPageProps {
-  onBackToPos?: () => void;
   onNavigate?: (tab: any) => void;
 }
 
-export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate, onBackToPos }) => {
+export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -35,6 +38,54 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
     refetch: fetchTenantInfo,
   } = useCurrentTenant();
   const tenant = tenantData?.data || null;
+
+  // PPN / Tax Settings State
+  const [taxEnabled, setTaxEnabled] = useState<boolean>(true);
+  const [taxRate, setTaxRate] = useState<number>(11);
+  const [taxType, setTaxType] = useState<'percentage' | 'fixed'>('percentage');
+  const [isSavingTax, setIsSavingTax] = useState(false);
+
+  useEffect(() => {
+    if (tenant) {
+      setTaxEnabled(tenant.taxEnabled !== undefined ? Boolean(tenant.taxEnabled) : true);
+      setTaxRate(typeof tenant.taxRate === 'number' ? tenant.taxRate : 11);
+      setTaxType(tenant.taxType || 'percentage');
+    }
+  }, [tenant]);
+
+  const handleSaveTaxSettings = async () => {
+    setIsSavingTax(true);
+    setFeedback(null);
+    try {
+      const numRate = Number(taxRate);
+      if (isNaN(numRate) || numRate < 0) {
+        setFeedback({ message: 'Nominal atau tarif pajak tidak boleh negatif', type: 'error' });
+        return;
+      }
+      const res = await api.updateTenantSettings({
+        taxEnabled,
+        taxRate: numRate,
+        taxType,
+      });
+      if (res.success) {
+        setFeedback({ message: res.message || 'Pengaturan PPN toko berhasil disimpan', type: 'success' });
+        await fetchTenantInfo();
+      }
+    } catch (err: any) {
+      setFeedback({ message: err.message || 'Gagal menyimpan pengaturan PPN', type: 'error' });
+    } finally {
+      setIsSavingTax(false);
+    }
+  };
+
+  // Sample calculations for live preview
+  const sampleSubtotal = 100000;
+  const sampleTax = taxEnabled
+    ? taxType === 'percentage'
+      ? Math.round(sampleSubtotal * (Number(taxRate || 0) / 100))
+      : Math.round(Number(taxRate || 0))
+    : 0;
+  const sampleTotal = sampleSubtotal + sampleTax;
 
   // Deactivation Request Form
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -88,37 +139,6 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
       <TopNavbar currentTab="store-settings" onNavigate={onNavigate} />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="p-2.5 rounded-2xl bg-orange-100 text-orange-600 shadow-2xs">
-              <Store className="w-5 h-5" />
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-                  Pengaturan Toko & Akun Tenan
-                </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">
-                  SHOP_OWNER
-                </span>
-              </div>
-              <p className="text-xs md:text-sm text-slate-500">
-                Informasi unit toko, status operasional, dan pengajuan penonaktifan tenan.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => fetchTenantInfo()}
-            disabled={loading}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Segarkan</span>
-          </button>
-        </div>
-
         {/* Feedback Alert */}
         {feedback && (
           <div
@@ -146,8 +166,8 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-3">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">{tenant?.name || user?.tenantName || 'Toko Anda'}</h2>
-              <p className="text-xs font-mono text-slate-400 mt-0.5">Kode Tenan: {tenant?.code || 'T-WARUNG'}</p>
+              <h2 className="text-lg font-bold text-slate-900">{tenant?.name || user?.tenantName || t('settings.storeDetailTitle', 'Toko Anda')}</h2>
+              <p className="text-xs font-mono text-slate-400 mt-0.5">{t('settings.storeCode', 'Kode Tenan')}: {tenant?.code || 'T-WARUNG'}</p>
             </div>
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold self-start sm:self-auto ${
@@ -157,23 +177,318 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
               }`}
             >
               {tenant?.status === 'inactive' ? <Ban className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-              <span>{tenant?.status === 'inactive' ? 'Dinonaktifkan' : 'Toko Aktif & Operasional'}</span>
+              <span>{tenant?.status === 'inactive' ? t('settings.storeInactive', 'Dinonaktifkan') : t('settings.storeActive', 'Toko Aktif & Operasional')}</span>
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Email Pemilik Toko</span>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{t('settings.storeOwnerEmail', 'Email Pemilik Toko')}</span>
               <p className="text-sm font-bold text-slate-900 mt-1">{tenant?.ownerEmail || user?.email}</p>
             </div>
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Peran Pengguna</span>
-              <p className="text-sm font-bold text-orange-600 mt-1">SHOP_OWNER (Pemilik Toko)</p>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{t('settings.userRole', 'Peran Pengguna')}</span>
+              <p className="text-sm font-bold text-orange-600 mt-1">SHOP_OWNER</p>
             </div>
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">ID Tenan (ObjectId)</span>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{t('settings.tenantId', 'ID Tenan (ObjectId)')}</span>
               <p className="text-xs font-mono font-bold text-slate-700 mt-1 truncate">{tenant?.id || user?.tenantId}</p>
             </div>
+          </div>
+        </div>
+
+        {/* Language Preferences Card using Radix UI Select */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-orange-100 text-[#EC6C1A] flex items-center justify-center shrink-0 shadow-2xs">
+                <Globe className="w-5 h-5 stroke-[2.2]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  {t('settings.languageCardTitle', 'Preferensi Bahasa Aplikasi')}
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {t('settings.languageCardDesc', 'Pilih bahasa tampilan antarmuka kasir dan laporan transaksi.')}
+                </p>
+              </div>
+            </div>
+            <div className="w-full sm:w-56">
+              <LanguageSelector variant="full" />
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+            <span>{t('settings.languageActiveLabel', 'Bahasa Saat Ini')}:</span>
+            <span className="font-bold text-slate-800">
+              {document.documentElement.lang === 'en' ? 'English (US)' : 'Bahasa Indonesia'}
+            </span>
+          </div>
+        </div>
+
+        {/* PPN / Tax Settings Card */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-orange-100 text-[#EC6C1A] flex items-center justify-center shrink-0 shadow-2xs">
+                <Percent className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    {t('settings.ppnTitle', 'Pengaturan Pajak Pertambahan Nilai (PPN)')}
+                  </h2>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                      taxEnabled
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-slate-100 text-slate-600 border-slate-200'
+                    }`}
+                  >
+                    {taxEnabled ? t('settings.ppnActiveBadge', 'PPN Aktif') : t('settings.ppnInactiveBadge', 'PPN Nonaktif')}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {t('settings.ppnDesc', 'Atur apakah transaksi kasir memungut PPN beserta nominal tarif persentase atau nominal tetapnya.')}
+                </p>
+              </div>
+            </div>
+
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-3 self-start sm:self-auto bg-slate-50 p-2 rounded-2xl border border-slate-200/60">
+              <span className="text-xs font-semibold text-slate-700">{t('settings.ppnStatusLabel', 'Aktifkan PPN')}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={taxEnabled}
+                onClick={() => setTaxEnabled(!taxEnabled)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-500/20 ${
+                  taxEnabled ? 'bg-[#EC6C1A]' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    taxEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {taxEnabled ? (
+            <div className="space-y-5 animate-in fade-in duration-200">
+              {/* Type Selection */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  Tipe / Format Nominal PPN
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTaxType('percentage');
+                      if (taxRate > 100) setTaxRate(11);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      taxType === 'percentage'
+                        ? 'border-orange-500 bg-orange-50/60 ring-2 ring-orange-500/20 shadow-xs'
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Persentase (%)</span>
+                      <span className="text-[11px] text-slate-500 mt-0.5 block">
+                        Dihitung dari subtotal transaksi
+                      </span>
+                    </div>
+                    {taxType === 'percentage' && (
+                      <div className="w-5 h-5 rounded-full bg-[#EC6C1A] text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTaxType('fixed');
+                      if (taxRate <= 100) setTaxRate(2000);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      taxType === 'fixed'
+                        ? 'border-orange-500 bg-orange-50/60 ring-2 ring-orange-500/20 shadow-xs'
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Nominal Tetap (Rp)</span>
+                      <span className="text-[11px] text-slate-500 mt-0.5 block">
+                        Biaya pajak flat per transaksi
+                      </span>
+                    </div>
+                    {taxType === 'fixed' && (
+                      <div className="w-5 h-5 rounded-full bg-[#EC6C1A] text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Nominal Input & Quick Presets */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    {taxType === 'percentage' ? 'Besaran Tarif PPN (%)' : 'Besaran Nominal PPN (Rp)'}
+                  </label>
+                  <div className="relative max-w-xs">
+                    {taxType === 'fixed' && (
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        Rp
+                      </span>
+                    )}
+                    <input
+                      type="number"
+                      min="0"
+                      step={taxType === 'percentage' ? '0.1' : '500'}
+                      value={taxRate}
+                      onChange={(e) => setTaxRate(Number(e.target.value) || 0)}
+                      className={`w-full py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 ${
+                        taxType === 'fixed' ? 'pl-9 pr-3' : 'pl-3.5 pr-8'
+                      }`}
+                    />
+                    {taxType === 'percentage' && (
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        %
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Quick Presets */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[11px] text-slate-400 font-medium">Pilihan Cepat:</span>
+                    {taxType === 'percentage' ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setTaxRate(10)}
+                          className={`px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                            taxRate === 10 ? 'bg-[#EC6C1A] text-white border-[#EC6C1A]' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          10%
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTaxRate(11)}
+                          className={`px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                            taxRate === 11 ? 'bg-[#EC6C1A] text-white border-[#EC6C1A]' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          11% (Standar)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTaxRate(12)}
+                          className={`px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                            taxRate === 12 ? 'bg-[#EC6C1A] text-white border-[#EC6C1A]' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          12% (UU HPP)
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setTaxRate(1000)}
+                          className={`px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                            taxRate === 1000 ? 'bg-[#EC6C1A] text-white border-[#EC6C1A]' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          Rp1.000
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTaxRate(2000)}
+                          className={`px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                            taxRate === 2000 ? 'bg-[#EC6C1A] text-white border-[#EC6C1A]' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          Rp2.000
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTaxRate(5000)}
+                          className={`px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                            taxRate === 5000 ? 'bg-[#EC6C1A] text-white border-[#EC6C1A]' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          Rp5.000
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-2">
+                    {taxType === 'percentage'
+                      ? 'Tarif PPN akan dikalikan otomatis dengan total belanja produk (subtotal).'
+                      : 'Nominal PPN tetap akan ditambahkan per struk belanja.'}
+                  </p>
+                </div>
+
+                {/* Live Simulation Preview */}
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                    <Calculator className="w-4 h-4 text-orange-600" />
+                    <span>Simulasi Perhitungan Nota Kasir</span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between text-slate-500">
+                      <span>Subtotal Belanja (Contoh)</span>
+                      <span className="font-mono font-medium text-slate-700">Rp{sampleSubtotal.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>
+                        PPN {taxType === 'percentage' ? `(${taxRate}%)` : `(Flat Rp${Number(taxRate || 0).toLocaleString('id-ID')})`}
+                      </span>
+                      <span className="font-mono font-bold text-orange-600">+Rp{sampleTax.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="border-t border-slate-200 pt-1.5 flex justify-between font-bold text-slate-900">
+                      <span>Total Tagihan Pelanggan</span>
+                      <span className="font-mono text-sm text-slate-900">Rp{sampleTotal.toLocaleString('id-ID')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-500 flex items-center gap-2">
+              <Info className="w-4 h-4 text-slate-400 shrink-0" />
+              <span>
+                PPN dinonaktifkan. Transaksi kasir tidak akan dikenakan biaya pajak (PPN = Rp0, Total Tagihan = Subtotal).
+              </span>
+            </div>
+          )}
+
+          {/* Action Row */}
+          <div className="flex justify-end pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={handleSaveTaxSettings}
+              disabled={isSavingTax}
+              className="px-5 py-2.5 bg-[#EC6C1A] hover:bg-orange-600 text-white rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isSavingTax ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Simpan Pengaturan PPN</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 

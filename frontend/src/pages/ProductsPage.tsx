@@ -18,7 +18,6 @@ import { ProductFilterBar } from '../components/ProductFilterBar.tsx';
 import { useProducts, useCategories, useProductMutations } from '../hooks/useQueries.ts';
 
 interface ProductsPageProps {
-  onBackToPos: () => void;
   onNavigate?: (tab: ActiveTab) => void;
 }
 
@@ -31,7 +30,7 @@ const CATEGORIES = [
   'Kebutuhan Rumah',
 ];
 
-export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackToPos, onNavigate }) => {
+export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
 

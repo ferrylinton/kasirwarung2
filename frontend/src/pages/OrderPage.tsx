@@ -3,10 +3,9 @@ import { TopNavbar } from '../components/TopNavbar.tsx';
 import { SavedOrdersBar } from '../components/SavedOrdersBar.tsx';
 import { ProductFilterBar } from '../components/ProductFilterBar.tsx';
 import { ProductCard } from '../components/ProductCard.tsx';
-import { OrderDrawer } from '../components/OrderDrawer.tsx';
+import { CartDrawer } from '../components/CartDrawer.tsx';
 import { PaymentModal } from '../components/PaymentModal.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
-import { ShiftModal } from '../components/ShiftModal.tsx';
 import { Product } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { RefreshCcw, Shield } from 'lucide-react';
@@ -21,18 +20,17 @@ const CATEGORIES = [
   'Kebutuhan Rumah',
 ];
 
-interface PosPageProps {
+interface OrderPageProps {
   onNavigate?: (tab: any) => void;
 }
 
-export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
+export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Modals state
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
   const { user, logout } = useAuth();
@@ -60,7 +58,6 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
         currentTab="pos"
         onNavigate={onNavigate}
         onOpenMobileCart={() => setIsMobileCartOpen(true)}
-        onOpenShiftModal={() => setIsShiftModalOpen(true)}
       />
 
       <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
@@ -140,7 +137,7 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
       </main>
 
       {/* Right Drawer: Order Cart */}
-      <OrderDrawer
+      <CartDrawer
         onOpenPayment={() => setIsPaymentOpen(true)}
         isOpenMobile={isMobileCartOpen}
         onCloseMobile={() => setIsMobileCartOpen(false)}
@@ -162,14 +159,8 @@ export const PosPage: React.FC<PosPageProps> = ({ onNavigate }) => {
         onClose={() => setIsProductModalOpen(false)}
         onSaved={fetchProducts}
       />
-
-      <ShiftModal
-        isOpen={isShiftModalOpen}
-        onClose={() => setIsShiftModalOpen(false)}
-        onLogout={logout}
-      />
     </div>
   );
 };
 
-export default PosPage;
+export default OrderPage;

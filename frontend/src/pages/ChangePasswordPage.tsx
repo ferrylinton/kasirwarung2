@@ -10,7 +10,6 @@ import { api } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 
 interface ChangePasswordPageProps {
-  onBackToPos?: () => void;
   onNavigate?: (tab: ActiveTab) => void;
 }
 

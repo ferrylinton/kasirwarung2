@@ -157,9 +157,22 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
 
   const ordersCol = getCollection('orders');
   const productsCol = getCollection('products');
+  const tenantsCol = getCollection('tenants');
+
+  const tenant = await tenantsCol.findOne({ _id: tenantId });
+  const taxEnabled = tenant?.taxEnabled !== undefined ? Boolean(tenant.taxEnabled) : true;
+  const taxRate = typeof tenant?.taxRate === 'number' ? tenant.taxRate : 11;
+  const taxType = tenant?.taxType || 'percentage';
 
   const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.qty, 0);
-  const tax = Math.round(subtotal * 0.11);
+  let tax = 0;
+  if (taxEnabled && subtotal > 0) {
+    if (taxType === 'fixed') {
+      tax = Math.round(taxRate);
+    } else {
+      tax = Math.round(subtotal * (taxRate / 100));
+    }
+  }
   const total = subtotal + tax;
 
   const summaryItems = items.map((i: any) => i.name.split(' ')[0]).slice(0, 3).join(', ');
@@ -208,6 +221,9 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
     subtotal,
     tax,
     total,
+    taxEnabled,
+    taxRate,
+    taxType,
     cashReceived: cashReceived || total,
     changeAmount: Math.max(0, (cashReceived || total) - total),
     notes: notes || '',

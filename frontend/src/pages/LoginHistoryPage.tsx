@@ -37,14 +37,12 @@ import { useLoginHistory, useTenants } from '../hooks/useQueries.ts';
 import { LoginHistoryItem } from '../services/api.ts';
 
 interface LoginHistoryPageProps {
-  onBackToPos: () => void;
   onNavigate?: (tab: ActiveTab) => void;
 }
 
 type DateSelectionMode = 'range' | 'single';
 
 export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
-  onBackToPos,
   onNavigate,
 }) => {
   const { user } = useAuth();

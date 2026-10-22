@@ -14,13 +14,13 @@ import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ProductIcon } from './ProductIcons.tsx';
 
-interface OrderDrawerProps {
+interface CartDrawerProps {
   onOpenPayment: () => void;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
 }
 
-export const OrderDrawer: React.FC<OrderDrawerProps> = ({
+export const CartDrawer: React.FC<CartDrawerProps> = ({
   onOpenPayment,
   isOpenMobile,
   onCloseMobile,
@@ -30,6 +30,9 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
     items,
     subtotal,
     tax,
+    taxEnabled,
+    taxRate,
+    taxType,
     total,
     removeItem,
     clearCart,
@@ -80,7 +83,7 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
         <div className="flex items-center gap-2">
           <span className="text-orange-500 font-bold text-lg">📋</span>
           <h2 className="text-base font-bold text-slate-900 tracking-tight">
-            Pesanan
+            Keranjang
           </h2>
         </div>
 
@@ -272,8 +275,12 @@ export const OrderDrawer: React.FC<OrderDrawerProps> = ({
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span>PPN (11%)</span>
-            <span className="font-semibold text-slate-900 tabular-nums">
+            <span>
+              {taxEnabled
+                ? `PPN (${taxType === 'percentage' ? `${taxRate}%` : 'Rp' + taxRate.toLocaleString('id-ID')})`
+                : 'PPN (Nonaktif)'}
+            </span>
+            <span className={`font-semibold tabular-nums ${taxEnabled ? 'text-slate-900' : 'text-slate-400'}`}>
               Rp{tax.toLocaleString('id-ID')}
             </span>
           </div>

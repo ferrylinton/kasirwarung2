@@ -14,12 +14,14 @@ import cashierRoutes from './routes/cashierRoutes.ts';
 import categoryRoutes from './routes/categoryRoutes.ts';
 import { errorHandler } from './middleware/errorMiddleware.ts';
 import { initMidnightCleanupScheduler } from './services/cleanupScheduler.ts';
+import { i18nMiddleware } from './config/i18n.ts';
 
 export async function createApp(): Promise<Express> {
   const app = express();
 
   app.use(express.json());
   app.use(cookieParser());
+  app.use(i18nMiddleware);
 
   // Initialize DB, Redis, and Midnight Cleanup Scheduler (3-month retention)
   await connectMongoDB();

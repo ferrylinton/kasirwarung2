@@ -9,13 +9,10 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 
 interface ProfilePageProps {
-  onBackToPos?: () => void;
-  onOpenSwitchShift?: () => void;
   onNavigate?: (tab: ActiveTab) => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
-  onOpenSwitchShift,
   onNavigate,
 }) => {
   const { user } = useAuth();
@@ -25,7 +22,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       <TopNavbar
         currentTab="profile"
         onNavigate={onNavigate}
-        onOpenShiftModal={onOpenSwitchShift}
       />
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto w-full space-y-6">

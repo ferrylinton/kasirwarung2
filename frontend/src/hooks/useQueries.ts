@@ -53,7 +53,7 @@ export function useOrderHistory(
   });
 }
 
-// 2. Products Query (used by PosPage, ProductsPage, AdminProductsPage)
+// 2. Products Query (used by OrderPage, ProductsPage, AdminProductsPage)
 export function useProducts(
   searchQuery = '',
   category = 'Semua Produk',
@@ -71,7 +71,7 @@ export function useProducts(
   });
 }
 
-// 4. Categories Query (used by CategoriesPage, PosPage, AdminCategoriesPage)
+// 4. Categories Query (used by CategoriesPage, OrderPage, AdminCategoriesPage)
 export function useCategories(tenantId?: string, options?: { enabled?: boolean }) {
   return useQuery<{ success: boolean; data: Category[] }>({
     queryKey: queryKeys.categories(tenantId || ''),

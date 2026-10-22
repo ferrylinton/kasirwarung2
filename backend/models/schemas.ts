@@ -64,6 +64,13 @@ export const updateTenantStatusSchema = z.object({
   reason: z.string().optional(),
 });
 
+export const updateTenantSettingsSchema = z.object({
+  taxEnabled: z.boolean().optional(),
+  taxRate: z.number().min(0, 'Tarif atau nominal PPN tidak boleh negatif').optional(),
+  taxType: z.enum(['percentage', 'fixed']).optional(),
+  tenantId: z.string().optional(),
+});
+
 export const refreshSchema = z.object({
   refreshToken: z.string().optional(),
 });

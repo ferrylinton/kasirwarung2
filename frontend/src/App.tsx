@@ -3,13 +3,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { CartProvider } from './context/CartContext.tsx';
 import { Sidebar } from './components/Sidebar.tsx';
-import { ShiftModal } from './components/ShiftModal.tsx';
 import { IdleTimerModal } from './components/IdleTimerModal.tsx';
 import { useIdleTimer } from './hooks/useIdleTimer.ts';
 import { ActiveTab } from './components/TopNavbar.tsx';
 
 // Direct component imports to ensure single React instance and avoid lazy chunk skews
-import PosPage from './pages/PosPage.tsx';
+import OrderPage from './pages/OrderPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
 import LoginHistoryPage from './pages/LoginHistoryPage.tsx';
@@ -30,7 +29,6 @@ const AppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<ActiveTab>(() => {
     return user?.role === 'ADMIN' ? 'tenants' : 'pos';
   });
-  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [adminDrillTenantId, setAdminDrillTenantId] = useState<string>('ALL');
   const [adminDrillCategory, setAdminDrillCategory] = useState<string>('Semua Produk');
 
@@ -68,14 +66,11 @@ const AppContent: React.FC = () => {
     return <LoginPage />;
   }
 
-  const defaultHomeTab: ActiveTab = user.role === 'ADMIN' ? 'tenants' : 'pos';
-
   const renderCurrentPage = () => {
     switch (currentTab) {
       case 'tenants':
         return (
           <TenantsPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
@@ -101,14 +96,12 @@ const AppContent: React.FC = () => {
       case 'cashiers':
         return (
           <UsersPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
       case 'store-settings':
         return (
           <StoreSettingsPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
@@ -130,7 +123,6 @@ const AppContent: React.FC = () => {
         }
         return (
           <ProductsPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
@@ -156,29 +148,24 @@ const AppContent: React.FC = () => {
       case 'history':
         return (
           <OrderHistoryPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
       case 'profile':
         return (
           <ProfilePage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
-            onOpenSwitchShift={() => setIsShiftModalOpen(true)}
             onNavigate={setCurrentTab}
           />
         );
       case 'login-history':
         return (
           <LoginHistoryPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
       case 'active-tokens':
         return (
           <ActiveTokensPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
@@ -194,12 +181,11 @@ const AppContent: React.FC = () => {
         if (user?.role === 'ADMIN') {
           return (
             <TenantsPage
-              onBackToPos={() => setCurrentTab('tenants')}
               onNavigate={setCurrentTab}
             />
           );
         }
-        return <PosPage onNavigate={setCurrentTab} />;
+        return <OrderPage onNavigate={setCurrentTab} />;
     }
   };
 
@@ -211,7 +197,6 @@ const AppContent: React.FC = () => {
         onSelectTab={(tab) => {
           setCurrentTab(tab);
         }}
-        onOpenSettings={() => setIsShiftModalOpen(true)}
         onLogout={logout}
       />
 
@@ -219,13 +204,6 @@ const AppContent: React.FC = () => {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {renderCurrentPage()}
       </div>
-
-      {/* Shift Switch Handover Modal */}
-      <ShiftModal
-        isOpen={isShiftModalOpen}
-        onClose={() => setIsShiftModalOpen(false)}
-        onLogout={logout}
-      />
 
       {/* Idle Timer Auto-logout Warning Modal */}
       <IdleTimerModal

@@ -20,7 +20,6 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { useCashiers, useCashierMutations } from '../hooks/useQueries.ts';
 
 interface UsersPageProps {
-  onBackToPos?: () => void;
   onNavigate?: (tab: any) => void;
 }
 export type CashiersPageProps = UsersPageProps;

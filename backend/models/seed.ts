@@ -117,6 +117,9 @@ export async function seedInitialData(): Promise<void> {
         code: 'T-WARUNG-01',
         ownerEmail: 'budi@kasirwarung.id',
         status: 'active',
+        taxEnabled: true,
+        taxRate: 11,
+        taxType: 'percentage',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -132,6 +135,9 @@ export async function seedInitialData(): Promise<void> {
         code: 'T-TOKO-02',
         ownerEmail: 'hendra@kelontong.id',
         status: 'active',
+        taxEnabled: true,
+        taxRate: 11,
+        taxType: 'percentage',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });

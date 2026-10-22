@@ -41,13 +41,12 @@ import {
 import { TenantSelect } from '../components/TenantSelect.tsx';
 
 interface OrderHistoryPageProps {
-  onBackToPos: () => void;
   onNavigate?: (tab: ActiveTab) => void;
 }
 
 type DateSelectionMode = 'range' | 'single';
 
-export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onBackToPos, onNavigate }) => {
+export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 

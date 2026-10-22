@@ -11,6 +11,7 @@ import {
   verifyTenant,
   getRecentEmails,
   getDeactivationRequests,
+  updateTenantSettings,
 } from '../controllers/tenantController.ts';
 import { authenticateToken, requireRole } from '../middleware/authMiddleware.ts';
 import { validateBody } from '../middleware/validateMiddleware.ts';
@@ -20,6 +21,7 @@ import {
   requestDeactivationSchema,
   reviewDeactivationSchema,
   requestReactivationSchema,
+  updateTenantSettingsSchema,
 } from '../models/schemas.ts';
 
 const router = Router();
@@ -34,6 +36,13 @@ router.get('/recent-emails', apiLimiter, getRecentEmails);
 
 // Tenant-scoped endpoints for current shop owner
 router.get('/current', authenticateToken, getCurrentTenant);
+router.put(
+  '/settings',
+  authenticateToken,
+  requireRole('SHOP_OWNER', 'pemilik', 'ADMIN', 'MANAGER'),
+  validateBody(updateTenantSettingsSchema),
+  updateTenantSettings
+);
 router.post(
   '/request-deactivation',
   authenticateToken,

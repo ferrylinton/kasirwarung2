@@ -76,9 +76,74 @@ export async function getCurrentTenant(req: AuthenticatedRequest, res: Response)
       code: tenant.code,
       ownerEmail: tenant.ownerEmail,
       status: tenant.status || 'active',
+      taxEnabled: tenant.taxEnabled !== undefined ? Boolean(tenant.taxEnabled) : true,
+      taxRate: typeof tenant.taxRate === 'number' ? tenant.taxRate : 11,
+      taxType: tenant.taxType || 'percentage',
       deactivationRequest: tenant.deactivationRequest || null,
       createdAt: tenant.createdAt,
       updatedAt: tenant.updatedAt,
+    },
+  });
+}
+
+/**
+ * PUT /api/tenants/settings
+ * Update tenant settings (tax / PPN enabled, nominal, type)
+ */
+export async function updateTenantSettings(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userTenantId = safeObjectId(req.user?.tenantId);
+  const targetTenantId =
+    (req.user?.role === 'ADMIN' && req.body.tenantId ? safeObjectId(req.body.tenantId) : null) ||
+    userTenantId ||
+    new ObjectId('6ace8019cb267df584bd0001');
+
+  const { taxEnabled, taxRate, taxType } = req.body;
+
+  const updateFields: Record<string, any> = {
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (taxEnabled !== undefined) {
+    updateFields.taxEnabled = Boolean(taxEnabled);
+  }
+
+  if (taxRate !== undefined) {
+    const numRate = Number(taxRate);
+    if (isNaN(numRate) || numRate < 0) {
+      res.status(400).json({ success: false, message: 'Nominal atau tarif pajak tidak valid' });
+      return;
+    }
+    updateFields.taxRate = numRate;
+  }
+
+  if (taxType !== undefined) {
+    if (!['percentage', 'fixed'].includes(taxType)) {
+      res.status(400).json({ success: false, message: 'Tipe pajak harus percentage atau fixed' });
+      return;
+    }
+    updateFields.taxType = taxType;
+  }
+
+  const tenantsCol = getCollection('tenants');
+  const result = await tenantsCol.updateOne({ _id: targetTenantId }, { $set: updateFields });
+
+  if (result.matchedCount === 0) {
+    res.status(404).json({ success: false, message: 'Data tenan tidak ditemukan' });
+    return;
+  }
+
+  const updatedTenant = await tenantsCol.findOne({ _id: targetTenantId });
+
+  res.json({
+    success: true,
+    message: 'Pengaturan PPN dan toko berhasil diperbarui',
+    data: {
+      id: String(updatedTenant?._id),
+      name: updatedTenant?.name,
+      taxEnabled: updatedTenant?.taxEnabled !== undefined ? Boolean(updatedTenant.taxEnabled) : true,
+      taxRate: typeof updatedTenant?.taxRate === 'number' ? updatedTenant.taxRate : 11,
+      taxType: updatedTenant?.taxType || 'percentage',
+      updatedAt: updatedTenant?.updatedAt,
     },
   });
 }
