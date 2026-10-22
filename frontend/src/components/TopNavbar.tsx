@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import {
   ShoppingCart,
@@ -49,6 +49,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 }) => {
   const { items, total, openMobileCart, toggleMobileSidebar } = useCart();
   const { user, logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const totalItemCount = items.reduce((sum, item) => sum + item.qty, 0);
 
   const getSectionTitle = () => {
@@ -62,7 +63,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
       case 'deactivation-requests':
         return 'Histori Penonaktifan Toko';
       case 'cashiers':
-        return 'Kelola Staf Kasir';
+        return 'Kelola Pengguna';
       case 'store-settings':
         return 'Pengaturan Toko';
       case 'profile':
@@ -159,104 +160,12 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               sideOffset={6}
               className="z-50 min-w-[210px] bg-white rounded-2xl shadow-xl border border-slate-200/80 p-1.5 animate-in fade-in-80 zoom-in-95"
             >
-              {/* Header Info Pengguna */}
-              <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                <p className="text-xs font-bold text-slate-800 truncate">
-                  {user?.name || 'Kasir Warung'}
-                </p>
-                <p className="text-[10px] text-slate-500 truncate mt-0.5">
-                  {user?.role === 'pemilik' ? 'Pemilik Toko' : 'Kasir'} • {user?.shift || 'Shift Aktif'}
-                </p>
-              </div>
               <DropdownMenu.Item
                 onSelect={() => onNavigate?.('profile')}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
               >
                 <UserIcon className="w-4 h-4 text-slate-400" />
                 <span>Profil</span>
-              </DropdownMenu.Item>
-
-              {/* Role-Specific Admin & Shop Owner Menus */}
-              {user?.role === 'ADMIN' && (
-                <>
-                  <DropdownMenu.Item
-                    onSelect={() => onNavigate?.('tenants')}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 bg-purple-50/50 rounded-xl hover:bg-purple-100 focus:bg-purple-100 cursor-pointer outline-none transition-colors"
-                  >
-                    <Building2 className="w-4 h-4 text-purple-600" />
-                    <span>Kelola Tenan Platform</span>
-                  </DropdownMenu.Item>
-
-                  <DropdownMenu.Item
-                    onSelect={() => onNavigate?.('admin-products')}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 rounded-xl hover:bg-purple-50 focus:bg-purple-50 cursor-pointer outline-none transition-colors"
-                  >
-                    <Package className="w-4 h-4 text-purple-600" />
-                    <span>Semua Produk Tenan</span>
-                  </DropdownMenu.Item>
-
-                  <DropdownMenu.Item
-                    onSelect={() => onNavigate?.('admin-categories')}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 rounded-xl hover:bg-purple-50 focus:bg-purple-50 cursor-pointer outline-none transition-colors"
-                  >
-                    <Tags className="w-4 h-4 text-purple-600" />
-                    <span>Semua Kategori Tenan</span>
-                  </DropdownMenu.Item>
-
-                  <DropdownMenu.Item
-                    onSelect={() => onNavigate?.('deactivation-requests')}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-purple-700 rounded-xl hover:bg-purple-50 focus:bg-purple-50 cursor-pointer outline-none transition-colors"
-                  >
-                    <ShieldAlert className="w-4 h-4 text-purple-600" />
-                    <span>Histori Penonaktifan</span>
-                  </DropdownMenu.Item>
-                </>
-              )}
-
-              {(user?.role === 'SHOP_OWNER' || user?.role === 'pemilik') && (
-                <>
-                  <DropdownMenu.Item
-                    onSelect={() => onNavigate?.('cashiers')}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
-                  >
-                    <Users className="w-4 h-4 text-slate-400" />
-                    <span>Kelola Kasir (SHOP_CASHIER)</span>
-                  </DropdownMenu.Item>
-
-                  <DropdownMenu.Item
-                    onSelect={() => onNavigate?.('categories')}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
-                  >
-                    <Tags className="w-4 h-4 text-slate-400" />
-                    <span>Kategori Produk</span>
-                  </DropdownMenu.Item>
-
-                  <DropdownMenu.Item
-                    onSelect={() => onNavigate?.('store-settings')}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
-                  >
-                    <Store className="w-4 h-4 text-slate-400" />
-                    <span>Pengaturan Toko</span>
-                  </DropdownMenu.Item>
-                </>
-              )}
-
-              {/* Histori Login: membuka halaman histori login */}
-              <DropdownMenu.Item
-                onSelect={() => onNavigate?.('login-history')}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
-              >
-                <History className="w-4 h-4 text-slate-400" />
-                <span>Histori Login</span>
-              </DropdownMenu.Item>
-
-              {/* Sesi Access Token Aktif */}
-              <DropdownMenu.Item
-                onSelect={() => onNavigate?.('active-tokens')}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
-              >
-                <ShieldCheck className="w-4 h-4 text-slate-400" />
-                <span>Sesi Token Aktif (Redis)</span>
               </DropdownMenu.Item>
 
               {/* Ubah password: membuka halaman ubah password */}
@@ -273,7 +182,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
               {/* Keluar */}
               <DropdownMenu.Item
-                onSelect={() => logout()}
+                onSelect={() => setShowLogoutConfirm(true)}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-red-600 rounded-xl hover:bg-red-50 focus:bg-red-50 cursor-pointer outline-none transition-colors"
               >
                 <LogOut className="w-4 h-4 text-red-500" />
@@ -282,9 +191,53 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
-
-        
       </div>
+
+      {/* Modal Konfirmasi Logout */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
+          <div
+            className="bg-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-200/80 p-6 animate-in zoom-in-95 duration-150 space-y-4 text-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-confirm-title"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto shadow-2xs">
+              <LogOut className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 id="logout-confirm-title" className="text-base md:text-lg font-extrabold text-slate-900 tracking-tight">
+                Konfirmasi Keluar
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Apakah Anda yakin ingin keluar dari akun <strong className="text-slate-800">{user?.name || 'Pengguna'}</strong>? Sesi aktif Anda akan diakhiri.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs md:text-sm font-semibold transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 active:scale-98 text-white text-xs md:text-sm font-bold shadow-md shadow-red-600/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Ya, Keluar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

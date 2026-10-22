@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, UserCheck, Shield, Clock, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 
@@ -14,6 +14,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   onLogout,
 }) => {
   const { user, switchCashier, idleTimeoutMinutes } = useAuth();
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   if (!isOpen) return null;
 
@@ -100,16 +101,45 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
             ⏱ Auto-logout inaktivitas: <strong>{idleTimeoutMinutes} menit</strong> (dikonfigurasi via .env)
           </div>
 
-          <button
-            onClick={() => {
-              onClose();
-              onLogout();
-            }}
-            className="w-full py-2.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs md:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Keluar dari Akun (Logout)</span>
-          </button>
+          {confirmLogout ? (
+            <div className="bg-red-50/80 border border-red-200/90 rounded-2xl p-4 text-center space-y-3 animate-in fade-in duration-150">
+              <p className="text-xs font-bold text-red-900">
+                Konfirmasi Keluar dari Akun?
+              </p>
+              <p className="text-[11px] text-red-700 leading-relaxed">
+                Sesi aktif kasir akan diakhiri dan dialihkan ke halaman login.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmLogout(false)}
+                  className="flex-1 py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmLogout(false);
+                    onClose();
+                    onLogout();
+                  }}
+                  className="flex-1 py-2 px-3 rounded-xl bg-red-600 hover:bg-red-700 active:scale-98 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Ya, Keluar</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmLogout(true)}
+              className="w-full py-2.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs md:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Keluar dari Akun (Logout)</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -8,7 +8,6 @@ import {
   Edit2,
   Trash2,
   Shield,
-  Clock,
   Mail,
   User,
   Lock,
@@ -20,42 +19,41 @@ import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCashiers, useCashierMutations } from '../hooks/useQueries.ts';
 
-interface CashiersPageProps {
+interface UsersPageProps {
   onBackToPos?: () => void;
   onNavigate?: (tab: any) => void;
 }
+export type CashiersPageProps = UsersPageProps;
 
-export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
+export const UsersPage: React.FC<UsersPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // TanStack Query for cashiers
+  // TanStack Query for users
   const {
-    data: cashiersData,
+    data: usersData,
     isLoading: loading,
-    refetch: fetchCashiers,
+    refetch: fetchUsers,
   } = useCashiers();
-  const cashiers = cashiersData?.data || [];
+  const users = usersData?.data || [];
 
-  // TanStack Mutations for cashiers
+  // TanStack Mutations for users
   const { createCashier, updateCashier, deleteCashier } = useCashierMutations();
 
   // Add / Edit Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingCashier, setEditingCashier] = useState<Cashier | null>(null);
+  const [editingUser, setEditingUser] = useState<Cashier | null>(null);
 
   // Form Fields for Add
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [shift, setShift] = useState('Shift Pagi (08:00 - 16:00)');
 
   // Form Fields for Edit
   const [editName, setEditName] = useState('');
-  const [editShift, setEditShift] = useState('');
   const [editStatus, setEditStatus] = useState<'active' | 'inactive'>('active');
   const [editPassword, setEditPassword] = useState('');
 
@@ -64,19 +62,17 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
     setUsername('');
     setEmail('');
     setPassword('');
-    setShift('Shift Pagi (08:00 - 16:00)');
     setIsAddModalOpen(true);
   };
 
-  const handleOpenEdit = (c: Cashier) => {
-    setEditingCashier(c);
-    setEditName(c.name);
-    setEditShift(c.shift || 'Shift Pagi (08:00 - 16:00)');
-    setEditStatus(c.status || 'active');
+  const handleOpenEdit = (u: Cashier) => {
+    setEditingUser(u);
+    setEditName(u.name);
+    setEditStatus(u.status || 'active');
     setEditPassword('');
   };
 
-  const handleCreateCashier = async (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
     setFeedback(null);
@@ -86,47 +82,45 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
         username,
         email,
         password,
-        shift,
       });
       if (res?.success) {
         setFeedback({ message: res.message, type: 'success' });
         setIsAddModalOpen(false);
       }
     } catch (err: any) {
-      setFeedback({ message: err.message || 'Gagal menambahkan kasir', type: 'error' });
+      setFeedback({ message: err.message || 'Gagal menambahkan pengguna', type: 'error' });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleUpdateCashier = async (e: React.FormEvent) => {
+  const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCashier) return;
+    if (!editingUser) return;
     setActionLoading(true);
     setFeedback(null);
     try {
       const updatePayload: any = {
         name: editName,
-        shift: editShift,
         status: editStatus,
       };
       if (editPassword && editPassword.trim().length >= 6) {
         updatePayload.password = editPassword.trim();
       }
 
-      const res: any = await updateCashier.mutateAsync({ id: editingCashier.id, data: updatePayload });
+      const res: any = await updateCashier.mutateAsync({ id: editingUser.id, data: updatePayload });
       if (res?.success) {
         setFeedback({ message: res.message, type: 'success' });
-        setEditingCashier(null);
+        setEditingUser(null);
       }
     } catch (err: any) {
-      setFeedback({ message: err.message || 'Gagal memperbarui kasir', type: 'error' });
+      setFeedback({ message: err.message || 'Gagal memperbarui pengguna', type: 'error' });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDeleteCashier = async (id: string) => {
+  const handleDeleteUser = async (id: string) => {
     setActionLoading(true);
     setFeedback(null);
     try {
@@ -135,18 +129,18 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
         setFeedback({ message: res.message, type: 'success' });
       }
     } catch (err: any) {
-      setFeedback({ message: err.message || 'Gagal menghapus kasir', type: 'error' });
+      setFeedback({ message: err.message || 'Gagal menghapus pengguna', type: 'error' });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const filteredCashiers = cashiers.filter((c) => {
+  const filteredUsers = users.filter((u) => {
     const q = search.toLowerCase();
     return (
-      c.name.toLowerCase().includes(q) ||
-      c.username.toLowerCase().includes(q) ||
-      c.email.toLowerCase().includes(q)
+      u.name.toLowerCase().includes(q) ||
+      u.username.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q)
     );
   });
 
@@ -180,15 +174,15 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
           </div>
         )}
 
-        {/* Cashier Table Container */}
+        {/* User Table Container */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-sm md:text-base font-bold text-slate-800">
-                Daftar Kasir Toko Anda
+                Daftar Pengguna Toko Anda
               </h2>
               <p className="text-xs text-slate-500">
-                Staf kasir hanya dapat mengakses kasir dan transaksi di toko ini.
+                Pengguna hanya dapat mengakses sistem dan transaksi di toko ini.
               </p>
             </div>
 
@@ -205,7 +199,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
               </div>
 
               <button
-                onClick={() => fetchCashiers()}
+                onClick={() => fetchUsers()}
                 disabled={loading}
                 title="Segarkan Data"
                 className="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-slate-700 transition-colors cursor-pointer shadow-2xs"
@@ -218,7 +212,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                 className="px-3.5 py-2 bg-[#EC6C1A] hover:bg-orange-600 text-white rounded-xl text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>Tambah Kasir</span>
+                <span>Tambah Pengguna</span>
               </button>
             </div>
           </div>
@@ -227,46 +221,39 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Kasir</th>
+                  <th className="py-3 px-4">Pengguna</th>
                   <th className="py-3 px-4">Username & Email</th>
-                  <th className="py-3 px-4">Jadwal Shift</th>
                   <th className="py-3 px-4 text-center">Status</th>
                   <th className="py-3 px-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs md:text-sm">
-                {filteredCashiers.length === 0 ? (
+                {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-10 text-center text-slate-400">
-                      {loading ? 'Memuat daftar kasir...' : 'Belum ada staf kasir terdaftar. Klik "+ Tambah Kasir" untuk menambahkan.'}
+                    <td colSpan={4} className="py-10 text-center text-slate-400">
+                      {loading ? 'Memuat daftar pengguna...' : 'Belum ada pengguna terdaftar. Klik "+ Tambah Pengguna" untuk menambahkan.'}
                     </td>
                   </tr>
                 ) : (
-                  filteredCashiers.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
+                  filteredUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-3.5 px-4 font-semibold text-slate-900">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-400 to-amber-300 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                            {c.name.charAt(0).toUpperCase()}
+                            {u.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-900">{c.name}</p>
-                            <span className="text-[10px] font-mono text-slate-400">ID: {c.id.substring(c.id.length - 8)}</span>
+                            <p className="font-bold text-slate-900">{u.name}</p>
+                            <span className="text-[10px] font-mono text-slate-400">ID: {u.id.substring(u.id.length - 8)}</span>
                           </div>
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-600">
-                        <p className="font-medium text-slate-800">@{c.username}</p>
-                        <p className="text-[11px] text-slate-400">{c.email}</p>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-700">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
-                          <Clock className="w-3.5 h-3.5 text-orange-500" />
-                          {c.shift || 'Shift Pagi'}
-                        </span>
+                        <p className="font-medium text-slate-800">@{u.username}</p>
+                        <p className="text-[11px] text-slate-400">{u.email}</p>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        {c.status === 'active' ? (
+                        {u.status === 'active' ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">
                             Aktif
                           </span>
@@ -279,8 +266,8 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => handleOpenEdit(c)}
-                            title="Ubah Kasir"
+                            onClick={() => handleOpenEdit(u)}
+                            title="Ubah Pengguna"
                             className="p-1.5 rounded-lg text-slate-600 hover:text-orange-600 hover:bg-orange-50 transition-colors cursor-pointer"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -290,7 +277,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                             <AlertDialog.Trigger asChild>
                               <button
                                 type="button"
-                                title="Hapus Kasir"
+                                title="Hapus Pengguna"
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -303,10 +290,10 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                                   <Trash2 className="w-5 h-5" />
                                 </div>
                                 <AlertDialog.Title className="text-base font-bold text-slate-900">
-                                  Hapus Kasir '{c.name}'?
+                                  Hapus Pengguna '{u.name}'?
                                 </AlertDialog.Title>
                                 <AlertDialog.Description className="text-xs md:text-sm text-slate-500 mt-1.5 leading-relaxed">
-                                  Akun kasir ini akan dihapus dari toko Anda dan tidak dapat lagi masuk ke sistem kasir.
+                                  Akun pengguna ini akan dihapus dari toko Anda dan tidak dapat lagi masuk ke sistem.
                                 </AlertDialog.Description>
                                 <div className="flex items-center justify-end gap-2.5 mt-5">
                                   <AlertDialog.Cancel asChild>
@@ -320,7 +307,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                                   <AlertDialog.Action asChild>
                                     <button
                                       type="button"
-                                      onClick={() => handleDeleteCashier(c.id)}
+                                      onClick={() => handleDeleteUser(u.id)}
                                       className="px-4 py-2 text-xs md:text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-xs"
                                     >
                                       Ya, Hapus
@@ -341,7 +328,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
         </div>
       </main>
 
-      {/* Modal: Tambah Kasir Baru */}
+      {/* Modal: Tambah Pengguna Baru */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 p-6 space-y-4 animate-in fade-in zoom-in-95">
@@ -350,7 +337,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                 <span className="p-2 rounded-xl bg-orange-100 text-orange-600">
                   <UserPlus className="w-4.5 h-4.5" />
                 </span>
-                <h3 className="font-bold text-slate-900 text-base">Tambah Kasir Baru</h3>
+                <h3 className="font-bold text-slate-900 text-base">Tambah Pengguna Baru</h3>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
@@ -360,10 +347,10 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateCashier} className="space-y-3.5">
+            <form onSubmit={handleCreateUser} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Nama Lengkap Kasir
+                  Nama Lengkap Pengguna
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -380,7 +367,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Username Kasir
+                  Username Pengguna
                 </label>
                 <div className="relative">
                   <span className="text-slate-400 font-mono text-xs absolute left-3 top-2.5">@</span>
@@ -389,7 +376,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="siti_kasir"
+                    placeholder="siti_user"
                     className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-orange-500"
                   />
                 </div>
@@ -397,7 +384,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Email Kasir
+                  Email Pengguna
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -429,21 +416,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Jadwal Shift
-                </label>
-                <select
-                  value={shift}
-                  onChange={(e) => setShift(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-orange-500 bg-white"
-                >
-                  <option value="Shift Pagi (08:00 - 16:00)">Shift Pagi (08:00 - 16:00)</option>
-                  <option value="Shift Sore (16:00 - 22:00)">Shift Sore (16:00 - 22:00)</option>
-                  <option value="Shift Malam (22:00 - 06:00)">Shift Malam (22:00 - 06:00)</option>
-                  <option value="Shift Fleksibel / Penuh">Shift Fleksibel / Penuh</option>
-                </select>
-              </div>
+
 
               <div className="flex items-center justify-end gap-2.5 pt-3">
                 <button
@@ -458,7 +431,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                   disabled={actionLoading}
                   className="px-4 py-2 text-xs md:text-sm font-bold bg-[#EC6C1A] hover:bg-orange-600 text-white rounded-xl shadow-xs cursor-pointer"
                 >
-                  {actionLoading ? 'Menyimpan...' : 'Simpan Kasir'}
+                  {actionLoading ? 'Menyimpan...' : 'Simpan Pengguna'}
                 </button>
               </div>
             </form>
@@ -466,8 +439,8 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {/* Modal: Ubah Data Kasir */}
-      {editingCashier && (
+      {/* Modal: Ubah Data Pengguna */}
+      {editingUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 p-6 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -475,20 +448,20 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                 <span className="p-2 rounded-xl bg-orange-100 text-orange-600">
                   <Edit2 className="w-4.5 h-4.5" />
                 </span>
-                <h3 className="font-bold text-slate-900 text-base">Ubah Data Kasir</h3>
+                <h3 className="font-bold text-slate-900 text-base">Ubah Data Pengguna</h3>
               </div>
               <button
-                onClick={() => setEditingCashier(null)}
+                onClick={() => setEditingUser(null)}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleUpdateCashier} className="space-y-3.5">
+            <form onSubmit={handleUpdateUser} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Nama Kasir
+                  Nama Pengguna
                 </label>
                 <input
                   type="text"
@@ -499,21 +472,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Shift Operasional
-                </label>
-                <select
-                  value={editShift}
-                  onChange={(e) => setEditShift(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-orange-500 bg-white"
-                >
-                  <option value="Shift Pagi (08:00 - 16:00)">Shift Pagi (08:00 - 16:00)</option>
-                  <option value="Shift Sore (16:00 - 22:00)">Shift Sore (16:00 - 22:00)</option>
-                  <option value="Shift Malam (22:00 - 06:00)">Shift Malam (22:00 - 06:00)</option>
-                  <option value="Shift Fleksibel / Penuh">Shift Fleksibel / Penuh</option>
-                </select>
-              </div>
+
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -537,7 +496,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
                   type="password"
                   value={editPassword}
                   onChange={(e) => setEditPassword(e.target.value)}
-                  placeholder="Isi jika ingin ubah kata sandi kasir"
+                  placeholder="Isi jika ingin ubah kata sandi pengguna"
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-orange-500"
                 />
               </div>
@@ -545,7 +504,7 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
               <div className="flex items-center justify-end gap-2.5 pt-3">
                 <button
                   type="button"
-                  onClick={() => setEditingCashier(null)}
+                  onClick={() => setEditingUser(null)}
                   className="px-4 py-2 text-xs md:text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Batal
@@ -566,4 +525,5 @@ export const CashiersPage: React.FC<CashiersPageProps> = ({ onNavigate }) => {
   );
 };
 
-export default CashiersPage;
+export const CashiersPage = UsersPage;
+export default UsersPage;

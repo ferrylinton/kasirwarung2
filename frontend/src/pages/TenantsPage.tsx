@@ -45,7 +45,7 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab
             onClick={() => setActiveSubTab('tenants')}
             className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
               activeSubTab === 'tenants'
-                ? 'bg-purple-600 text-white shadow-xs'
+                ? 'bg-[#EC6C1A] text-white shadow-xs'
                 : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'
             }`}
           >
@@ -57,7 +57,7 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab
             onClick={() => setActiveSubTab('deactivation-requests')}
             className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
               activeSubTab === 'deactivation-requests'
-                ? 'bg-purple-600 text-white shadow-xs'
+                ? 'bg-[#EC6C1A] text-white shadow-xs'
                 : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'
             }`}
           >

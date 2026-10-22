@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   KeyRound,
-  ArrowLeft,
   Lock,
   CheckCircle2,
   AlertCircle,
@@ -11,11 +10,11 @@ import { api } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 
 interface ChangePasswordPageProps {
-  onBackToPos: () => void;
+  onBackToPos?: () => void;
   onNavigate?: (tab: ActiveTab) => void;
 }
 
-export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onBackToPos, onNavigate }) => {
+export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onNavigate }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -42,7 +41,7 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onBackTo
     try {
       const res = await api.changePassword(currentPassword, newPassword);
       if (res.success) {
-        setSuccess('Password kasir berhasil diperbarui! Anda dapat menggunakannya pada sesi berikutnya.');
+        setSuccess('Password pengguna berhasil diperbarui! Anda dapat menggunakannya pada sesi berikutnya.');
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
@@ -59,30 +58,7 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onBackTo
       <TopNavbar currentTab="change-password" onNavigate={onNavigate} />
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto w-full space-y-6">
-        {/* Navigation Breadcrumb / Back button */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={onBackToPos}
-            className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-slate-700 hover:text-orange-600 bg-white hover:bg-orange-50 px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs transition-all cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali ke Kasir POS</span>
-          </button>
 
-          <span className="text-xs text-slate-400 font-medium hidden sm:inline">
-            Kasir Warung · Keamanan Akun
-          </span>
-        </div>
-
-        {/* Title */}
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Ubah Password Kasir
-          </h1>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">
-            Perbarui kata sandi akun kasir Anda secara berkala demi keamanan transaksi warung.
-          </p>
-        </div>
 
         {/* Form Card */}
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 md:p-8">
@@ -158,7 +134,7 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onBackTo
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-start gap-2.5 text-[11px] text-slate-500">
               <ShieldAlert className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
               <span>
-                Gunakan kombinasi minimal 6 karakter. Pastikan password mudah diingat oleh kasir yang bertugas namun sulit ditebak pihak luar.
+                Gunakan kombinasi minimal 6 karakter. Pastikan password mudah diingat oleh pengguna yang bertugas namun sulit ditebak pihak luar.
               </span>
             </div>
 

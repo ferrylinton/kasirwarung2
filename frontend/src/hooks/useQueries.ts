@@ -123,7 +123,7 @@ export function useCurrentTenant(options?: { enabled?: boolean }) {
   });
 }
 
-// 8. Cashiers Query (used by CashiersPage)
+// 8. Cashiers / Users Query (used by UsersPage)
 export function useCashiers(options?: { enabled?: boolean }) {
   return useQuery<{ success: boolean; data: Cashier[] }>({
     queryKey: queryKeys.cashiers(),

@@ -61,7 +61,7 @@ export interface Cashier {
   username: string;
   email: string;
   role: string;
-  shift: string;
+  shift?: string;
   status: 'active' | 'inactive';
   createdAt?: string;
 }
@@ -444,7 +444,7 @@ export const api = {
     username: string;
     email: string;
     password: string;
-    shift: string;
+    shift?: string;
   }) =>
     apiRequest('/api/cashiers', {
       method: 'POST',

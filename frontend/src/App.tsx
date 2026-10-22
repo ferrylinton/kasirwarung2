@@ -21,7 +21,7 @@ import AdminProductsPage from './pages/AdminProductsPage.tsx';
 import AdminCategoriesPage from './pages/AdminCategoriesPage.tsx';
 import OrderHistoryPage from './pages/OrderHistoryPage.tsx';
 import TenantsPage from './pages/TenantsPage.tsx';
-import CashiersPage from './pages/CashiersPage.tsx';
+import UsersPage from './pages/UsersPage.tsx';
 import StoreSettingsPage from './pages/StoreSettingsPage.tsx';
 import AdminDeactivationRequestsPage from './pages/AdminDeactivationRequestsPage.tsx';
 
@@ -100,7 +100,7 @@ const AppContent: React.FC = () => {
         );
       case 'cashiers':
         return (
-          <CashiersPage
+          <UsersPage
             onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
@@ -164,8 +164,6 @@ const AppContent: React.FC = () => {
         return (
           <ProfilePage
             onBackToPos={() => setCurrentTab(defaultHomeTab)}
-            onNavigateToChangePassword={() => setCurrentTab('change-password')}
-            onNavigateToLoginHistory={() => setCurrentTab('login-history')}
             onOpenSwitchShift={() => setIsShiftModalOpen(true)}
             onNavigate={setCurrentTab}
           />
@@ -187,7 +185,6 @@ const AppContent: React.FC = () => {
       case 'change-password':
         return (
           <ChangePasswordPage
-            onBackToPos={() => setCurrentTab(defaultHomeTab)}
             onNavigate={setCurrentTab}
           />
         );
