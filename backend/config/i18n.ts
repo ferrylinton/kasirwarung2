@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import middleware from 'i18next-http-middleware';
+import { handle, LanguageDetector } from 'i18next-http-middleware';
 
 export const defaultLanguage = 'id';
 export const supportedLanguages = ['id', 'en'] as const;
@@ -117,7 +117,7 @@ export const backendResources = {
 
 // Initialize backend i18next instance
 i18next
-  .use(middleware.LanguageDetector)
+  .use(LanguageDetector)
   .init({
     fallbackLng: defaultLanguage,
     supportedLngs: supportedLanguages,
@@ -136,4 +136,4 @@ i18next
   });
 
 export const backendI18n = i18next;
-export const i18nMiddleware = middleware.handle(i18next);
+export const i18nMiddleware = handle(i18next);

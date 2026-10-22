@@ -26,7 +26,7 @@ interface StoreSettingsPageProps {
 }
 
 export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -220,7 +220,7 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
             <span>{t('settings.languageActiveLabel', 'Bahasa Saat Ini')}:</span>
             <span className="font-bold text-slate-800">
-              {document.documentElement.lang === 'en' ? 'English (US)' : 'Bahasa Indonesia'}
+              {i18n.language?.startsWith('en') ? 'English (US)' : 'Bahasa Indonesia'}
             </span>
           </div>
         </div>

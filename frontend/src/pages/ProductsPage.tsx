@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Package,
   Plus,
@@ -31,6 +32,7 @@ const CATEGORIES = [
 ];
 
 export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
 
@@ -143,7 +145,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
             <button
               onClick={() => fetchProducts()}
               disabled={loading}
-              title="Segarkan Data"
+              title={t('common.refresh', 'Segarkan Data')}
               className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
@@ -155,7 +157,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#EC6C1A] hover:bg-orange-600 active:scale-95 text-white rounded-xl text-xs md:text-sm font-bold shadow-xs transition-all cursor-pointer self-start sm:self-auto"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span>Tambah Produk Baru</span>
+                <span>{t('products.addProduct', 'Tambah Produk Baru')}</span>
               </button>
             ) : (
               <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold">
@@ -182,10 +184,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
               <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-orange-600" />
                 <h3 className="font-bold text-slate-900 text-sm md:text-base">
-                  Daftar Barang Dagangan ({totalItems})
+                  {t('products.title', 'Daftar Barang Dagangan')} ({totalItems})
                 </h3>
               </div>
-              <span className="text-xs text-slate-400 font-medium hidden sm:inline">Inventaris Kasir Warung</span>
+              <span className="text-xs text-slate-400 font-medium hidden sm:inline">{t('common.appTitle', 'Kasir Warung POS')}</span>
             </div>
 
             {/* Mobile View: Responsive Product Cards (< md) */}
@@ -375,10 +377,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={safeCurrentPage === 1}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium cursor-pointer"
-                    aria-label="Halaman Sebelumnya"
+                    aria-label={t('common.paginationPrevious', 'Halaman Sebelumnya')}
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    <span className="hidden sm:inline">Sebelumnya</span>
+                    <span className="hidden sm:inline">{t('common.paginationPrevious', 'Sebelumnya')}</span>
                   </button>
 
                   {/* Page Number Buttons */}
@@ -418,9 +420,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={safeCurrentPage === totalPages}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium cursor-pointer"
-                    aria-label="Halaman Selanjutnya"
+                    aria-label={t('common.paginationNext', 'Halaman Selanjutnya')}
                   >
-                    <span className="hidden sm:inline">Selanjutnya</span>
+                    <span className="hidden sm:inline">{t('common.paginationNext', 'Selanjutnya')}</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>

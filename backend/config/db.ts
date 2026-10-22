@@ -143,6 +143,10 @@ class FallbackCollection<T extends Record<string, any>> {
         });
         return chain;
       },
+      skip: (n: number) => {
+        results = results.slice(n);
+        return chain;
+      },
       limit: (n: number) => {
         results = results.slice(0, n);
         return chain;

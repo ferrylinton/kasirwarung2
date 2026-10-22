@@ -12,6 +12,7 @@ import reportRoutes from './routes/reportRoutes.ts';
 import tenantRoutes from './routes/tenantRoutes.ts';
 import cashierRoutes from './routes/cashierRoutes.ts';
 import categoryRoutes from './routes/categoryRoutes.ts';
+import activityLogRoutes from './routes/activityLogRoutes.ts';
 import { errorHandler } from './middleware/errorMiddleware.ts';
 import { initMidnightCleanupScheduler } from './services/cleanupScheduler.ts';
 import { i18nMiddleware } from './config/i18n.ts';
@@ -47,6 +48,7 @@ export async function createApp(): Promise<Express> {
   app.use('/api/products', productRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/reports', reportRoutes);
+  app.use('/api/activity-logs', activityLogRoutes);
 
   app.use(errorHandler);
 

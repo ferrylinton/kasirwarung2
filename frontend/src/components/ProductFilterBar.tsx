@@ -1,5 +1,6 @@
 import React from 'react';
 import * as Select from '@radix-ui/react-select';
+import { useTranslation } from 'react-i18next';
 import { Search, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
 import { Category } from '../services/api.ts';
 
@@ -28,9 +29,13 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
   selectedCategory,
   onCategoryChange,
   categories = [],
-  placeholder = 'Cari berdasarkan nama produk atau SKU...',
+  placeholder,
   className = '',
 }) => {
+  const { t } = useTranslation();
+  const searchPlaceholder = placeholder || t('pos.searchPlaceholder', 'Cari berdasarkan nama produk atau SKU...');
+  const allProductsLabel = t('pos.allProducts', 'Semua Produk');
+
   return (
     <div
       className={`bg-white p-3.5 md:p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 ${className}`}
@@ -42,7 +47,7 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={searchPlaceholder}
           className="w-full pl-10 pr-9 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-slate-50/50 text-slate-900 placeholder-slate-400 transition-all"
         />
         {searchQuery && (
@@ -61,10 +66,10 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
       <div className="flex items-center gap-2">
         <Select.Root value={selectedCategory} onValueChange={(val) => onCategoryChange(val)}>
           <Select.Trigger
-            aria-label="Filter Kategori"
+            aria-label={t('common.filterCategory', 'Filter Kategori')}
             className="inline-flex items-center justify-between gap-2 px-3.5 py-2 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer w-full md:w-auto min-w-[140px] md:min-w-[170px] transition-all"
           >
-            <Select.Value placeholder="Semua Produk" />
+            <Select.Value placeholder={allProductsLabel} />
             <Select.Icon className="text-slate-400">
               <ChevronDown className="w-4 h-4" />
             </Select.Icon>
@@ -84,7 +89,7 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
                   value="Semua Produk"
                   className="relative flex items-center justify-between px-3 py-2 text-xs md:text-sm rounded-lg text-slate-700 hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 focus:outline-none cursor-pointer select-none font-medium data-[state=checked]:font-bold data-[state=checked]:text-orange-600 data-[state=checked]:bg-orange-50/70"
                 >
-                  <Select.ItemText>Semua Produk</Select.ItemText>
+                  <Select.ItemText>{allProductsLabel}</Select.ItemText>
                   <Select.ItemIndicator className="text-orange-600 ml-2">
                     <Check className="w-4 h-4" />
                   </Select.ItemIndicator>

@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
+import { recordActivity } from '../services/activityLogService.ts';
 
 export async function getCategories(req: AuthenticatedRequest, res: Response): Promise<void> {
   const { tenantId: queryTenantId } = req.query;
@@ -136,6 +137,15 @@ export async function createCategory(req: AuthenticatedRequest, res: Response): 
   };
 
   await categoriesCol.insertOne(newCategory);
+
+  await recordActivity(req, {
+    action: 'CREATE',
+    entity: 'KATEGORI',
+    entityId: newId,
+    entityName: cleanName,
+    details: `Menambahkan kategori baru "${cleanName}" (${icon || '📦'})`,
+    newData: newCategory,
+  });
 
   res.status(201).json({
     success: true,

@@ -248,9 +248,12 @@ export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response
     emailStatus = await sendReceiptEmail(customerEmail, invoiceNo, total, items);
   }
 
+  const savedMsg = (req as any).t ? (req as any).t('order.saved', 'Pesanan berhasil disimpan ke Pesanan Sementara') : 'Pesanan berhasil disimpan ke Pesanan Sementara';
+  const paidMsg = (req as any).t ? (req as any).t('order.paid', 'Pembayaran berhasil diproses') : 'Pembayaran berhasil diproses';
+
   res.status(201).json({
     success: true,
-    message: status === 'saved' ? 'Pesanan berhasil disimpan ke Pesanan Sementara' : 'Pembayaran berhasil diproses',
+    message: status === 'saved' ? savedMsg : paidMsg,
     data: {
       id: orderId,
       ...orderPayload,

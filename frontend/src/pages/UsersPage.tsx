@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   UserPlus,
   Search,
@@ -25,6 +26,7 @@ interface UsersPageProps {
 export type CashiersPageProps = UsersPageProps;
 
 export const UsersPage: React.FC<UsersPageProps> = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -178,10 +180,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onNavigate }) => {
           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-sm md:text-base font-bold text-slate-800">
-                Daftar Pengguna Toko Anda
+                {t('cashiers.title', 'Daftar Pengguna Toko Anda')}
               </h2>
               <p className="text-xs text-slate-500">
-                Pengguna hanya dapat mengakses sistem dan transaksi di toko ini.
+                {t('cashiers.subtitle', 'Pengguna hanya dapat mengakses sistem dan transaksi di toko ini.')}
               </p>
             </div>
 
@@ -200,7 +202,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onNavigate }) => {
               <button
                 onClick={() => fetchUsers()}
                 disabled={loading}
-                title="Segarkan Data"
+                title={t('common.refresh', 'Segarkan Data')}
                 className="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-slate-700 transition-colors cursor-pointer shadow-2xs"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
@@ -211,7 +213,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onNavigate }) => {
                 className="px-3.5 py-2 bg-[#EC6C1A] hover:bg-orange-600 text-white rounded-xl text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>Tambah Pengguna</span>
+                <span>{t('cashiers.addCashier', 'Tambah Pengguna')}</span>
               </button>
             </div>
           </div>

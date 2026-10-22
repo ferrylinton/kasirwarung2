@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PauseCircle, Plus, FileText, MoreHorizontal, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { Order } from '../services/api.ts';
@@ -8,6 +9,7 @@ interface SavedOrdersBarProps {
 }
 
 export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }) => {
+  const { t } = useTranslation();
   const {
     savedOrders,
     savedOrdersCount,
@@ -33,13 +35,13 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
       {/* Section Header */}
       <div className="flex items-center justify-between text-xs md:text-sm font-semibold tracking-wide text-slate-600 my-3">
         <div className="flex items-center gap-1.5 text-slate-700">
-          <span>Pesanan Sementara</span>
+          <span>{t('pos.savedOrders', 'Pesanan Sementara')}</span>
         </div>
         <button
           onClick={onOpenAllSaved}
           className="text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-0.5 lowercase first-letter:uppercase text-xs cursor-pointer"
         >
-          <span>{savedOrdersCount} Disimpan</span>
+          <span>{savedOrdersCount} {t('pos.savedBadge', 'Disimpan')}</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -56,11 +58,11 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
             <div className="flex items-center justify-between mb-2">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
                 <span className="text-[10px]">⏸</span>
-                <span>Belum Dibayar</span>
+                <span>{t('pos.unpaidBadge', 'Belum Dibayar')}</span>
               </span>
               <button
                 onClick={() => deleteSavedOrder(order.invoiceNo)}
-                title="Hapus / Batalkan pesanan tersimpan"
+                title={t('pos.deleteSavedOrder', 'Hapus / Batalkan pesanan tersimpan')}
                 className="text-slate-400 hover:text-slate-600 p-0.5 rounded-sm hover:bg-slate-100"
               >
                 <MoreHorizontal className="w-4 h-4" />
@@ -81,7 +83,7 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
             {/* Summary items */}
             <p className="text-xs text-slate-500 truncate mb-3">
               {order.summaryLabel ||
-                `${order.items?.length || 0} Item: ${order.items
+                `${order.items?.length || 0} ${t('common.items', 'Item')}: ${order.items
                   ?.map((i) => i.name)
                   .join(', ')}`}
             </p>
@@ -95,7 +97,7 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
                 onClick={() => resumeOrder(order)}
                 className="text-xs font-semibold text-orange-600 hover:text-orange-700 flex items-center gap-0.5 hover:underline cursor-pointer"
               >
-                <span>Lanjutkan</span>
+                <span>{t('pos.resumeSavedOrder', 'Lanjutkan')}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -108,7 +110,7 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
             <div className="flex items-center justify-between mb-2">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
                 <span>⏸</span>
-                <span>Belum Dibayar</span>
+                <span>{t('pos.unpaidBadge', 'Belum Dibayar')}</span>
               </span>
               <span className="text-slate-400 text-xs">...</span>
             </div>
@@ -127,7 +129,7 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
                 Rp85.500
               </span>
               <span className="text-xs font-semibold text-orange-600 cursor-pointer">
-                Lanjutkan &gt;
+                {t('pos.resumeSavedOrder', 'Lanjutkan')} &gt;
               </span>
             </div>
           </div>
@@ -136,14 +138,14 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
         {/* Create New Transaction Card (Dashed border) */}
         <button
           onClick={startNewTransaction}
-          title="Mulai transaksi baru (Shift + N)"
+          title={`${t('pos.newTransactionCTA', 'Buka Transaksi Baru')} (Shift + N)`}
           className="w-52 md:w-60 h-[126px] bg-white hover:bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-300 p-3.5 flex flex-col items-center justify-center gap-1.5 text-center shrink-0 cursor-pointer transition-colors group"
         >
           <div className="w-7 h-7 rounded-full bg-slate-100 group-hover:bg-orange-50 text-slate-500 group-hover:text-orange-600 flex items-center justify-center transition-colors">
             <Plus className="w-4 h-4 stroke-[2.5]" />
           </div>
           <span className="text-xs md:text-sm font-semibold text-slate-700 group-hover:text-slate-900">
-            Buka Transaksi Baru
+            {t('pos.newTransactionCTA', 'Buka Transaksi Baru')}
           </span>
           <span className="text-[11px] text-slate-400 font-medium">
             (Shift + N)

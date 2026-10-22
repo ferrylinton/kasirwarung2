@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
+import { recordActivity } from '../services/activityLogService.ts';
 
 export async function getProducts(req: AuthenticatedRequest, res: Response): Promise<void> {
   const { search, category, tenantId: queryTenantId } = req.query;
@@ -90,18 +91,29 @@ export async function createProduct(req: AuthenticatedRequest, res: Response): P
     createdAt: new Date().toISOString(),
   });
 
+  await recordActivity(req, {
+    action: 'CREATE',
+    entity: 'PRODUK',
+    entityId: newProductId,
+    entityName: req.body.name || 'Produk Baru',
+    details: `Menambahkan produk baru "${req.body.name}" (SKU: ${req.body.sku || '-'}, Kategori: ${req.body.category || '-'}, Stok: ${req.body.stock}, Harga: Rp${Number(req.body.price || 0).toLocaleString('id-ID')})`,
+    newData: req.body,
+  });
+
+  const createdMsg = (req as any).t ? (req as any).t('product.created', 'Produk berhasil ditambahkan ke inventaris toko') : 'Produk berhasil ditambahkan ke inventaris toko';
   res.status(201).json({
     success: true,
-    message: 'Produk berhasil ditambahkan ke inventaris toko',
+    message: createdMsg,
     data: { id: String(newProductId), ...req.body, tenantId: String(tenantId) },
   });
 }
 
 export async function updateProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
   if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+    const msg = (req as any).t ? (req as any).t('common.forbidden', 'Hanya role SHOP_OWNER yang bisa mengubah data produk.') : 'Hanya role SHOP_OWNER yang bisa mengubah data produk.';
     res.status(403).json({
       success: false,
-      message: 'Hanya role SHOP_OWNER yang bisa mengubah data produk.',
+      message: msg,
     });
     return;
   }
@@ -109,7 +121,8 @@ export async function updateProduct(req: AuthenticatedRequest, res: Response): P
   const { id } = req.params;
   const prodId = safeObjectId(id);
   if (!prodId) {
-    res.status(400).json({ success: false, message: 'ID produk tidak valid' });
+    const msg = (req as any).t ? (req as any).t('common.invalidInput', 'ID produk tidak valid') : 'ID produk tidak valid';
+    res.status(400).json({ success: false, message: msg });
     return;
   }
   const productsCol = getCollection('products');
@@ -122,7 +135,8 @@ export async function updateProduct(req: AuthenticatedRequest, res: Response): P
 
   const existing = await productsCol.findOne(filter);
   if (!existing) {
-    res.status(404).json({ success: false, message: 'Produk tidak ditemukan di toko Anda' });
+    const msg = (req as any).t ? (req as any).t('common.notFound', 'Produk tidak ditemukan di toko Anda') : 'Produk tidak ditemukan di toko Anda';
+    res.status(404).json({ success: false, message: msg });
     return;
   }
 
@@ -131,18 +145,31 @@ export async function updateProduct(req: AuthenticatedRequest, res: Response): P
   });
 
   const updated = await productsCol.findOne(filter);
+
+  await recordActivity(req, {
+    action: 'UPDATE',
+    entity: 'PRODUK',
+    entityId: existing._id,
+    entityName: req.body.name || existing.name,
+    details: `Memperbarui produk "${existing.name}" (Stok: ${req.body.stock !== undefined ? req.body.stock : existing.stock}, Harga: Rp${Number(req.body.price !== undefined ? req.body.price : existing.price).toLocaleString('id-ID')})`,
+    previousData: existing,
+    newData: req.body,
+  });
+
+  const updatedMsg = (req as any).t ? (req as any).t('product.updated', 'Data produk berhasil diperbarui') : 'Data produk berhasil diperbarui';
   res.json({
     success: true,
-    message: 'Data produk berhasil diperbarui',
+    message: updatedMsg,
     data: updated,
   });
 }
 
 export async function deleteProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
   if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+    const msg = (req as any).t ? (req as any).t('common.forbidden', 'Hanya role SHOP_OWNER yang bisa menghapus data produk.') : 'Hanya role SHOP_OWNER yang bisa menghapus data produk.';
     res.status(403).json({
       success: false,
-      message: 'Hanya role SHOP_OWNER yang bisa menghapus data produk.',
+      message: msg,
     });
     return;
   }
@@ -150,7 +177,8 @@ export async function deleteProduct(req: AuthenticatedRequest, res: Response): P
   const { id } = req.params;
   const prodId = safeObjectId(id);
   if (!prodId) {
-    res.status(400).json({ success: false, message: 'ID produk tidak valid' });
+    const msg = (req as any).t ? (req as any).t('common.invalidInput', 'ID produk tidak valid') : 'ID produk tidak valid';
+    res.status(400).json({ success: false, message: msg });
     return;
   }
   const productsCol = getCollection('products');
@@ -163,10 +191,22 @@ export async function deleteProduct(req: AuthenticatedRequest, res: Response): P
 
   const existing = await productsCol.findOne(filter);
   if (!existing) {
-    res.status(404).json({ success: false, message: 'Produk tidak ditemukan di toko Anda' });
+    const msg = (req as any).t ? (req as any).t('common.notFound', 'Produk tidak ditemukan di toko Anda') : 'Produk tidak ditemukan di toko Anda';
+    res.status(404).json({ success: false, message: msg });
     return;
   }
 
   await productsCol.deleteOne(filter);
-  res.json({ success: true, message: 'Produk berhasil dihapus' });
+
+  await recordActivity(req, {
+    action: 'DELETE',
+    entity: 'PRODUK',
+    entityId: existing._id,
+    entityName: existing.name,
+    details: `Menghapus produk "${existing.name}" (SKU: ${existing.sku || '-'}, Kategori: ${existing.category || '-'})`,
+    previousData: existing,
+  });
+
+  const deletedMsg = (req as any).t ? (req as any).t('product.deleted', 'Produk berhasil dihapus') : 'Produk berhasil dihapus';
+  res.json({ success: true, message: deletedMsg });
 }

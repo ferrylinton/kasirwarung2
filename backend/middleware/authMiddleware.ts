@@ -18,14 +18,16 @@ export async function authenticateToken(
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
   if (!token) {
-    res.status(401).json({ success: false, message: 'Akses ditolak: Token autentikasi tidak ditemukan' });
+    const msg = (req as any).t ? (req as any).t('common.unauthorized', 'Akses ditolak: Token autentikasi tidak ditemukan') : 'Akses ditolak: Token autentikasi tidak ditemukan';
+    res.status(401).json({ success: false, message: msg });
     return;
   }
 
   // Redis Token Blacklist check
   const blacklisted = await isTokenBlacklisted(token);
   if (blacklisted) {
-    res.status(401).json({ success: false, message: 'Sesi kedaluwarsa atau token telah diblacklist. Silakan masuk kembali.' });
+    const msg = (req as any).t ? (req as any).t('auth.tokenBlacklisted', 'Sesi kedaluwarsa atau token telah diblacklist. Silakan masuk kembali.') : 'Sesi kedaluwarsa atau token telah diblacklist. Silakan masuk kembali.';
+    res.status(401).json({ success: false, message: msg });
     return;
   }
 
@@ -43,9 +45,10 @@ export async function authenticateToken(
         const tenantsCol = getCollection('tenants');
         const tenant = await tenantsCol.findOne({ _id: tId });
         if (!tenant || tenant.status === 'inactive') {
+          const msg = (req as any).t ? (req as any).t('auth.tenantInactive', 'Akun toko/tenan Anda sedang dinonaktifkan. Silakan hubungi admin atau ajukan pengaktifan kembali.') : 'Akun toko/tenan Anda sedang dinonaktifkan. Silakan hubungi admin atau ajukan pengaktifan kembali.';
           res.status(403).json({
             success: false,
-            message: 'Akun toko/tenan Anda sedang dinonaktifkan. Silakan hubungi admin atau ajukan pengaktifan kembali.',
+            message: msg,
             tenantInactive: true,
           });
           return;
@@ -58,7 +61,8 @@ export async function authenticateToken(
     req.tenantId = payload.tenantId;
     next();
   } catch (err: any) {
-    res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+    const msg = (req as any).t ? (req as any).t('auth.tokenExpired', 'Token tidak valid atau telah kedaluwarsa') : 'Token tidak valid atau telah kedaluwarsa';
+    res.status(401).json({ success: false, message: msg });
   }
 }
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DayPicker } from 'react-day-picker';
 import type { DateRange } from 'react-day-picker';
 import 'react-day-picker/style.css';
@@ -10,7 +11,7 @@ import {
   isWithinInterval,
   isSameDay,
 } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
+import { enUS, id as localeId } from 'date-fns/locale';
 import {
   Receipt,
   Search,
@@ -47,6 +48,8 @@ interface OrderHistoryPageProps {
 type DateSelectionMode = 'range' | 'single';
 
 export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }) => {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language?.startsWith('en') ? enUS : localeId;
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -183,19 +186,19 @@ export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }
   const activeDateLabel = useMemo(() => {
     if (dateMode === 'range' && selectedRange?.from) {
       if (selectedRange.to && !isSameDay(selectedRange.from, selectedRange.to)) {
-        return `${format(selectedRange.from, 'd MMM yyyy', { locale: localeId })} - ${format(
+        return `${format(selectedRange.from, 'd MMM yyyy', { locale: dateLocale })} - ${format(
           selectedRange.to,
           'd MMM yyyy',
-          { locale: localeId }
+          { locale: dateLocale }
         )}`;
       }
-      return format(selectedRange.from, 'd MMMM yyyy', { locale: localeId });
+      return format(selectedRange.from, 'd MMMM yyyy', { locale: dateLocale });
     }
     if (dateMode === 'single' && selectedSingleDate) {
-      return format(selectedSingleDate, 'd MMMM yyyy', { locale: localeId });
+      return format(selectedSingleDate, 'd MMMM yyyy', { locale: dateLocale });
     }
-    return 'Semua Waktu (Maksimal 3 Bulan)';
-  }, [dateMode, selectedRange, selectedSingleDate]);
+    return t('history.allTime', 'Semua Waktu (Maksimal 3 Bulan)');
+  }, [dateMode, selectedRange, selectedSingleDate, dateLocale, t]);
 
   // Reset to page 1 whenever filters change
   useEffect(() => {
@@ -399,7 +402,7 @@ export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }
                           mode="range"
                           selected={selectedRange}
                           onSelect={(range) => setSelectedRange(range)}
-                          locale={localeId}
+                          locale={dateLocale}
                           disabled={[
                             { before: threeMonthsAgo },
                             { after: today },
@@ -411,7 +414,7 @@ export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }
                           mode="single"
                           selected={selectedSingleDate}
                           onSelect={(date) => setSelectedSingleDate(date)}
-                          locale={localeId}
+                          locale={dateLocale}
                           disabled={[
                             { before: threeMonthsAgo },
                             { after: today },
@@ -639,7 +642,7 @@ export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }
               )}
               <p className="text-[11px] text-slate-400 mt-1">
                 {selectedOrder.createdAt
-                  ? format(new Date(selectedOrder.createdAt), 'd MMMM yyyy, HH:mm', { locale: localeId })
+                  ? format(new Date(selectedOrder.createdAt), 'd MMMM yyyy, HH:mm', { locale: dateLocale })
                   : selectedOrder.timeLabel || 'Waktu Transaksi'}
               </p>
             </div>

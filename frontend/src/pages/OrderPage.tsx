@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { SavedOrdersBar } from '../components/SavedOrdersBar.tsx';
 import { ProductFilterBar } from '../components/ProductFilterBar.tsx';
@@ -25,6 +26,7 @@ interface OrderPageProps {
 }
 
 export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -72,10 +74,10 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-purple-900">
-                    Mode Akun Administrator Platform (Role ADMIN)
+                    {t('pos.adminNoticeTitle', 'Mode Akun Administrator Platform (Role ADMIN)')}
                   </p>
                   <p className="text-xs text-purple-700 mt-0.5">
-                    Role ADMIN bertugas mengelola data tenan dan <span className="font-semibold underline">tidak dapat membuat order/transaksi</span>. Hanya akun Pemilik Toko (SHOP_OWNER) atau Kasir (SHOP_CASHIER) yang dapat membuat transaksi penjualan.
+                    {t('pos.adminNoticeDesc', 'Role ADMIN bertugas mengelola data tenan dan tidak dapat membuat order/transaksi. Hanya akun Pemilik Toko (SHOP_OWNER) atau Kasir (SHOP_CASHIER) yang dapat membuat transaksi penjualan.')}
                   </p>
                 </div>
               </div>
@@ -83,7 +85,7 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
                 onClick={() => onNavigate?.('tenants')}
                 className="shrink-0 px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
               >
-                Buka Kelola Tenan &rarr;
+                {t('common.openTenants', 'Buka Kelola Tenan →')}
               </button>
             </div>
           )}
@@ -114,17 +116,17 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
         ) : products.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200/70">
             <p className="text-base font-semibold text-slate-600">
-              Tidak ada produk ditemukan
+              {t('common.noProducts', 'Tidak ada produk ditemukan')}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Coba kata kunci lain atau tambahkan produk baru.
+              {t('common.noProductsHelp', 'Coba kata kunci lain atau tambahkan produk baru.')}
             </p>
             <button
               onClick={() => fetchProducts()}
-              className="mt-4 px-3 py-1.5 text-xs font-semibold bg-orange-50 text-orange-600 rounded-lg flex items-center gap-1.5 hover:bg-orange-100"
+              className="mt-4 px-3 py-1.5 text-xs font-semibold bg-orange-50 text-orange-600 rounded-lg flex items-center gap-1.5 hover:bg-orange-100 cursor-pointer"
             >
               <RefreshCcw className="w-3.5 h-3.5" />
-              <span>Muat Ulang</span>
+              <span>{t('common.reload', 'Muat Ulang')}</span>
             </button>
           </div>
         ) : (

@@ -50,13 +50,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isAuthMenuOpen, setIsAuthMenuOpen] = useState(false);
 
   const navContent = (
-    <nav className="flex-1 flex flex-col items-center gap-2.5 w-full px-1">
+    <nav className="flex-1 flex flex-col items-center gap-2.5 w-full px-2">
       {/* Active POS Cashier Button with badge (Only for non-ADMIN, role ADMIN cannot access order page) */}
       {user?.role !== 'ADMIN' ? (
         <button
           onClick={() => handleSelect('pos')}
           title={t('nav.pos', 'Pesanan')}
-          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group"
         >
           <div className="relative">
             <div
@@ -75,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
           <span
-            className={`text-[10px] md:text-[11px] font-semibold tracking-tight mt-0.5 ${
+            className={`text-[11px] md:text-xs font-semibold tracking-tight mt-1 text-center leading-snug px-1 ${
               currentTab === 'pos' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           >
@@ -87,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           onClick={() => handleSelect('tenants')}
           title={t('nav.tenants', 'Kelola Seluruh Tenan')}
-          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group"
         >
           <div
             className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
@@ -99,8 +99,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Building2 className="w-5 h-5 md:w-5.5 md:h-5.5" />
           </div>
           <span
-            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-              currentTab === 'tenants' || currentTab === 'deactivation-requests' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+            className={`text-[11px] md:text-xs font-semibold tracking-tight mt-1 text-center leading-snug px-1 ${
+              currentTab === 'tenants' || currentTab === 'deactivation-requests' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           >
             {t('nav.tenants', 'Tenan')}
@@ -112,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <button
         onClick={() => handleSelect('history')}
         title={t('nav.history', 'Riwayat Transaksi')}
-        className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+        className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group"
       >
         <div
           className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
@@ -124,8 +124,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <History className="w-5 h-5 md:w-5.5 md:h-5.5" />
         </div>
         <span
-          className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-            currentTab === 'history' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+          className={`text-[11px] md:text-xs font-semibold tracking-tight mt-1 text-center leading-snug px-1 ${
+            currentTab === 'history' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
           }`}
         >
           {t('nav.history', 'Riwayat')}
@@ -137,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           onClick={() => handleSelect('store-settings')}
           title={t('nav.storeSettings', 'Pengaturan Toko & Akun Tenan')}
-          className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group"
+          className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group"
         >
           <div
             className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
@@ -149,8 +149,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Store className="w-5 h-5 md:w-5.5 md:h-5.5" />
           </div>
           <span
-            className={`text-[10px] md:text-[11px] font-medium tracking-tight mt-0.5 ${
-              currentTab === 'store-settings' ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+            className={`text-[11px] md:text-xs font-semibold tracking-tight mt-1 text-center leading-snug px-1 ${
+              currentTab === 'store-settings' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
             }`}
           >
             {t('nav.storeSettings', 'Toko')}
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             title={user?.role === 'ADMIN' ? 'Menu Data (Produk & Kategori Tenan)' : 'Menu Data (Produk & Kategori)'}
-            className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group outline-none"
+            className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group outline-none"
           >
             <div
               className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
@@ -177,16 +177,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <Database className="w-5 h-5 md:w-5.5 md:h-5.5" />
             </div>
-            <div className="flex items-center justify-center gap-0.5 mt-0.5 w-full">
+            <div className="flex items-center justify-center gap-1 mt-1 w-full px-1">
               <span
-                className={`text-[10px] md:text-[11px] font-medium tracking-tight ${
-                  isDataActive ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+                className={`text-[11px] md:text-xs font-semibold tracking-tight ${
+                  isDataActive ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
                 }`}
               >
-                Data
+                {t('nav.data', 'Data')}
               </span>
               <ChevronRight
-                className={`w-2.5 h-2.5 transition-transform duration-200 ${
+                className={`w-3 h-3 transition-transform duration-200 ${
                   isDataMenuOpen ? 'text-orange-400 translate-x-0.5' : 'text-slate-400 group-hover:text-slate-200'
                 }`}
               />
@@ -203,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="px-2.5 py-1.5 border-b border-white/5 mb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Menu Data
+                {t('nav.menuData', 'Menu Data')}
               </span>
               <Database className="w-3.5 h-3.5 text-slate-500" />
             </div>
@@ -228,9 +228,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Package className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold leading-tight">Produk</span>
+                  <span className="text-xs font-bold leading-tight">{t('nav.products', 'Produk')}</span>
                   <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                    {user?.role === 'ADMIN' ? 'Semua Produk Tenan' : 'Katalog & Stok'}
+                    {user?.role === 'ADMIN' ? t('nav.adminProducts', 'Semua Produk Tenan') : t('nav.products', 'Katalog & Stok')}
                   </span>
                 </div>
               </DropdownMenu.Item>
@@ -254,9 +254,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Tags className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold leading-tight">Kategori</span>
+                  <span className="text-xs font-bold leading-tight">{t('nav.categories', 'Kategori')}</span>
                   <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                    {user?.role === 'ADMIN' ? 'Semua Kategori Tenan' : 'Kelola Kategori'}
+                    {user?.role === 'ADMIN' ? t('nav.adminCategories', 'Semua Kategori Tenan') : t('nav.categories', 'Kelola Kategori')}
                   </span>
                 </div>
               </DropdownMenu.Item>
@@ -272,7 +272,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               title="Menu Autentikasi (Pengguna, Audit Login, Sesi Token)"
-              className="w-full flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer group outline-none"
+              className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group outline-none"
             >
               <div
                 className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
@@ -285,16 +285,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <ShieldCheck className="w-5 h-5 md:w-5.5 md:h-5.5" />
               </div>
-              <div className="flex items-center justify-center gap-0.5 mt-0.5 w-full px-0.5">
+              <div className="flex items-center justify-center gap-1 mt-1 w-full px-1">
                 <span
-                  className={`text-[9.5px] md:text-[10px] font-medium tracking-tight truncate ${
-                    isAuthActive ? 'text-orange-400 font-semibold' : 'text-slate-400 group-hover:text-slate-200'
+                  className={`text-[11px] md:text-xs font-semibold tracking-tight text-center leading-snug ${
+                    isAuthActive ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
                   }`}
                 >
-                  Autentikasi
+                  {t('nav.auth', 'Autentikasi')}
                 </span>
                 <ChevronRight
-                  className={`w-2.5 h-2.5 shrink-0 transition-transform duration-200 ${
+                  className={`w-3 h-3 shrink-0 transition-transform duration-200 ${
                     isAuthMenuOpen ? 'text-orange-400 translate-x-0.5' : 'text-slate-400 group-hover:text-slate-200'
                   }`}
                 />
@@ -311,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="px-2.5 py-1.5 border-b border-white/5 mb-1.5 flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Menu Autentikasi
+                  {t('nav.menuAuth', 'Menu Autentikasi')}
                 </span>
                 <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
               </div>
@@ -337,9 +337,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <Users className="w-4 h-4" />
                     </div>
                     <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold leading-tight">Pengguna</span>
+                      <span className="text-xs font-bold leading-tight">{t('nav.cashiers', 'Pengguna')}</span>
                       <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                        Kelola Akun Kasir & Staf
+                        {t('nav.usersSub', 'Kelola Akun Kasir & Staf')}
                       </span>
                     </div>
                   </DropdownMenu.Item>
@@ -364,9 +364,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold leading-tight">Audit Login</span>
+                    <span className="text-xs font-bold leading-tight">{t('nav.auditLogin', 'Audit Login')}</span>
                     <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                      {user?.role === 'ADMIN' ? 'Histori Login Seluruh Tenan' : 'Histori Login Staf'}
+                      {user?.role === 'ADMIN' ? t('nav.loginHistory', 'Histori Login Seluruh Tenan') : t('nav.auditLoginSub', 'Histori Login Staf')}
                     </span>
                   </div>
                 </DropdownMenu.Item>
@@ -390,9 +390,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <KeyRound className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold leading-tight">Sesi Token</span>
+                    <span className="text-xs font-bold leading-tight">{t('nav.activeTokens', 'Sesi Token')}</span>
                     <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                      {user?.role === 'ADMIN' ? 'Token Aktif Seluruh Tenan' : 'Token Aktif di Redis'}
+                      {user?.role === 'ADMIN' ? t('nav.activeTokens', 'Token Aktif Seluruh Tenan') : t('nav.activeTokensSub', 'Token Aktif di Redis')}
                     </span>
                   </div>
                 </DropdownMenu.Item>
@@ -409,7 +409,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Anchored Sidebar (hidden on mobile, visible on md+) */}
-      <aside className="w-16 md:w-20 bg-[#181A1F] hidden md:flex flex-col items-center py-5 shrink-0 z-20 select-none shadow-md">
+      <aside className="w-28 lg:w-32 bg-[#181A1F] hidden md:flex flex-col items-center py-5 shrink-0 z-20 select-none shadow-md">
         {navContent}
       </aside>
 
@@ -423,7 +423,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           />
 
           {/* Slide-out Sidebar on Mobile */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-24 bg-[#181A1F] flex flex-col items-center py-5 shadow-2xl md:hidden select-none animate-in slide-in-from-left duration-200">
+          <aside className="fixed inset-y-0 left-0 z-50 w-28 sm:w-32 bg-[#181A1F] flex flex-col items-center py-5 shadow-2xl md:hidden select-none animate-in slide-in-from-left duration-200">
             {/* Close Button */}
             <button
               onClick={closeMobileSidebar}

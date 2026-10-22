@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Tags,
   Plus,
@@ -30,6 +31,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
   onNavigate,
   onFilterCategory,
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
 
@@ -197,7 +199,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
             <button
               onClick={() => fetchCategories()}
               disabled={loading}
-              title="Muat Ulang Kategori"
+              title={t('common.refresh', 'Muat Ulang Kategori')}
               className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -209,7 +211,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
                 className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs md:text-sm rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span>Tambah Kategori</span>
+                <span>{t('categories.addCategory', 'Tambah Kategori')}</span>
               </button>
             ) : (
               <div className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
