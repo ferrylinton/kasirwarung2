@@ -29,6 +29,7 @@ export type ActiveTab =
   | 'profile'
   | 'login-history'
   | 'active-tokens'
+  | 'activity-log'
   | 'change-password'
   | 'tenants'
   | 'admin-products'
@@ -78,6 +79,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         return user?.role === 'ADMIN'
           ? t('nav.activeTokens', 'Access Token Aktif (Semua Tenan)')
           : t('nav.activeTokens', 'Access Token Aktif Toko');
+      case 'activity-log':
+        return user?.role === 'ADMIN'
+          ? t('nav.activityLog', 'Log Aktivitas (Semua Toko)')
+          : t('nav.activityLog', 'Log Aktivitas Toko');
       case 'change-password':
         return t('nav.changePassword', 'Ubah Password');
       case 'products':

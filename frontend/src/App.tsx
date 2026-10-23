@@ -23,6 +23,7 @@ import TenantsPage from './pages/TenantsPage.tsx';
 import UsersPage from './pages/UsersPage.tsx';
 import StoreSettingsPage from './pages/StoreSettingsPage.tsx';
 import AdminDeactivationRequestsPage from './pages/AdminDeactivationRequestsPage.tsx';
+import ActivityLogPage from './pages/ActivityLogPage.tsx';
 
 const AppContent: React.FC = () => {
   const { user, loading, logout, idleTimeoutMinutes } = useAuth();
@@ -166,6 +167,12 @@ const AppContent: React.FC = () => {
       case 'active-tokens':
         return (
           <ActiveTokensPage
+            onNavigate={setCurrentTab}
+          />
+        );
+      case 'activity-log':
+        return (
+          <ActivityLogPage
             onNavigate={setCurrentTab}
           />
         );

@@ -9,6 +9,7 @@ import {
   LoginHistoryItem,
   ActiveTokenItem,
   DeactivationRequestItem,
+  ActivityLogResponse,
 } from '../services/api.ts';
 
 // Centralized Query Keys for TanStack Query cache invalidation & management
@@ -26,6 +27,8 @@ export const queryKeys = {
     ['login-history', { tenantId, startDate, endDate, search, role }] as const,
   activeTokens: (tenantId = '', startDate = '', endDate = '', search = '', role = '') =>
     ['active-tokens', { tenantId, startDate, endDate, search, role }] as const,
+  activityLogs: (tenantId = '', entity = '', action = '', search = '', startDate = '', endDate = '', page = 1) =>
+    ['activity-logs', { tenantId, entity, action, search, startDate, endDate, page }] as const,
   deactivationRequests: () => ['deactivation-requests'] as const,
   health: () => ['health'] as const,
 };
@@ -325,7 +328,41 @@ export function useBlacklistToken() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-tokens'] });
       queryClient.invalidateQueries({ queryKey: ['login-history'] });
+      queryClient.invalidateQueries({ queryKey: ['activity-logs'] });
     },
   });
 }
+
+export function useActivityLogs(
+  params?: {
+    tenantId?: string;
+    entity?: string;
+    action?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  },
+  options?: { enabled?: boolean }
+) {
+  return useQuery<ActivityLogResponse>({
+    queryKey: queryKeys.activityLogs(
+      params?.tenantId || '',
+      params?.entity || '',
+      params?.action || '',
+      params?.search || '',
+      params?.startDate || '',
+      params?.endDate || '',
+      params?.page || 1
+    ),
+    queryFn: async () => {
+      const res = await api.getActivityLogs(params);
+      return res;
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 15,
+  });
+}
+
 

@@ -13,6 +13,7 @@ import {
   KeyRound,
   Database,
   ChevronRight,
+  ClipboardList,
 } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useCart } from '../context/CartContext.tsx';
@@ -45,7 +46,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const [isDataMenuOpen, setIsDataMenuOpen] = useState(false);
 
-  const isAuthActive = currentTab === 'cashiers' || currentTab === 'login-history' || currentTab === 'active-tokens';
+  const isAuthActive =
+    currentTab === 'cashiers' ||
+    currentTab === 'login-history' ||
+    currentTab === 'active-tokens' ||
+    currentTab === 'activity-log';
   const canAccessAuth = user?.role === 'ADMIN' || user?.role === 'SHOP_OWNER' || user?.role === 'pemilik' || user?.role === 'MANAGER';
   const [isAuthMenuOpen, setIsAuthMenuOpen] = useState(false);
 
@@ -154,6 +159,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             {t('nav.storeSettings', 'Toko')}
+          </span>
+        </button>
+      )}
+
+      {/* SHOP_OWNER & ADMIN: Log Aktivitas Navigation Button */}
+      {(user?.role === 'ADMIN' || user?.role === 'SHOP_OWNER' || user?.role === 'pemilik' || user?.role === 'MANAGER') && (
+        <button
+          onClick={() => handleSelect('activity-log')}
+          title={user?.role === 'ADMIN' ? 'Log Aktivitas Seluruh Tenan' : 'Log Aktivitas Toko'}
+          className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group"
+        >
+          <div
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'activity-log'
+                ? 'bg-[#EC6C1A] text-white shadow-orange-600/30 shadow-md'
+                : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+            }`}
+          >
+            <ClipboardList className="w-5 h-5 md:w-5.5 md:h-5.5" />
+          </div>
+          <span
+            className={`text-[11px] md:text-xs font-semibold tracking-tight mt-1 text-center leading-snug px-1 ${
+              currentTab === 'activity-log' ? 'text-orange-400' : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            Aktivitas
           </span>
         </button>
       )}
@@ -393,6 +424,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="text-xs font-bold leading-tight">{t('nav.activeTokens', 'Sesi Token')}</span>
                     <span className="text-[10px] text-slate-400 font-normal leading-tight">
                       {user?.role === 'ADMIN' ? t('nav.activeTokens', 'Token Aktif Seluruh Tenan') : t('nav.activeTokensSub', 'Token Aktif di Redis')}
+                    </span>
+                  </div>
+                </DropdownMenu.Item>
+
+                {/* Submenu: Log Aktivitas */}
+                <DropdownMenu.Item
+                  onSelect={() => handleSelect('activity-log')}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer outline-none transition-all ${
+                    currentTab === 'activity-log'
+                      ? 'bg-orange-500/25 text-orange-200 border border-orange-500/40 shadow-xs'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10 focus:bg-white/10 focus:text-white'
+                  }`}
+                >
+                  <div
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                      currentTab === 'activity-log'
+                        ? 'bg-[#EC6C1A] text-white shadow-2xs'
+                        : 'bg-white/5 text-slate-400'
+                    }`}
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-bold leading-tight">{t('nav.activityLog', 'Log Aktivitas')}</span>
+                    <span className="text-[10px] text-slate-400 font-normal leading-tight">
+                      {user?.role === 'ADMIN' ? 'Audit Trail Semua Tenan' : 'Audit Trail Perubahan Toko'}
                     </span>
                   </div>
                 </DropdownMenu.Item>

@@ -233,6 +233,16 @@ export async function updateCategory(req: AuthenticatedRequest, res: Response): 
     category: updated.name,
   });
 
+  await recordActivity(req, {
+    action: 'UPDATE',
+    entity: 'KATEGORI',
+    entityId: catId,
+    entityName: updated.name,
+    details: `Memperbarui kategori "${existing.name}"` + (existing.name !== updated.name ? ` menjadi "${updated.name}"` : ''),
+    previousData: existing,
+    newData: updated,
+  });
+
   res.json({
     success: true,
     message: 'Kategori berhasil diperbarui',
@@ -297,6 +307,15 @@ export async function deleteCategory(req: AuthenticatedRequest, res: Response): 
   }
 
   await categoriesCol.deleteOne({ _id: catId, tenantId });
+
+  await recordActivity(req, {
+    action: 'DELETE',
+    entity: 'KATEGORI',
+    entityId: existing._id,
+    entityName: existing.name,
+    details: `Menghapus kategori "${existing.name}"` + (linkedProductsCount > 0 ? ` (${linkedProductsCount} produk dialihkan ke 'Lainnya')` : ''),
+    previousData: existing,
+  });
 
   res.json({
     success: true,

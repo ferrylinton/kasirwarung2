@@ -2,6 +2,7 @@ import type { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
+import { recordActivity } from '../services/activityLogService.ts';
 
 /**
  * GET /api/cashiers
@@ -81,6 +82,22 @@ export async function createCashier(req: AuthenticatedRequest, res: Response): P
     createdAt: new Date().toISOString(),
   });
 
+  await recordActivity(req, {
+    action: 'CREATE',
+    entity: 'PENGGUNA',
+    entityId: newCashierId,
+    entityName: name.trim(),
+    details: `Menambahkan kasir/pengguna baru "${name.trim()}" (@${username.trim().toLowerCase()}, ${shift || 'Shift Pagi (08:00 - 16:00)'})`,
+    newData: {
+      name: name.trim(),
+      username: username.trim().toLowerCase(),
+      email: email.trim().toLowerCase(),
+      role: 'SHOP_CASHIER',
+      shift: shift || 'Shift Pagi (08:00 - 16:00)',
+      status: 'active',
+    },
+  });
+
   res.status(201).json({
     success: true,
     message: `Kasir '${name}' berhasil ditambahkan ke toko Anda`,
@@ -144,6 +161,26 @@ export async function updateCashier(req: AuthenticatedRequest, res: Response): P
 
   await usersCol.updateOne(filter, { $set: updateFields });
 
+  const updatedCashier = await usersCol.findOne(filter);
+
+  await recordActivity(req, {
+    action: 'UPDATE',
+    entity: 'PENGGUNA',
+    entityId: cashierId,
+    entityName: cashier.name,
+    details: `Memperbarui data pengguna/kasir "${cashier.name}"` + (name && name.trim() !== cashier.name ? ` (nama diubah menjadi "${name.trim()}")` : '') + (status && status !== cashier.status ? ` (status diubah menjadi ${status})` : ''),
+    previousData: {
+      name: cashier.name,
+      shift: cashier.shift,
+      status: cashier.status,
+    },
+    newData: {
+      name: updatedCashier?.name,
+      shift: updatedCashier?.shift,
+      status: updatedCashier?.status,
+    },
+  });
+
   res.json({
     success: true,
     message: 'Data kasir berhasil diperbarui',
@@ -186,6 +223,21 @@ export async function deleteCashier(req: AuthenticatedRequest, res: Response): P
   }
 
   await usersCol.deleteOne(filter);
+
+  await recordActivity(req, {
+    action: 'DELETE',
+    entity: 'PENGGUNA',
+    entityId: cashierId,
+    entityName: cashier.name,
+    details: `Menghapus akun pengguna/kasir "${cashier.name}" (@${cashier.username || cashier.email})`,
+    previousData: {
+      name: cashier.name,
+      username: cashier.username,
+      email: cashier.email,
+      shift: cashier.shift,
+      status: cashier.status,
+    },
+  });
 
   res.json({
     success: true,

@@ -66,6 +66,8 @@ export async function authenticateToken(
   }
 }
 
+export const authenticate = authenticateToken;
+
 export async function optionalAuthenticateToken(
   req: AuthenticatedRequest,
   _res: Response,

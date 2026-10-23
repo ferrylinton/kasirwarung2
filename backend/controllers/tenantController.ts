@@ -7,6 +7,7 @@ import {
   sendTenantReactivationEmail,
   recentEmailSimulations,
 } from '../config/mailer.ts';
+import { recordActivity } from '../services/activityLogService.ts';
 
 /**
  * GET /api/tenants
@@ -134,6 +135,21 @@ export async function updateTenantSettings(req: AuthenticatedRequest, res: Respo
 
   const updatedTenant = await tenantsCol.findOne({ _id: targetTenantId });
 
+  await recordActivity(req, {
+    action: 'UPDATE',
+    entity: 'TOKO',
+    entityId: targetTenantId,
+    entityName: updatedTenant?.name || 'Toko',
+    tenantId: targetTenantId,
+    tenantName: updatedTenant?.name,
+    details: `Memperbarui konfigurasi toko/PPN (Status PPN: ${updatedTenant?.taxEnabled ? 'Aktif' : 'Nonaktif'}, Tarif: ${updatedTenant?.taxRate} ${updatedTenant?.taxType === 'percentage' ? '%' : 'Rp'})`,
+    newData: {
+      taxEnabled: updatedTenant?.taxEnabled,
+      taxRate: updatedTenant?.taxRate,
+      taxType: updatedTenant?.taxType,
+    },
+  });
+
   res.json({
     success: true,
     message: 'Pengaturan PPN dan toko berhasil diperbarui',
@@ -183,6 +199,18 @@ export async function updateTenantStatus(req: AuthenticatedRequest, res: Respons
       },
     }
   );
+
+  await recordActivity(req, {
+    action: status === 'active' ? 'ACTIVATE' : 'DEACTIVATE',
+    entity: 'TOKO',
+    entityId: tId,
+    entityName: tenant.name,
+    tenantId: tId,
+    tenantName: tenant.name,
+    details: `Mengubah status toko "${tenant.name}" (${tenant.code}) menjadi ${status === 'active' ? 'AKTIF' : 'NONAKTIF'}` + (reason ? `: ${reason}` : ''),
+    previousData: { status: tenant.status },
+    newData: { status, reason: reason || null },
+  });
 
   res.json({
     success: true,

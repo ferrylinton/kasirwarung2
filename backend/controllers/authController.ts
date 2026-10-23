@@ -22,6 +22,7 @@ import {
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { env } from '../config/env.ts';
 import { sendTenantVerificationEmail } from '../config/mailer.ts';
+import { recordActivity } from '../services/activityLogService.ts';
 
 export async function login(req: Request, res: Response): Promise<void> {
   const { email, password } = req.body;
@@ -956,6 +957,30 @@ export async function blacklistActiveTokenController(req: AuthenticatedRequest, 
   } catch {
     // Non-fatal
   }
+
+  // Record Activity Log
+  await recordActivity(req, {
+    action: 'REVOKE_TOKEN',
+    entity: 'REVOKE_TOKEN',
+    entityId: targetToken?.userId ? String(targetToken.userId) : null,
+    entityName: targetToken?.name || targetToken?.email || 'Sesi Token',
+    details: `Mencabut (blacklist) sesi token aktif pengguna "${targetToken?.name || targetToken?.email || 'User'}"` + (reason ? ` (${reason})` : ''),
+    tenantId: targetToken?.tenantId || user?.tenantId || null,
+    tenantName: targetToken?.tenantName || user?.tenantName || null,
+    previousData: targetToken ? {
+      email: targetToken.email,
+      name: targetToken.name,
+      role: targetToken.role,
+      device: targetToken.device,
+      ipAddress: targetToken.ipAddress,
+      issuedAt: targetToken.issuedAt,
+    } : null,
+    newData: {
+      status: 'BLACKLISTED',
+      remainingTtl,
+      reason: reason || 'Pencabutan manual',
+    },
+  });
 
   res.json({
     success: true,

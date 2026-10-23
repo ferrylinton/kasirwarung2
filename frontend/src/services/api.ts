@@ -100,6 +100,45 @@ export interface ActiveTokenItem {
   remainingSeconds?: number;
 }
 
+export interface ActivityLogItem {
+  id: string;
+  tenantId: string | null;
+  tenantName: string;
+  userId: string | null;
+  userName: string;
+  userEmail: string;
+  userRole: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVOKE_TOKEN' | 'ACTIVATE' | 'DEACTIVATE' | string;
+  entity: 'PRODUK' | 'KATEGORI' | 'PENGGUNA' | 'TOKO' | 'REVOKE_TOKEN' | string;
+  entityId: string | null;
+  entityName: string;
+  details: string;
+  previousData?: Record<string, any> | null;
+  newData?: Record<string, any> | null;
+  ipAddress: string;
+  device: string;
+  createdAt: string;
+}
+
+export interface ActivityLogResponse {
+  success: boolean;
+  data: ActivityLogItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  stats: {
+    totalAll: number;
+    totalProducts: number;
+    totalCategories: number;
+    totalUsers: number;
+    totalStore: number;
+    totalRevokes: number;
+  };
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -477,6 +516,30 @@ export const api = {
     }),
   deleteCashier: (id: string) =>
     apiRequest(`/api/cashiers/${id}`, { method: 'DELETE' }),
+
+  // Activity Logs
+  getActivityLogs: (params?: {
+    tenantId?: string;
+    entity?: string;
+    action?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const qs = new URLSearchParams();
+    if (params?.tenantId && params.tenantId !== 'ALL') qs.append('tenantId', params.tenantId);
+    if (params?.entity && params.entity !== 'ALL') qs.append('entity', params.entity);
+    if (params?.action && params.action !== 'ALL') qs.append('action', params.action);
+    if (params?.search) qs.append('search', params.search);
+    if (params?.startDate) qs.append('startDate', params.startDate);
+    if (params?.endDate) qs.append('endDate', params.endDate);
+    if (params?.page) qs.append('page', String(params.page));
+    if (params?.limit) qs.append('limit', String(params.limit));
+    const query = qs.toString() ? `?${qs.toString()}` : '';
+    return apiRequest<ActivityLogResponse>(`/api/activity-logs${query}`);
+  },
 
   // Reports
   getReportSummary: () => apiRequest('/api/reports/summary'),
