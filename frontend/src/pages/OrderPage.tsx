@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { SavedOrdersBar } from '../components/SavedOrdersBar.tsx';
@@ -9,7 +9,7 @@ import { PaymentModal } from '../components/PaymentModal.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
 import { Product } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { RefreshCcw, Shield } from 'lucide-react';
+import { RefreshCcw, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useProducts, useCategories } from '../hooks/useQueries.ts';
 
 const CATEGORIES = [
@@ -30,6 +30,11 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Pagination state (10 items per page)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+  const mainRef = useRef<HTMLElement>(null);
+
   // Modals state
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -44,6 +49,26 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
     refetch: fetchProducts,
   } = useProducts(searchQuery, selectedCategory);
   const products = productsData?.data || [];
+
+  // Reset to first page when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
+
+  const totalItems = products.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+  const paginatedProducts = useMemo(() => {
+    return products.slice(startIndex, endIndex);
+  }, [products, startIndex, endIndex]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const { data: categoriesData } = useCategories();
   const categoriesList = useMemo(() => {
@@ -64,7 +89,7 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
 
       <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
         {/* Center Main POS Area */}
-        <main className="flex-1 flex flex-col h-full overflow-y-auto p-4 md:p-6 lg:p-7">
+        <main ref={mainRef} className="flex-1 flex flex-col h-full overflow-y-auto p-4 md:p-6 lg:p-7">
           {/* ADMIN Notice Banner: role ADMIN tidak bisa bikin order */}
           {user?.role === 'ADMIN' && (
             <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-purple-900 shadow-xs">
@@ -130,11 +155,90 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5 pb-20 lg:pb-6">
-            {products.map((product) => (
-              <ProductCard key={product.id || product.sku} product={product} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
+              {paginatedProducts.map((product) => (
+                <ProductCard key={product.id || product.sku} product={product} />
+              ))}
+            </div>
+
+            {/* Pagination Controls (10 items per page) */}
+            {totalItems > 0 && (
+              <div className="mt-5 mb-24 lg:mb-4 bg-white border border-slate-200/90 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+                {/* Left: Info */}
+                <div className="text-xs text-slate-500 font-medium">
+                  {t('common.showing', 'Menampilkan')}{' '}
+                  <span className="font-bold text-slate-900 tabular-nums">
+                    {startIndex + 1}
+                  </span>
+                  –
+                  <span className="font-bold text-slate-900 tabular-nums">
+                    {endIndex}
+                  </span>{' '}
+                  {t('common.of', 'dari')}{' '}
+                  <span className="font-bold text-slate-900 tabular-nums">
+                    {totalItems}
+                  </span>{' '}
+                </div>
+
+                {/* Right: Page Navigation */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handlePageChange(safeCurrentPage - 1)}
+                    disabled={safeCurrentPage === 1}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold cursor-pointer"
+                    aria-label={t('common.paginationPrevious', 'Halaman Sebelumnya')}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline">{t('common.paginationPrevious', 'Sebelumnya')}</span>
+                  </button>
+
+                  {/* Page numbers with ellipsis */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        if (totalPages <= 5) return true;
+                        return (
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - safeCurrentPage) <= 1
+                        );
+                      })
+                      .map((page, idx, arr) => {
+                        const showEllipsisBefore = idx > 0 && page - arr[idx - 1] > 1;
+                        return (
+                          <React.Fragment key={page}>
+                            {showEllipsisBefore && (
+                              <span className="px-1 text-slate-400 select-none text-xs">...</span>
+                            )}
+                            <button
+                              onClick={() => handlePageChange(page)}
+                              className={`min-w-[32px] h-8 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                                safeCurrentPage === page
+                                  ? 'bg-[#EC6C1A] text-white shadow-2xs'
+                                  : 'border border-slate-200 text-slate-700 hover:bg-slate-100'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(safeCurrentPage + 1)}
+                    disabled={safeCurrentPage === totalPages}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold cursor-pointer"
+                    aria-label={t('common.paginationNext', 'Halaman Selanjutnya')}
+                  >
+                    <span className="hidden sm:inline">{t('common.paginationNext', 'Selanjutnya')}</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
 

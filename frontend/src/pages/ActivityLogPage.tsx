@@ -4,6 +4,8 @@ import {
   Calendar,
   CalendarRange,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Search,
   X,
   Building2,
@@ -20,7 +22,6 @@ import {
   AlertTriangle,
   Laptop,
   ArrowRight,
-  Filter,
   Copy,
   Check,
 } from 'lucide-react';
@@ -48,36 +49,15 @@ interface ActivityLogPageProps {
 
 type DateSelectionMode = 'range' | 'single';
 
-const ENTITY_OPTIONS = [
-  { value: 'ALL', label: 'Semua Entitas', icon: Filter },
-  { value: 'PRODUK', label: 'Produk', icon: Package },
-  { value: 'KATEGORI', label: 'Kategori', icon: Tags },
-  { value: 'PENGGUNA', label: 'Pengguna', icon: Users },
-  { value: 'TOKO', label: 'Toko', icon: Store },
-  { value: 'REVOKE_TOKEN', label: 'Revoke Token', icon: KeyRound },
-];
-
-const ACTION_OPTIONS = [
-  { value: 'ALL', label: 'Semua Aksi' },
-  { value: 'CREATE', label: 'Tambah (CREATE)' },
-  { value: 'UPDATE', label: 'Ubah (UPDATE)' },
-  { value: 'DELETE', label: 'Hapus (DELETE)' },
-  { value: 'REVOKE_TOKEN', label: 'Cabut Sesi (REVOKE)' },
-  { value: 'ACTIVATE', label: 'Aktifkan Toko' },
-  { value: 'DEACTIVATE', label: 'Nonaktifkan Toko' },
-];
-
 export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
 
   // Filters state
   const [selectedTenantId, setSelectedTenantId] = useState<string>('ALL');
-  const [selectedEntity, setSelectedEntity] = useState<string>('ALL');
-  const [selectedAction, setSelectedAction] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
-  const pageSize = 15;
+  const pageSize = 10;
 
   // Selected Log for Details Diff Modal
   const [activeModalLog, setActiveModalLog] = useState<ActivityLogItem | null>(null);
@@ -150,8 +130,6 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
     refetch,
   } = useActivityLogs({
     tenantId: isAdmin ? selectedTenantId : undefined,
-    entity: selectedEntity !== 'ALL' ? selectedEntity : undefined,
-    action: selectedAction !== 'ALL' ? selectedAction : undefined,
     search: searchQuery.trim() || undefined,
     startDate: startIso,
     endDate: endIso,
@@ -161,14 +139,6 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
 
   const logs = logsResponse?.data || [];
   const pagination = logsResponse?.pagination || { page: 1, limit: pageSize, total: 0, totalPages: 1 };
-  const stats = logsResponse?.stats || {
-    totalAll: 0,
-    totalProducts: 0,
-    totalCategories: 0,
-    totalUsers: 0,
-    totalStore: 0,
-    totalRevokes: 0,
-  };
 
   // Label for active date filter button
   const activeDateLabel = useMemo(() => {
@@ -190,8 +160,6 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
   }, [dateMode, selectedRange, selectedSingleDate]);
 
   const handleResetFilters = () => {
-    setSelectedEntity('ALL');
-    setSelectedAction('ALL');
     setSearchQuery('');
     setSelectedRange(undefined);
     setSelectedSingleDate(undefined);
@@ -306,6 +274,22 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
     }
   };
 
+  // Helper for responsive pagination numbers
+  const getPageNumbers = () => {
+    const totalPages = pagination.totalPages || 1;
+    const current = pagination.page || 1;
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (current <= 3) {
+      return [1, 2, 3, 4, '...', totalPages];
+    }
+    if (current >= totalPages - 2) {
+      return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', current - 1, current, current + 1, '...', totalPages];
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8F9FA]">
       {/* Top Header Navbar */}
@@ -313,213 +297,16 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">
-        {/* Page Title & Scope Banner */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center">
-                <ClipboardList className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                  Log Aktivitas & Audit Trail
-                  {isFetching && (
-                    <RefreshCw className="w-4 h-4 text-orange-500 animate-spin" />
-                  )}
-                </h1>
-                <p className="text-xs text-slate-500">
-                  {isAdmin
-                    ? 'Memantau seluruh perubahan data Produk, Kategori, Pengguna, Toko, dan Sesi Token di semua tenan platform.'
-                    : `Memantau riwayat audit perubahan data di toko ${user?.tenantName || 'Anda'}.`}
-                </p>
-              </div>
-            </div>
-          </div>
 
-          {/* Right Action: Tenan Radix Select for Admin, or Current Store Badge for Shop Owner */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {isAdmin ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500 hidden sm:inline">
-                  Filter Tenan:
-                </span>
-                <TenantSelect
-                  value={selectedTenantId}
-                  onValueChange={(val) => {
-                    setSelectedTenantId(val);
-                    setPage(1);
-                  }}
-                  tenants={tenants}
-                  allOptionLabel={`Semua Tenan (${tenants.length})`}
-                  className="bg-slate-50 hover:bg-slate-100 border-slate-200"
-                />
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200/80 text-orange-800 text-xs font-semibold">
-                <Store className="w-3.5 h-3.5 text-orange-600" />
-                <span>{user?.tenantName || 'Toko Anda'}</span>
-                <span className="text-[10px] bg-orange-200/70 text-orange-900 px-1.5 py-0.5 rounded font-mono">
-                  SHOP_OWNER
-                </span>
-              </div>
-            )}
 
-            <button
-              type="button"
-              onClick={() => refetch()}
-              title="Segarkan Log"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin text-orange-500' : 'text-slate-500'}`} />
-              <span>Segarkan</span>
-            </button>
-          </div>
-        </div>
 
-        {/* Metric Summary Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div
-            onClick={() => {
-              setSelectedEntity('ALL');
-              setPage(1);
-            }}
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-              selectedEntity === 'ALL'
-                ? 'bg-orange-50/50 border-orange-300 shadow-xs'
-                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-            }`}
-          >
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              Total Log
-            </span>
-            <div className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
-              {stats.totalAll.toLocaleString('id-ID')}
-            </div>
-            <span className="text-[10px] text-slate-400 mt-0.5 block">Semua aktivitas</span>
-          </div>
 
-          <div
-            onClick={() => {
-              setSelectedEntity('PRODUK');
-              setPage(1);
-            }}
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-              selectedEntity === 'PRODUK'
-                ? 'bg-emerald-50/70 border-emerald-300 shadow-xs'
-                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">
-                Produk
-              </span>
-              <Package className="w-3.5 h-3.5 text-emerald-500" />
-            </div>
-            <div className="text-2xl font-extrabold text-emerald-800 mt-1 tabular-nums">
-              {stats.totalProducts.toLocaleString('id-ID')}
-            </div>
-            <span className="text-[10px] text-emerald-600/70 mt-0.5 block">Mutasi katalog</span>
-          </div>
-
-          <div
-            onClick={() => {
-              setSelectedEntity('KATEGORI');
-              setPage(1);
-            }}
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-              selectedEntity === 'KATEGORI'
-                ? 'bg-amber-50/70 border-amber-300 shadow-xs'
-                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">
-                Kategori
-              </span>
-              <Tags className="w-3.5 h-3.5 text-amber-500" />
-            </div>
-            <div className="text-2xl font-extrabold text-amber-800 mt-1 tabular-nums">
-              {stats.totalCategories.toLocaleString('id-ID')}
-            </div>
-            <span className="text-[10px] text-amber-600/70 mt-0.5 block">Klasifikasi produk</span>
-          </div>
-
-          <div
-            onClick={() => {
-              setSelectedEntity('PENGGUNA');
-              setPage(1);
-            }}
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-              selectedEntity === 'PENGGUNA'
-                ? 'bg-blue-50/70 border-blue-300 shadow-xs'
-                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-blue-700 uppercase tracking-wider">
-                Pengguna
-              </span>
-              <Users className="w-3.5 h-3.5 text-blue-500" />
-            </div>
-            <div className="text-2xl font-extrabold text-blue-800 mt-1 tabular-nums">
-              {stats.totalUsers.toLocaleString('id-ID')}
-            </div>
-            <span className="text-[10px] text-blue-600/70 mt-0.5 block">Akun kasir & staf</span>
-          </div>
-
-          <div
-            onClick={() => {
-              setSelectedEntity('TOKO');
-              setPage(1);
-            }}
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-              selectedEntity === 'TOKO'
-                ? 'bg-purple-50/70 border-purple-300 shadow-xs'
-                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-purple-700 uppercase tracking-wider">
-                Toko
-              </span>
-              <Store className="w-3.5 h-3.5 text-purple-500" />
-            </div>
-            <div className="text-2xl font-extrabold text-purple-800 mt-1 tabular-nums">
-              {stats.totalStore.toLocaleString('id-ID')}
-            </div>
-            <span className="text-[10px] text-purple-600/70 mt-0.5 block">Status & PPN</span>
-          </div>
-
-          <div
-            onClick={() => {
-              setSelectedEntity('REVOKE_TOKEN');
-              setPage(1);
-            }}
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-              selectedEntity === 'REVOKE_TOKEN'
-                ? 'bg-rose-50/70 border-rose-300 shadow-xs'
-                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-rose-700 uppercase tracking-wider">
-                Revoke Token
-              </span>
-              <KeyRound className="w-3.5 h-3.5 text-rose-500" />
-            </div>
-            <div className="text-2xl font-extrabold text-rose-800 mt-1 tabular-nums">
-              {stats.totalRevokes.toLocaleString('id-ID')}
-            </div>
-            <span className="text-[10px] text-rose-600/70 mt-0.5 block">Pencabutan sesi</span>
-          </div>
-        </div>
-
-        {/* Filter Controls Bar */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+        {/* Filter Controls Bar: Single Row, Equal Height, and Fully Responsive */}
+        <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 sm:gap-3">
+            {/* Search Input - Flex 1 */}
+            <div className="relative flex-1 min-w-0">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
@@ -528,102 +315,56 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
                   setPage(1);
                 }}
                 placeholder="Cari nama entitas, rincian aktivitas, aktor (user), email, atau tenan..."
-                className="w-full pl-10 pr-9 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-slate-50/60 transition-all"
+                className="w-full h-10 pl-10 pr-9 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-slate-50/60 transition-all flex items-center"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Entity Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {ENTITY_OPTIONS.map((opt) => {
-                const Icon = opt.icon;
-                const isActive = selectedEntity === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      setSelectedEntity(opt.value);
-                      setPage(1);
-                    }}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive
-                        ? 'bg-slate-900 text-white shadow-2xs'
-                        : 'bg-slate-100 hover:bg-slate-200/70 text-slate-700'
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span>{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+            {/* Filter Controls Row */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 shrink-0">
+              {isAdmin && (
+                <TenantSelect
+                  value={selectedTenantId}
+                  onValueChange={(val) => {
+                    setSelectedTenantId(val);
+                    setPage(1);
+                  }}
+                  tenants={tenants}
+                  allOptionLabel={`Semua Tenan (${tenants.length})`}
+                  className="h-10 bg-slate-50 hover:bg-slate-100 border-slate-200 shrink-0"
+                />
+              )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-            {/* Action Select Filter */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500">Filter Aksi:</span>
-              <select
-                value={selectedAction}
-                onChange={(e) => {
-                  setSelectedAction(e.target.value);
-                  setPage(1);
-                }}
-                className="px-3 py-1.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer"
-              >
-                {ACTION_OPTIONS.map((act) => (
-                  <option key={act.value} value={act.value}>
-                    {act.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Date Picker Button using react-day-picker */}
-            <div className="relative" ref={calendarDropdownRef}>
-              <div className="flex items-center gap-1.5">
+              {/* Date Picker Button using react-day-picker */}
+              <div className="relative shrink-0" ref={calendarDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
+                  className={`h-10 inline-flex items-center gap-2 px-3.5 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
                     selectedRange?.from || selectedSingleDate
                       ? 'bg-orange-50 border-orange-300 text-orange-700 shadow-2xs'
                       : 'bg-white border-slate-200 text-slate-700 hover:border-orange-300'
                   }`}
                 >
-                  <CalendarRange className="w-4 h-4 text-orange-600" />
-                  <span>{activeDateLabel}</span>
+                  <CalendarRange className="w-4 h-4 text-orange-600 shrink-0" />
+                  <span className="truncate max-w-[130px] sm:max-w-none">{activeDateLabel}</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
                       isCalendarOpen ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
 
-                {(selectedRange?.from || selectedSingleDate || selectedEntity !== 'ALL' || selectedAction !== 'ALL' || searchQuery || (isAdmin && selectedTenantId !== 'ALL')) && (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    title="Reset Semua Filter"
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Reset</span>
-                  </button>
-                )}
-              </div>
-
-              {/* react-day-picker Dropdown Card */}
-              {isCalendarOpen && (
+                {/* react-day-picker Dropdown Card */}
+                {isCalendarOpen && (
                 <div className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2.5rem)] max-w-sm sm:max-w-none sm:w-[380px] bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 space-y-3.5 animate-in fade-in zoom-in-95">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
@@ -764,13 +505,59 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
                 </div>
               )}
             </div>
+
+            {/* Reset Filter Button */}
+            {(selectedRange?.from || selectedSingleDate || searchQuery || (isAdmin && selectedTenantId !== 'ALL')) && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                title="Reset Semua Filter"
+                className="h-10 inline-flex items-center gap-1.5 px-3 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
+
+            {/* Segarkan Log Button */}
+            <button
+              type="button"
+              onClick={() => refetch()}
+              title="Segarkan Log"
+              className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin text-orange-500' : 'text-slate-500'}`} />
+              <span className="hidden sm:inline">Segarkan</span>
+            </button>
           </div>
         </div>
+      </div>
 
         {/* Activity Logs Table */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          {/* Card Header */}
+          <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-orange-600" />
+              <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+                Catatan Log Aktivitas
+              </h3>
+              {pagination.total > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-700">
+                  {pagination.total} Log
+                </span>
+              )}
+            </div>
+            {pagination.totalPages > 1 && (
+              <span className="text-xs text-slate-500 font-medium hidden sm:inline-block">
+                Halaman {pagination.page} dari {pagination.totalPages} (10 per halaman)
+              </span>
+            )}
+          </div>
+
+          {/* Desktop & Tablet View: Structured Data Table (hidden on mobile < md) */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[920px]">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                   <th className="py-3 px-4">Waktu</th>
@@ -943,53 +730,185 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
             </table>
           </div>
 
-          {/* Pagination Controls */}
-          {pagination.totalPages > 1 && (
-            <div className="p-4 bg-slate-50/80 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <span className="text-slate-500">
-                Menampilkan halaman{' '}
-                <strong className="text-slate-800">{pagination.page}</strong> dari{' '}
-                <strong className="text-slate-800">{pagination.totalPages}</strong> (Total{' '}
-                <strong className="text-slate-800">{pagination.total}</strong> aktivitas)
-              </span>
+          {/* Mobile View: Responsive Activity Cards (visible on mobile < md) */}
+          <div className="block md:hidden divide-y divide-slate-100">
+            {isLoading ? (
+              <div className="py-12 text-center text-slate-400">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <RefreshCw className="w-6 h-6 text-orange-500 animate-spin" />
+                  <span className="font-semibold text-slate-600">Memuat log aktivitas...</span>
+                </div>
+              </div>
+            ) : logs.length === 0 ? (
+              <div className="p-8 text-center text-slate-400">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-2">
+                  <ClipboardList className="w-6 h-6" />
+                </div>
+                <p className="font-bold text-slate-700 text-sm">Tidak Ada Log Aktivitas Ditemukan</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Belum ada catatan aktivitas yang sesuai dengan kriteria filter atau pencarian Anda.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+                >
+                  Reset Semua Filter
+                </button>
+              </div>
+            ) : (
+              logs.map((log) => {
+                const parsedDate = parseISO(log.createdAt);
+                const relativeTime = formatDistanceToNow(parsedDate, {
+                  addSuffix: true,
+                  locale: localeId,
+                });
+                const fullDateStr = format(parsedDate, 'dd/MM/yyyy HH:mm:ss');
+                const hasDiffData = !!log.previousData || !!log.newData;
 
-              <div className="flex items-center gap-1.5">
+                return (
+                  <div key={log.id} className="p-4 space-y-2.5 hover:bg-slate-50/70 transition-colors">
+                    {/* Top Row: User info & Time */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xs shrink-0">
+                          {log.userName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 text-xs truncate">{log.userName}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold bg-slate-100 text-slate-600">
+                              {log.userRole}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-slate-400 block truncate">{log.userEmail}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-[11px] font-mono font-semibold text-slate-700">{fullDateStr}</div>
+                        <div className="text-[10px] text-slate-400 capitalize">{relativeTime}</div>
+                      </div>
+                    </div>
+
+                    {/* Middle Row: Entity Badge, Action Badge, Target Name, and Tenant */}
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                      {renderEntityBadge(log.entity)}
+                      {renderActionBadge(log.action)}
+                      {log.entityName && (
+                        <span className="font-semibold text-slate-800 text-xs bg-slate-100/80 px-2 py-0.5 rounded truncate max-w-[160px]">
+                          {log.entityName}
+                        </span>
+                      )}
+                      {isAdmin && log.tenantName && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">
+                          <Building2 className="w-3 h-3 text-slate-400" />
+                          <span className="truncate max-w-[120px]">{log.tenantName}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Details text */}
+                    {log.details && (
+                      <p className="text-xs text-slate-600 bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                        {log.details}
+                      </p>
+                    )}
+
+                    {/* Bottom Row: Device/IP & Diff Button */}
+                    <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-slate-500">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[10px] text-slate-600">
+                          {log.ipAddress}
+                        </span>
+                        <span className="truncate text-slate-400 text-[10px]" title={log.device}>
+                          {log.device}
+                        </span>
+                      </div>
+
+                      {hasDiffData && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveModalLog(log)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 transition-colors shrink-0"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Diff</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Responsive Pagination Controls (10 items per page) */}
+          {pagination.total > 0 && (
+            <div className="p-3.5 sm:p-4 bg-slate-50/80 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="text-slate-500 text-center sm:text-left">
+                Menampilkan{' '}
+                <strong className="text-slate-800 font-bold">
+                  {(pagination.page - 1) * pageSize + 1}
+                </strong>
+                –
+                <strong className="text-slate-800 font-bold">
+                  {Math.min(pagination.page * pageSize, pagination.total)}
+                </strong>{' '}
+                dari{' '}
+                <strong className="text-slate-800 font-bold">{pagination.total}</strong> aktivitas{' '}
+                <span className="text-slate-400 font-medium hidden xs:inline">(10 per halaman)</span>
+              </div>
+
+              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
+                {/* Previous Button */}
                 <button
                   type="button"
                   disabled={pagination.page <= 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
-                  Sebelumnya
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Sebelumnya</span>
                 </button>
 
+                {/* Page Numbers */}
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    const pNum = i + 1;
+                  {getPageNumbers().map((pNum, idx) => {
+                    if (pNum === '...') {
+                      return (
+                        <span key={`dots-${idx}`} className="w-7 sm:w-8 text-center text-slate-400 font-bold">
+                          ...
+                        </span>
+                      );
+                    }
+                    const num = Number(pNum);
                     return (
                       <button
-                        key={pNum}
+                        key={num}
                         type="button"
-                        onClick={() => setPage(pNum)}
-                        className={`w-8 h-8 rounded-xl font-bold transition-all cursor-pointer ${
-                          pagination.page === pNum
+                        onClick={() => setPage(num)}
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          pagination.page === num
                             ? 'bg-orange-600 text-white shadow-2xs'
                             : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                         }`}
                       >
-                        {pNum}
+                        {num}
                       </button>
                     );
                   })}
                 </div>
 
+                {/* Next Button */}
                 <button
                   type="button"
                   disabled={pagination.page >= pagination.totalPages}
                   onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
-                  Selanjutnya
+                  <span className="hidden sm:inline">Selanjutnya</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
