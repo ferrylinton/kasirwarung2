@@ -13,9 +13,11 @@ import tenantRoutes from './routes/tenantRoutes.ts';
 import cashierRoutes from './routes/cashierRoutes.ts';
 import categoryRoutes from './routes/categoryRoutes.ts';
 import activityLogRoutes from './routes/activityLogRoutes.ts';
+import logRoutes from './routes/logRoutes.ts';
 import { errorHandler } from './middleware/errorMiddleware.ts';
 import { initMidnightCleanupScheduler } from './services/cleanupScheduler.ts';
 import { i18nMiddleware } from './config/i18n.ts';
+import { httpLogger, logger } from './config/logger.ts';
 
 export async function createApp(): Promise<Express> {
   const app = express();
@@ -23,12 +25,18 @@ export async function createApp(): Promise<Express> {
   app.use(express.json());
   app.use(cookieParser());
   app.use(i18nMiddleware);
+  app.use(httpLogger);
 
   // Initialize DB, Redis, and Midnight Cleanup Scheduler (3-month retention)
   await connectMongoDB();
   initRedis();
   await seedInitialData();
   initMidnightCleanupScheduler();
+
+  logger.info('Kasir Warung initialized: DB, Redis, and Midnight Cleanup Scheduler ready', {
+    env: process.env.NODE_ENV || 'development',
+    port: env.PORT,
+  });
 
   // Health and System Status Endpoint
   app.get('/api/health', (_req, res) => {
@@ -49,6 +57,16 @@ export async function createApp(): Promise<Express> {
   app.use('/api/orders', orderRoutes);
   app.use('/api/reports', reportRoutes);
   app.use('/api/activity-logs', activityLogRoutes);
+  app.use('/api/logs', logRoutes);
+
+  // 404 handler for unhandled API routes
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({
+      success: false,
+      message: `API endpoint ${req.method} ${req.originalUrl} tidak ditemukan`,
+      code: 'ROUTE_NOT_FOUND',
+    });
+  });
 
   app.use(errorHandler);
 

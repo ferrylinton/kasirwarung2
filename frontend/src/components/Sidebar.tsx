@@ -14,6 +14,7 @@ import {
   Database,
   ChevronRight,
   ClipboardList,
+  Terminal,
 } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useCart } from '../context/CartContext.tsx';
@@ -87,7 +88,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
       : currentTab === 'products' || currentTab === 'categories';
 
   const isHistoryActive =
-    currentTab === 'history' || currentTab === 'activity-log';
+    currentTab === 'history' || currentTab === 'activity-log' || currentTab === 'system-logs';
 
   const isAuthActive =
     currentTab === 'cashiers' ||
@@ -315,6 +316,36 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                     {user?.role === 'ADMIN'
                       ? 'Audit Trail Semua Tenan'
                       : 'Audit Trail Perubahan Toko'}
+                  </span>
+                </div>
+              </DropdownMenu.Item>
+
+              {/* Submenu: Log Sistem (Winston Async Daily Rotate File) */}
+              <DropdownMenu.Item
+                onSelect={() => handleItemClick('system-logs')}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer outline-none transition-all ${
+                  currentTab === 'system-logs'
+                    ? 'bg-orange-500/25 text-orange-200 border border-orange-500/40 shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10 focus:bg-white/10 focus:text-white'
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                    currentTab === 'system-logs'
+                      ? 'bg-[#EC6C1A] text-white shadow-2xs'
+                      : 'bg-white/5 text-slate-400'
+                  }`}
+                >
+                  <Terminal className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-bold leading-tight">
+                    Log Sistem
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-normal leading-tight">
+                    {user?.role === 'ADMIN'
+                      ? 'Winston Log Semua Tenan'
+                      : 'Winston Log Tenan Toko'}
                   </span>
                 </div>
               </DropdownMenu.Item>

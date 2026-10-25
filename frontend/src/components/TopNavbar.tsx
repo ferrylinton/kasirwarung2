@@ -30,13 +30,16 @@ export type ActiveTab =
   | 'login-history'
   | 'active-tokens'
   | 'activity-log'
+  | 'system-logs'
   | 'change-password'
   | 'tenants'
   | 'admin-products'
   | 'admin-categories'
   | 'deactivation-requests'
   | 'cashiers'
-  | 'store-settings';
+  | 'store-settings'
+  | 'not-found'
+  | 'error';
 
 interface TopNavbarProps {
   currentTab?: ActiveTab;
@@ -83,6 +86,11 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         return user?.role === 'ADMIN'
           ? t('nav.activityLog', 'Log Aktivitas (Semua Toko)')
           : t('nav.activityLog', 'Log Aktivitas Toko');
+      case 'system-logs':
+        return user?.role === 'ADMIN'
+          ? 'Log Sistem (Semua Tenan - Winston)'
+          : 'Log Sistem (Tenan Toko - Winston)';
+
       case 'change-password':
         return t('nav.changePassword', 'Ubah Password');
       case 'products':
@@ -91,6 +99,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         return t('nav.categories', 'Kelola Kategori Produk');
       case 'history':
         return t('nav.history', 'Riwayat Transaksi');
+      case 'not-found':
+        return '404 · Halaman Tidak Ditemukan';
+      case 'error':
+        return '500 · Terjadi Kesalahan Sistem';
       case 'pos':
       default:
         return t('nav.pos', 'Pesanan');

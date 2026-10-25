@@ -24,14 +24,76 @@ import UsersPage from './pages/UsersPage.tsx';
 import StoreSettingsPage from './pages/StoreSettingsPage.tsx';
 import AdminDeactivationRequestsPage from './pages/AdminDeactivationRequestsPage.tsx';
 import ActivityLogPage from './pages/ActivityLogPage.tsx';
+import LogViewerPage from './pages/LogViewerPage.tsx';
+import NotFoundPage from './pages/NotFoundPage.tsx';
+import ErrorPage from './pages/ErrorPage.tsx';
+import ErrorBoundary from './components/common/ErrorBoundary.tsx';
+
+const VALID_TABS: ActiveTab[] = [
+  'pos',
+  'products',
+  'categories',
+  'history',
+  'profile',
+  'login-history',
+  'active-tokens',
+  'activity-log',
+  'system-logs',
+  'change-password',
+  'tenants',
+  'admin-products',
+  'admin-categories',
+  'deactivation-requests',
+  'cashiers',
+  'store-settings',
+  'not-found',
+  'error',
+];
 
 const AppContent: React.FC = () => {
   const { user, loading, logout, idleTimeoutMinutes } = useAuth();
+  const [attemptedInvalidPath, setAttemptedInvalidPath] = useState<string>('');
+
   const [currentTab, setCurrentTab] = useState<ActiveTab>(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashTab = window.location.hash.replace('#', '') as ActiveTab;
+      if (VALID_TABS.includes(hashTab)) {
+        return hashTab;
+      }
+      return 'not-found';
+    }
     return user?.role === 'ADMIN' ? 'tenants' : 'pos';
   });
   const [adminDrillTenantId, setAdminDrillTenantId] = useState<string>('ALL');
   const [adminDrillCategory, setAdminDrillCategory] = useState<string>('Semua Produk');
+
+  // Synchronize hash with currentTab
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleHashChange = () => {
+        const hash = window.location.hash.replace('#', '');
+        if (!hash) return;
+        if (VALID_TABS.includes(hash as ActiveTab)) {
+          setCurrentTab(hash as ActiveTab);
+        } else {
+          setAttemptedInvalidPath('#' + hash);
+          setCurrentTab('not-found');
+        }
+      };
+
+      window.addEventListener('hashchange', handleHashChange);
+      return () => window.removeEventListener('hashchange', handleHashChange);
+    }
+  }, []);
+
+  // Sync window hash when currentTab changes
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && currentTab) {
+      if (window.location.hash !== `#${currentTab}`) {
+        window.history.replaceState(null, '', `#${currentTab}`);
+      }
+    }
+  }, [currentTab]);
 
   // Automatically switch tab if user role changes or is ADMIN trying to access POS
   React.useEffect(() => {
@@ -176,14 +238,33 @@ const AppContent: React.FC = () => {
             onNavigate={setCurrentTab}
           />
         );
+      case 'system-logs':
+        return (
+          <LogViewerPage
+            onNavigate={setCurrentTab}
+          />
+        );
       case 'change-password':
         return (
           <ChangePasswordPage
             onNavigate={setCurrentTab}
           />
         );
+      case 'not-found':
+        return (
+          <NotFoundPage
+            onNavigate={setCurrentTab}
+            attemptedPath={attemptedInvalidPath}
+          />
+        );
+      case 'error':
+        return (
+          <ErrorPage
+            onNavigate={setCurrentTab}
+            onReset={() => setCurrentTab(user?.role === 'ADMIN' ? 'tenants' : 'pos')}
+          />
+        );
       case 'pos':
-      default:
         // Role ADMIN tidak bisa akses halaman order/pos, arahkan ke tenants
         if (user?.role === 'ADMIN') {
           return (
@@ -193,6 +274,14 @@ const AppContent: React.FC = () => {
           );
         }
         return <OrderPage onNavigate={setCurrentTab} />;
+      default:
+        // Any unknown tab route triggers the 404 NotFoundPage
+        return (
+          <NotFoundPage
+            onNavigate={setCurrentTab}
+            attemptedPath={String(currentTab)}
+          />
+        );
     }
   };
 
@@ -207,9 +296,11 @@ const AppContent: React.FC = () => {
         onLogout={logout}
       />
 
-      {/* Main View Area */}
+      {/* Main View Area with ErrorBoundary protection */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {renderCurrentPage()}
+        <ErrorBoundary onNavigate={setCurrentTab}>
+          {renderCurrentPage()}
+        </ErrorBoundary>
       </div>
 
       {/* Idle Timer Auto-logout Warning Modal */}
@@ -235,13 +326,15 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary isFullPage>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <CartProvider>
+            <AppContent />
+          </CartProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

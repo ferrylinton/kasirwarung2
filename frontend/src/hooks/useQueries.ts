@@ -365,4 +365,47 @@ export function useActivityLogs(
   });
 }
 
+// System Logs (Winston Daily Rotate File) Query Hooks
+export function useLogFiles(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['system-log-files'],
+    queryFn: () => api.getLogFiles(),
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 10,
+  });
+}
+
+export function useSystemLogs(
+  params?: {
+    file?: string;
+    level?: string;
+    tenantId?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+  },
+  options?: { enabled?: boolean; refetchInterval?: number | false }
+) {
+  return useQuery({
+    queryKey: [
+      'system-logs',
+      params?.file || '',
+      params?.level || 'all',
+      params?.tenantId || '',
+      params?.search || '',
+      params?.page || 1,
+      params?.limit || 20,
+      params?.startDate || '',
+      params?.endDate || '',
+    ],
+    queryFn: () => api.getSystemLogs(params),
+    enabled: options?.enabled ?? true,
+    refetchInterval: options?.refetchInterval ?? false,
+    staleTime: 1000 * 5,
+  });
+}
+
+
 

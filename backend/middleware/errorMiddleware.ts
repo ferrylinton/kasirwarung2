@@ -1,12 +1,23 @@
 import type { Request, Response, NextFunction } from 'express';
+import { logger } from '../config/logger.ts';
+import type { AuthenticatedRequest } from './authMiddleware.ts';
 
 export function errorHandler(
   err: any,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ): void {
-  console.error('[Error]', err);
+  const authReq = req as AuthenticatedRequest;
+  logger.error(`Unhandled/Route Error: ${err.message || 'Unknown error'}`, {
+    path: req.originalUrl,
+    method: req.method,
+    tenantId: authReq.user?.tenantId || null,
+    userId: authReq.user?.userId || null,
+    role: authReq.user?.role || null,
+    stack: err.stack,
+  });
+
   if (err?.name === 'BSONError' || err?.message?.includes('BSONError') || err?.message?.includes('24 character hex string')) {
     res.status(400).json({
       success: false,
@@ -20,3 +31,4 @@ export function errorHandler(
     message: err.message || 'Terjadi kesalahan pada internal server',
   });
 }
+

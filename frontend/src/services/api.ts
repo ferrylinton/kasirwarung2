@@ -541,7 +541,117 @@ export const api = {
     return apiRequest<ActivityLogResponse>(`/api/activity-logs${query}`);
   },
 
+  // System Logs (Winston Daily Rotate File)
+  getLogFiles: () =>
+    apiRequest<{
+      success: boolean;
+      files: LogFileItem[];
+      currentLogDir: string;
+      currentLogLevel?: string;
+      allowedLogLevels?: string[];
+    }>('/api/logs/files'),
+  getSystemLogs: (params?: {
+    file?: string;
+    level?: string;
+    tenantId?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    const qs = new URLSearchParams();
+    if (params?.file) qs.append('file', params.file);
+    if (params?.level && params.level !== 'all') qs.append('level', params.level);
+    if (params?.tenantId && params.tenantId !== 'ALL') qs.append('tenantId', params.tenantId);
+    if (params?.search) qs.append('search', params.search);
+    if (params?.page) qs.append('page', String(params.page));
+    if (params?.limit) qs.append('limit', String(params.limit));
+    if (params?.startDate) qs.append('startDate', params.startDate);
+    if (params?.endDate) qs.append('endDate', params.endDate);
+    const query = qs.toString() ? `?${qs.toString()}` : '';
+    return apiRequest<SystemLogResponse>(`/api/logs${query}`);
+  },
+  getLogConfig: () =>
+    apiRequest<{
+      success: boolean;
+      currentLogLevel: string;
+      fileLogLevel: string;
+      consoleLogLevel: string;
+      allowedLogLevels: string[];
+      envConfig: Record<string, string>;
+    }>('/api/logs/config'),
+  updateLogLevel: (level: string) =>
+    apiRequest<{ success: boolean; message: string; currentLogLevel: string }>('/api/logs/level', {
+      method: 'PUT',
+      body: JSON.stringify({ level }),
+    }),
+  simulateLog: (data: { level: string; message: string; meta?: any }) =>
+    apiRequest('/api/logs/simulate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   // Reports
   getReportSummary: () => apiRequest('/api/reports/summary'),
   getHealth: () => apiRequest('/api/health'),
 };
+
+export interface LogFileItem {
+  fileName: string;
+  sizeBytes: number;
+  sizeFormatted: string;
+  lastModified: string;
+  createdAt: string;
+  isGz: boolean;
+}
+
+export interface SystemLogItem {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warn' | 'error' | 'debug' | 'http' | 'verbose' | 'silly' | string;
+  message: string;
+  tenantId?: string | null;
+  tenantName?: string | null;
+  userId?: string | null;
+  role?: string | null;
+  method?: string;
+  url?: string;
+  status?: number;
+  durationMs?: number;
+  ip?: string;
+  userAgent?: string;
+  stack?: string;
+  meta?: Record<string, any>;
+  [key: string]: any;
+}
+
+export interface SystemLogResponse {
+  success: boolean;
+  currentFile: string;
+  availableFiles: string[];
+  currentLogLevel?: string;
+  allowedLogLevels?: string[];
+  stats: {
+    total: number;
+    info: number;
+    warn: number;
+    error: number;
+    debug?: number;
+  };
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  logs: SystemLogItem[];
+  userScope?: {
+    role: string;
+    isGlobalAdmin: boolean;
+    tenantId: string | null;
+    tenantName: string | null;
+  };
+}
+
+
