@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Tags,
@@ -11,17 +11,21 @@ import { Category, Tenant } from '../services/api.ts';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useCategories, useTenants } from '../hooks/useQueries.ts';
 import { TenantSelect } from '../components/TenantSelect.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
+import { useAdminDrill } from '../context/AdminDrillContext.tsx';
 
-interface AdminCategoriesPageProps {
-  onFilterTenantProducts?: (tenantId: string, categoryName: string) => void;
-}
-
-export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
-  onFilterTenantProducts,
-}) => {
+export const AdminCategoriesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { tenantId } = useAuth();
+  const { setAdminDrillTenantId, setAdminDrillCategory } = useAdminDrill();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTenantId, setSelectedTenantId] = useState('ALL');
+  const [selectedTenantId, setSelectedTenantId] = useState<string>(tenantId || 'ALL');
+
+  useEffect(() => {
+    if (tenantId) {
+      setSelectedTenantId(tenantId);
+    }
+  }, [tenantId]);
 
   // TanStack Query for tenants
   const { data: tenantsData } = useTenants();
@@ -163,11 +167,11 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                     <button
                       onClick={() => {
-                        if (onFilterTenantProducts && category.tenantId) {
-                          onFilterTenantProducts(category.tenantId, category.name);
-                        } else {
-                          navigate('/admin-products');
+                        if (category.tenantId) {
+                          setAdminDrillTenantId(category.tenantId);
+                          setAdminDrillCategory(category.name);
                         }
+                        navigate('/admin-products');
                       }}
                       className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 transition-colors cursor-pointer"
                     >

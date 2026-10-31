@@ -39,23 +39,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 import ErrorPage from './pages/ErrorPage.tsx';
 import ErrorBoundary from './components/common/ErrorBoundary.tsx';
-
-// Admin Drill-down Context for filtering tenant products from categories
-interface AdminDrillContextType {
-  adminDrillTenantId: string;
-  setAdminDrillTenantId: (id: string) => void;
-  adminDrillCategory: string;
-  setAdminDrillCategory: (cat: string) => void;
-}
-
-const AdminDrillContext = createContext<AdminDrillContextType>({
-  adminDrillTenantId: 'ALL',
-  setAdminDrillTenantId: () => {},
-  adminDrillCategory: 'Semua Produk',
-  setAdminDrillCategory: () => {},
-});
-
-export const useAdminDrill = () => useContext(AdminDrillContext);
+import { AdminDrillProvider } from './context/AdminDrillContext.tsx';
 
 /**
  * Maps an ActiveTab to a URL pathname
@@ -229,15 +213,9 @@ const OrderPageWrapper: React.FC = () => {
 
 const ProductsPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const { adminDrillTenantId, adminDrillCategory } = useAdminDrill();
 
   if (user?.role === ADMIN) {
-    return (
-      <AdminProductsPage
-        initialTenantId={adminDrillTenantId}
-        initialCategory={adminDrillCategory}
-      />
-    );
+    return <AdminProductsPage />;
   }
 
   return <ProductsPage />;
@@ -246,18 +224,9 @@ const ProductsPageWrapper: React.FC = () => {
 const CategoriesPageWrapper: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { setAdminDrillTenantId, setAdminDrillCategory } = useAdminDrill();
 
   if (user?.role === ADMIN) {
-    return (
-      <AdminCategoriesPage
-        onFilterTenantProducts={(tId, catName) => {
-          setAdminDrillTenantId(tId);
-          setAdminDrillCategory(catName);
-          navigate('/admin-products');
-        }}
-      />
-    );
+    return <AdminCategoriesPage />;
   }
 
   return (
@@ -279,38 +248,22 @@ const TenantsPageWrapper: React.FC = () => {
 
 const AdminProductsPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const { adminDrillTenantId, adminDrillCategory } = useAdminDrill();
 
   if (user?.role !== ADMIN) {
     return <Navigate to="/products" replace />;
   }
 
-  return (
-    <AdminProductsPage
-      initialTenantId={adminDrillTenantId}
-      initialCategory={adminDrillCategory}
-    />
-  );
+  return <AdminProductsPage />;
 };
 
 const AdminCategoriesPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const { setAdminDrillTenantId, setAdminDrillCategory } = useAdminDrill();
 
   if (user?.role !== ADMIN) {
     return <Navigate to="/categories" replace />;
   }
 
-  return (
-    <AdminCategoriesPage
-      onFilterTenantProducts={(tId, catName) => {
-        setAdminDrillTenantId(tId);
-        setAdminDrillCategory(catName);
-        navigate('/admin-products');
-      }}
-    />
-  );
+  return <AdminCategoriesPage />;
 };
 
 const AdminDeactivationRequestsPageWrapper: React.FC = () => {
@@ -476,24 +429,14 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
-  const [adminDrillTenantId, setAdminDrillTenantId] = useState<string>('ALL');
-  const [adminDrillCategory, setAdminDrillCategory] = useState<string>('Semua Produk');
-
   return (
     <ErrorBoundary isFullPage>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <AdminDrillContext.Provider
-              value={{
-                adminDrillTenantId,
-                setAdminDrillTenantId,
-                adminDrillCategory,
-                setAdminDrillCategory,
-              }}
-            >
+            <AdminDrillProvider>
               <RouterProvider router={router} />
-            </AdminDrillContext.Provider>
+            </AdminDrillProvider>
           </CartProvider>
         </AuthProvider>
       </QueryClientProvider>

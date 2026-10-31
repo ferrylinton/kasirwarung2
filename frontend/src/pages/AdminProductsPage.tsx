@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Package,
   Search,
@@ -10,19 +10,33 @@ import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useProducts, useTenants, useCategories } from '../hooks/useQueries.ts';
 import { CategorySelect } from '../components/CategorySelect.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
+import { useAdminDrill } from '../context/AdminDrillContext.tsx';
 
-interface AdminProductsPageProps {
-  initialTenantId?: string;
-  initialCategory?: string;
-}
-
-export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
-  initialTenantId = 'ALL',
-  initialCategory = 'Semua Produk',
-}) => {
+export const AdminProductsPage: React.FC = () => {
+  const { tenantId } = useAuth();
+  const { adminDrillTenantId, adminDrillCategory } = useAdminDrill();
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedTenantId, setSelectedTenantId] = useState<string>(initialTenantId);
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const [selectedTenantId, setSelectedTenantId] = useState<string>(
+    adminDrillTenantId && adminDrillTenantId !== 'ALL' ? adminDrillTenantId : (tenantId || 'ALL')
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    adminDrillCategory || 'Semua Produk'
+  );
+
+  useEffect(() => {
+    if (adminDrillTenantId && adminDrillTenantId !== 'ALL') {
+      setSelectedTenantId(adminDrillTenantId);
+    } else if (tenantId) {
+      setSelectedTenantId(tenantId);
+    }
+  }, [adminDrillTenantId, tenantId]);
+
+  useEffect(() => {
+    if (adminDrillCategory) {
+      setSelectedCategory(adminDrillCategory);
+    }
+  }, [adminDrillCategory]);
 
   // TanStack Query for tenants dropdown
   const { data: tenantsData } = useTenants();
