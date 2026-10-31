@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, OrderItem, Order, api } from '../services/api.ts';
+import { Product, OrderItem, Order, api, ADMIN } from '../services/api.ts';
 import { useAuth } from './AuthContext.tsx';
 import {
   useSavedOrders,
@@ -94,21 +94,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user } = useAuth();
   const [invoiceNo, setInvoiceNo] = useState<string>('INV/2025/05/28-0042');
   const [items, setItems] = useState<OrderItem[]>(() => {
-    return user?.role === 'ADMIN' ? [] : INITIAL_DEMO_ITEMS;
+    return user?.role === ADMIN ? [] : INITIAL_DEMO_ITEMS;
   });
   const [customerName, setCustomerName] = useState<string>('Pelanggan Umum');
   const [isMobileCartOpen, setIsMobileCartOpen] = useState<boolean>(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    if (user?.role === 'ADMIN') {
+    if (user?.role === ADMIN) {
       setItems([]);
     }
   }, [user]);
 
   // TanStack Query for saved orders
   const { data: savedOrdersData, refetch: refreshOrders } = useSavedOrders({
-    enabled: !!user && user.role !== 'ADMIN',
+    enabled: !!user && user.role !== ADMIN,
   });
   const savedOrders = savedOrdersData?.data || [];
 
@@ -130,7 +130,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addItem = (product: Product, qtyDelta = 1) => {
-    if (user?.role === 'ADMIN') return;
+    if (user?.role === ADMIN) return;
     setItems((prev) => {
       const existingIdx = prev.findIndex(
         (i) => i.productId === product.id || i.productId === product.sku || i.name === product.name
@@ -161,7 +161,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const setItemQty = (productId: string, qty: number, product?: Product) => {
-    if (user?.role === 'ADMIN') return;
+    if (user?.role === ADMIN) return;
     setItems((prev) => {
       const existingIdx = prev.findIndex(
         (i) => i.productId === productId || (product && i.name === product.name)
@@ -215,7 +215,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const saveCurrentOrder = async (): Promise<boolean> => {
-    if (user?.role === 'ADMIN' || items.length === 0) return false;
+    if (user?.role === ADMIN || items.length === 0) return false;
     try {
       await saveOrderMutation.mutateAsync({
         invoiceNo,
@@ -245,7 +245,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const { data: tenantData } = useCurrentTenant({ enabled: !!user && user.role !== 'ADMIN' });
+  const { data: tenantData } = useCurrentTenant({ enabled: !!user && user.role !== ADMIN });
   const tenant = tenantData?.data;
   const taxEnabled = tenant?.taxEnabled !== undefined ? Boolean(tenant.taxEnabled) : true;
   const taxRate = typeof tenant?.taxRate === 'number' ? tenant.taxRate : 11;

@@ -20,6 +20,7 @@ import {
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { LanguageSelector } from './LanguageSelector.tsx';
+import { ADMIN } from '../constants/roles.ts';
 
 export type ActiveTab =
   | 'pos'
@@ -38,6 +39,7 @@ export type ActiveTab =
   | 'deactivation-requests'
   | 'cashiers'
   | 'store-settings'
+  | 'privacy-policy'
   | 'not-found'
   | 'error';
 
@@ -75,19 +77,19 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
       case 'profile':
         return t('nav.profile', 'Profil Pengguna');
       case 'login-history':
-        return user?.role === 'ADMIN'
+        return user?.role === ADMIN
           ? t('nav.loginHistory', 'Histori Login Seluruh Tenan')
           : t('nav.loginHistory', 'Histori Login Pengguna Toko');
       case 'active-tokens':
-        return user?.role === 'ADMIN'
+        return user?.role === ADMIN
           ? t('nav.activeTokens', 'Access Token Aktif (Semua Tenan)')
           : t('nav.activeTokens', 'Access Token Aktif Toko');
       case 'activity-log':
-        return user?.role === 'ADMIN'
+        return user?.role === ADMIN
           ? t('nav.activityLog', 'Log Aktivitas (Semua Toko)')
           : t('nav.activityLog', 'Log Aktivitas Toko');
       case 'system-logs':
-        return user?.role === 'ADMIN'
+        return user?.role === ADMIN
           ? 'Log Sistem (Semua Tenan - Winston)'
           : 'Log Sistem (Tenan Toko - Winston)';
 
@@ -135,7 +137,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         <LanguageSelector variant="compact" />
 
         {/* Shopping Cart Button for Tablet and Mobile (non-ADMIN only) */}
-        {user?.role !== 'ADMIN' && (
+        {user?.role !== ADMIN && (
           <button
             onClick={onOpenMobileCart || openMobileCart}
             title={t('pos.cartTitle', 'Keranjang')}
@@ -201,6 +203,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               >
                 <KeyRound className="w-4 h-4 text-slate-400" />
                 <span>{t('nav.changePassword', 'Ubah Password')}</span>
+              </DropdownMenu.Item>
+
+              {/* Kebijakan Privasi */}
+              <DropdownMenu.Item
+                onSelect={() => onNavigate?.('privacy-policy')}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
+              >
+                <ShieldCheck className="w-4 h-4 text-slate-400" />
+                <span>{t('nav.privacyPolicy', 'Kebijakan Privasi')}</span>
               </DropdownMenu.Item>
 
               {/* Separator */}

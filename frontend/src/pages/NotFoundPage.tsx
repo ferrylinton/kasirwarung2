@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ActiveTab, TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { ADMIN, SHOP_OWNER, SHOP_CASHIER, type UserRole } from '../constants/roles.ts';
 
 interface NotFoundPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -43,7 +44,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const defaultHomeTab: ActiveTab = user?.role === 'ADMIN' ? 'tenants' : 'pos';
+  const defaultHomeTab: ActiveTab = user?.role === ADMIN ? 'tenants' : 'pos';
 
   // Navigation targets for quick jump
   const quickLinks: Array<{
@@ -51,56 +52,56 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
     label: string;
     description: string;
     icon: React.ReactNode;
-    roles?: string[];
+    roles?: UserRole[];
   }> = [
     {
       id: 'pos',
       label: 'Kasir & Penjualan (POS)',
       description: 'Halaman kasir transaksi harian dan keranjang',
       icon: <ShoppingCart className="w-5 h-5 text-orange-500" />,
-      roles: ['CASHIER', 'SHOP_OWNER'],
+      roles: [SHOP_CASHIER, SHOP_OWNER],
     },
     {
       id: 'products',
       label: 'Katalog & Stok Produk',
       description: 'Kelola inventaris, barcode, dan harga barang',
       icon: <Package className="w-5 h-5 text-blue-500" />,
-      roles: ['CASHIER', 'SHOP_OWNER'],
+      roles: [SHOP_CASHIER, SHOP_OWNER],
     },
     {
       id: 'admin-products',
       label: 'Semua Produk Tenan',
       description: 'Audit katalog produk dari semua warung/toko',
       icon: <Package className="w-5 h-5 text-indigo-500" />,
-      roles: ['ADMIN'],
+      roles: [ADMIN],
     },
     {
       id: 'tenants',
       label: 'Kelola Tenan Platform',
       description: 'Dashboard kelola toko terdaftar dan aktivasi',
       icon: <Store className="w-5 h-5 text-emerald-500" />,
-      roles: ['ADMIN'],
+      roles: [ADMIN],
     },
     {
       id: 'history',
       label: 'Riwayat Transaksi',
       description: 'Daftar struk, rekapan penjualan, dan status pembayaran',
       icon: <History className="w-5 h-5 text-purple-500" />,
-      roles: ['CASHIER', 'SHOP_OWNER', 'ADMIN'],
+      roles: [SHOP_CASHIER, SHOP_OWNER, ADMIN],
     },
     {
       id: 'system-logs',
       label: 'Log Sistem Winston',
       description: 'Audit berkas log server harian dan inspeksi aktivitas',
       icon: <Terminal className="w-5 h-5 text-amber-500" />,
-      roles: ['SHOP_OWNER', 'ADMIN'],
+      roles: [SHOP_OWNER, ADMIN],
     },
     {
       id: 'store-settings',
       label: 'Pengaturan Toko',
       description: 'Konfigurasi nama toko, struk, dan pajak',
       icon: <Settings className="w-5 h-5 text-slate-500" />,
-      roles: ['SHOP_OWNER'],
+      roles: [SHOP_OWNER],
     },
   ];
 

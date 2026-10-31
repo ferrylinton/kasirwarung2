@@ -4,6 +4,7 @@ import { sendReceiptEmail } from '../config/mailer.ts';
 import { formatCurrentTimeHHMM } from '../utils/invoice.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { cleanupOrdersOlderThanThreeMonths } from '../services/cleanupScheduler.ts';
+import { ADMIN } from '../constants/roles.ts';
 
 export async function getSavedOrders(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
@@ -13,7 +14,7 @@ export async function getSavedOrders(req: AuthenticatedRequest, res: Response): 
     new ObjectId('6ace8019cb267df584bd0001');
 
   const filter: Record<string, any> = { status: 'saved' };
-  if (req.user?.role !== 'ADMIN' || (req.query.tenantId && req.query.tenantId !== 'ALL')) {
+  if (req.user?.role !== ADMIN || (req.query.tenantId && req.query.tenantId !== 'ALL')) {
     filter.tenantId = tenantId;
   }
 
@@ -77,7 +78,7 @@ export async function getOrderHistory(req: AuthenticatedRequest, res: Response):
   filter.createdAt = dateFilter;
 
   // Tenant scoping: SHOP_OWNER can only see their own tenant; ADMIN can see ALL or specific tenant
-  if (req.user?.role !== 'ADMIN') {
+  if (req.user?.role !== ADMIN) {
     const userTenantId = safeObjectId(req.user?.tenantId) || new ObjectId('6ace8019cb267df584bd0001');
     if (String(userTenantId) === '6ace8019cb267df584bd0001') {
       filter.$or = [{ tenantId: userTenantId }, { tenantId: { $exists: false } }, { tenantId: null }];
@@ -133,7 +134,7 @@ export async function triggerCleanupOrders(_req: AuthenticatedRequest, res: Resp
 
 export async function createOrSaveOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
   // Role ADMIN tidak bisa bikin order
-  if (req.user?.role === 'ADMIN') {
+  if (req.user?.role === ADMIN) {
     res.status(403).json({
       success: false,
       message: 'Role ADMIN tidak bisa bikin order. Hanya kasir atau pemilik toko (SHOP_CASHIER / SHOP_OWNER) yang dapat membuat transaksi.',

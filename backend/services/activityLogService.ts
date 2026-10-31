@@ -1,5 +1,6 @@
 import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
+import { ADMIN, SHOP_CASHIER } from '../constants/roles.ts';
 
 export type ActivityAction =
   | 'CREATE'
@@ -69,11 +70,11 @@ export async function logActivity(params: {
       tenantId: tId,
       tenantName:
         resolvedTenantName ||
-        (params.userRole === 'ADMIN' ? 'Platform Administrator' : 'Toko Utama'),
+        (params.userRole === ADMIN ? 'Platform Administrator' : 'Toko Utama'),
       userId: safeObjectId(params.userId),
       userName: params.userName || 'User',
       userEmail: params.userEmail || '-',
-      userRole: params.userRole || 'SHOP_CASHIER',
+      userRole: params.userRole || SHOP_CASHIER,
       action: params.action,
       entity: params.entity,
       entityId: params.entityId ? String(params.entityId) : null,
@@ -117,7 +118,7 @@ export async function recordActivity(
     userId: user?.userId || null,
     userName: user?.name || 'User',
     userEmail: user?.email || '-',
-    userRole: user?.role || 'SHOP_CASHIER',
+    userRole: user?.role || SHOP_CASHIER,
     action: params.action,
     entity: params.entity,
     entityId: params.entityId,

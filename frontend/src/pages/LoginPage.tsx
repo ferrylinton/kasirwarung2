@@ -19,11 +19,20 @@ import {
 import { useAuth } from '../context/AuthContext.tsx';
 import { api } from '../services/api.ts';
 import { LanguageSelector } from '../components/LanguageSelector.tsx';
+import { ADMIN, SHOP_OWNER, SHOP_CASHIER, UserRole } from '../constants/roles.ts';
 
-const DEMO_ACCOUNTS = [
+const DEMO_ACCOUNTS: Array<{
+  id: string;
+  role: UserRole;
+  label: string;
+  email: string;
+  password: string;
+  subtext: string;
+  badgeClass: string;
+}> = [
   {
     id: 'admin',
-    role: 'ADMIN',
+    role: ADMIN,
     label: 'Super Administrator',
     email: 'admin@kasirwarung.id',
     password: 'admin123',
@@ -32,7 +41,7 @@ const DEMO_ACCOUNTS = [
   },
   {
     id: 'owner-budi',
-    role: 'SHOP_OWNER',
+    role: SHOP_OWNER,
     label: 'Budi Santoso (Pemilik Warung 1)',
     email: 'budi@kasirwarung.id',
     password: 'kasir123',
@@ -41,7 +50,7 @@ const DEMO_ACCOUNTS = [
   },
   {
     id: 'cashier-siti',
-    role: 'SHOP_CASHIER',
+    role: SHOP_CASHIER,
     label: 'Siti Aminah (Kasir Warung 1)',
     email: 'siti@kasirwarung.id',
     password: 'kasir123',
@@ -50,7 +59,7 @@ const DEMO_ACCOUNTS = [
   },
   {
     id: 'owner-hendra',
-    role: 'SHOP_OWNER',
+    role: SHOP_OWNER,
     label: 'Hendra Gunawan (Pemilik Warung 2)',
     email: 'hendra@kelontong.id',
     password: 'kasir123',
@@ -61,7 +70,11 @@ const DEMO_ACCOUNTS = [
 
 type AuthMode = 'login' | 'register_tenant' | 'reactivate_tenant';
 
-export const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onOpenPrivacyPolicy?: () => void;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => {
   const { t } = useTranslation();
   const [mode, setMode] = useState<AuthMode>('login');
 
@@ -630,6 +643,25 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Footer info & Kebijakan Privasi */}
+        <div className="pt-2 text-center border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+          <span>&copy; {new Date().getFullYear()} Kasir Warung</span>
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenPrivacyPolicy) {
+                onOpenPrivacyPolicy();
+              } else if (typeof window !== 'undefined') {
+                window.location.href = '/privacy-policy';
+              }
+            }}
+            className="hover:text-orange-600 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Kebijakan Privasi</span>
+          </button>
+        </div>
       </div>
     </div>
   );

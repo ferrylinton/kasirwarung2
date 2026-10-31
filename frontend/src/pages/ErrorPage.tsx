@@ -15,6 +15,7 @@ import {
 import { ActiveTab, TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { api } from '../services/api.ts';
+import { ADMIN, SHOP_OWNER } from '../constants/roles.ts';
 
 export interface ErrorPageProps {
   error?: Error | null;
@@ -43,7 +44,7 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
   const [isSendingReport, setIsSendingReport] = useState(false);
   const [reportSentStatus, setReportSentStatus] = useState<string | null>(null);
 
-  const defaultHomeTab: ActiveTab = user?.role === 'ADMIN' ? 'tenants' : 'pos';
+  const defaultHomeTab: ActiveTab = user?.role === ADMIN ? 'tenants' : 'pos';
 
   const errorMessage =
     message ||
@@ -176,7 +177,7 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
             <span>Ke Menu Utama</span>
           </button>
 
-          {(user?.role === 'ADMIN' || user?.role === 'SHOP_OWNER') && (
+          {(user?.role === ADMIN || user?.role === SHOP_OWNER) && (
             <button
               onClick={() => {
                 if (onReset) onReset();

@@ -23,6 +23,7 @@ import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { env } from '../config/env.ts';
 import { sendTenantVerificationEmail } from '../config/mailer.ts';
 import { recordActivity } from '../services/activityLogService.ts';
+import { ROLES, ADMIN, SHOP_OWNER, SHOP_CASHIER, isValidRole } from '../constants/roles.ts';
 
 export async function login(req: Request, res: Response): Promise<void> {
   const { email, password } = req.body;
@@ -49,7 +50,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 
   // Multi-tenant check: if user belongs to a tenant, check tenant status
   let tenant: any = null;
-  if (user.tenantId && user.role !== 'ADMIN') {
+  if (user.tenantId && user.role !== ADMIN) {
     const tId = safeObjectId(user.tenantId);
     if (tId) {
       tenant = await tenantsCol.findOne({ _id: tId });
@@ -84,7 +85,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     email: user.email,
     username: user.username,
     name: user.name,
-    role: user.role || 'SHOP_CASHIER',
+    role: user.role || SHOP_CASHIER,
     tenantId,
     tenantName,
   };
@@ -103,9 +104,9 @@ export async function login(req: Request, res: Response): Promise<void> {
       email: user.email,
       username: user.username,
       name: user.name,
-      role: user.role || 'SHOP_CASHIER',
+      role: user.role || SHOP_CASHIER,
       tenantId: tenantId || null,
-      tenantName: tenantName || (user.role === 'ADMIN' ? 'Platform Administrator' : 'Toko'),
+      tenantName: tenantName || (user.role === ADMIN ? 'Platform Administrator' : 'Toko'),
       ipAddress: clientIp,
       device: clientDevice,
       issuedAt: new Date().toISOString(),
@@ -218,7 +219,7 @@ export async function registerTenant(req: Request, res: Response): Promise<void>
     username: cleanUsername,
     email: cleanEmail,
     passwordHash,
-    role: 'SHOP_OWNER',
+    role: SHOP_OWNER,
     shift: 'Shift Pemilik',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -236,7 +237,7 @@ export async function registerTenant(req: Request, res: Response): Promise<void>
       code: tenantCode,
       ownerEmail: cleanEmail,
       username: cleanUsername,
-      role: 'SHOP_OWNER',
+      role: SHOP_OWNER,
       verificationUrl: mailResult.verificationUrl,
     },
   });
@@ -252,18 +253,19 @@ export async function register(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const assignedRole = isValidRole(role) ? role : SHOP_CASHIER;
   const passwordHash = await bcrypt.hash(password, 10);
   const result = await usersCol.insertOne({
     name,
     email,
     passwordHash,
-    role: role || 'kasir',
+    role: assignedRole,
     shift: 'Shift Umum',
     createdAt: new Date().toISOString(),
   });
 
   const userId = String(result.insertedId);
-  const payload = { userId, email, name, role: role || 'kasir' };
+  const payload = { userId, email, name, role: assignedRole };
 
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
@@ -274,7 +276,7 @@ export async function register(req: Request, res: Response): Promise<void> {
     success: true,
     message: 'Registrasi berhasil',
     data: {
-      user: { id: userId, name, email, role: role || 'kasir' },
+      user: { id: userId, name, email, role: assignedRole },
       accessToken,
       refreshToken,
       idleTimeoutMinutes: env.IDLE_TIMEOUT_MINUTES,
@@ -312,7 +314,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
     }
 
     let tenant: any = null;
-    if (user.tenantId && user.role !== 'ADMIN') {
+    if (user.tenantId && user.role !== ADMIN) {
       const tId = safeObjectId(user.tenantId);
       if (tId) {
         tenant = await tenantsCol.findOne({ _id: tId });
@@ -349,7 +351,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
         name: user.name,
         role: user.role,
         tenantId: user.tenantId ? String(user.tenantId) : null,
-        tenantName: tenant ? tenant.name : (user.role === 'ADMIN' ? 'Platform Administrator' : 'Toko'),
+        tenantName: tenant ? tenant.name : (user.role === ADMIN ? 'Platform Administrator' : 'Toko'),
         ipAddress: refreshIp,
         device: refreshDevice,
         issuedAt: new Date().toISOString(),
@@ -467,7 +469,7 @@ export async function switchCashier(req: Request, res: Response): Promise<void> 
   }
 
   let tenant: any = null;
-  if (user.tenantId && user.role !== 'ADMIN') {
+  if (user.tenantId && user.role !== ADMIN) {
     const tId = safeObjectId(user.tenantId);
     if (tId) tenant = await tenantsCol.findOne({ _id: tId });
     if (!tenant || tenant.status === 'inactive') {
@@ -486,7 +488,7 @@ export async function switchCashier(req: Request, res: Response): Promise<void> 
     email: user.email,
     username: user.username,
     name: user.name,
-    role: user.role || 'SHOP_CASHIER',
+    role: user.role || SHOP_CASHIER,
     tenantId: user.tenantId ? String(user.tenantId) : undefined,
     tenantName: tenant ? tenant.name : undefined,
   };
@@ -505,7 +507,7 @@ export async function switchCashier(req: Request, res: Response): Promise<void> 
       email: user.email,
       username: user.username,
       name: user.name,
-      role: user.role || 'SHOP_CASHIER',
+      role: user.role || SHOP_CASHIER,
       tenantId: payload.tenantId || null,
       tenantName: payload.tenantName || 'Toko',
       ipAddress: switchIp,
@@ -570,11 +572,8 @@ export async function changePassword(req: AuthenticatedRequest, res: Response): 
 export async function getLoginHistory(req: AuthenticatedRequest, res: Response): Promise<void> {
   const historyCol = getCollection('login_history');
   const user = req.user;
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
-  const isManager =
-    user?.role === 'MANAGER' ||
-    user?.role === 'SHOP_OWNER' ||
-    user?.role === 'pemilik';
+  const isAdmin = user?.role === ADMIN;
+  const isShopOwner = user?.role === SHOP_OWNER;
 
   const filter: any = {};
 
@@ -585,8 +584,8 @@ export async function getLoginHistory(req: AuthenticatedRequest, res: Response):
       const safeTId = safeObjectId(queryTenantId);
       filter.tenantId = safeTId ? { $in: [queryTenantId, safeTId] } : queryTenantId;
     }
-  } else if (isManager) {
-    // Role MANAGER: sees all users in their own tenant
+  } else if (isShopOwner) {
+    // Role SHOP_OWNER: sees all users in their own tenant
     const tenantId = user?.tenantId;
     if (!tenantId) {
       res.status(403).json({ success: false, message: 'Anda tidak terafiliasi dengan tenan manapun' });
@@ -595,7 +594,7 @@ export async function getLoginHistory(req: AuthenticatedRequest, res: Response):
     const safeTId = safeObjectId(tenantId);
     filter.tenantId = safeTId ? { $in: [tenantId, safeTId] } : tenantId;
   } else {
-    // Other roles (e.g. Kasir): can only see their own personal login history
+    // Other roles (SHOP_CASHIER): can only see their own personal login history
     filter.email = user?.email;
   }
 
@@ -706,7 +705,7 @@ export async function getLoginHistory(req: AuthenticatedRequest, res: Response):
     const resolvedTenantName =
       (tIdStr ? tenantMap.get(tIdStr) : null) ||
       log.tenantName ||
-      (log.role === 'ADMIN' ? 'Platform Administrator' : 'Umum');
+      (log.role === ADMIN ? 'Platform Administrator' : 'Umum');
 
     return {
       id: log._id ? log._id.toString() : (log.id || `log-${Math.random().toString(36).substr(2, 9)}`),
@@ -716,7 +715,7 @@ export async function getLoginHistory(req: AuthenticatedRequest, res: Response):
       name: log.name || (log.email ? log.email.split('@')[0] : 'User'),
       username: log.username,
       email: log.email,
-      role: log.role || 'SHOP_CASHIER',
+      role: log.role || SHOP_CASHIER,
       ipAddress: log.ipAddress || '127.0.0.1',
       device: log.device || 'Browser Client',
       status: log.status || 'Berhasil',
@@ -729,11 +728,8 @@ export async function getLoginHistory(req: AuthenticatedRequest, res: Response):
 
 export async function getActiveTokens(req: AuthenticatedRequest, res: Response): Promise<void> {
   const user = req.user;
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
-  const isManager =
-    user?.role === 'MANAGER' ||
-    user?.role === 'SHOP_OWNER' ||
-    user?.role === 'pemilik';
+  const isAdmin = user?.role === ADMIN;
+  const isShopOwner = user?.role === SHOP_OWNER;
 
   let allTokens = await getAllActiveAccessTokens();
 
@@ -831,7 +827,7 @@ export async function getActiveTokens(req: AuthenticatedRequest, res: Response):
         if (item.tenantId !== qTenant) return false;
       }
       return true;
-    } else if (isManager) {
+    } else if (isShopOwner) {
       const userTenant = user?.tenantId;
       if (!userTenant || item.tenantId !== userTenant) return false;
       return true;
@@ -843,16 +839,7 @@ export async function getActiveTokens(req: AuthenticatedRequest, res: Response):
   // Filter by role
   const roleQuery = req.query.role as string | undefined;
   if (roleQuery && roleQuery !== 'ALL') {
-    filtered = filtered.filter((item) => {
-      if (roleQuery === 'SHOP_OWNER' || roleQuery === 'MANAGER') {
-        return (
-          item.role === 'SHOP_OWNER' ||
-          item.role === 'MANAGER' ||
-          item.role === 'pemilik'
-        );
-      }
-      return item.role === roleQuery;
-    });
+    filtered = filtered.filter((item) => item.role === roleQuery);
   }
 
   // Filter by date (issuedAt)
@@ -902,18 +889,15 @@ export async function blacklistActiveTokenController(req: AuthenticatedRequest, 
   }
 
   const user = req.user;
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
-  const isManager =
-    user?.role === 'MANAGER' ||
-    user?.role === 'SHOP_OWNER' ||
-    user?.role === 'pemilik';
+  const isAdmin = user?.role === ADMIN;
+  const isShopOwner = user?.role === SHOP_OWNER;
 
   const allTokens = await getAllActiveAccessTokens();
   const targetToken = allTokens.find((t) => t.token === token);
 
   if (targetToken) {
     if (!isAdmin) {
-      if (isManager) {
+      if (isShopOwner) {
         if (targetToken.tenantId !== user?.tenantId) {
           res.status(403).json({
             success: false,
@@ -948,10 +932,10 @@ export async function blacklistActiveTokenController(req: AuthenticatedRequest, 
       tenantName: targetToken?.tenantName || user?.tenantName || null,
       email: targetToken?.email || user?.email || 'unknown',
       name: targetToken?.name || user?.name || 'User',
-      role: targetToken?.role || user?.role || 'SHOP_CASHIER',
+      role: targetToken?.role || user?.role || SHOP_CASHIER,
       ipAddress: targetToken?.ipAddress || (req.headers['x-forwarded-for'] as string) || '127.0.0.1',
       device: targetToken?.device || 'Browser',
-      status: `Diblacklist oleh ${user?.role || 'Admin'} (${reason || 'Pencabutan manual'})`,
+      status: `Diblacklist oleh ${user?.role || ADMIN} (${reason || 'Pencabutan manual'})`,
       createdAt: new Date().toISOString(),
     });
   } catch {

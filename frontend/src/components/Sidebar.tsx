@@ -20,7 +20,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ActiveTab } from './TopNavbar.tsx';
-import { ADMIN, SHOP_OWNER } from '../services/api.ts';
+import { ADMIN, SHOP_OWNER, SHOP_CASHIER } from '../constants/roles.ts';
 
 interface SidebarProps {
   currentTab: ActiveTab;
@@ -163,7 +163,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
         </button>
       )}
 
-      {/* MANAGER / SHOP_OWNER ONLY: Toko Tab */}
+      {/* SHOP_OWNER ONLY: Toko Tab */}
       {(user?.role === SHOP_OWNER) && (
         <button
           onClick={() => handleItemClick('store-settings')}
@@ -662,6 +662,34 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
       )}
+
+      {/* Kebijakan Privasi Button */}
+      <div className="w-full pt-1.5 mt-auto border-t border-white/5">
+        <button
+          onClick={() => handleItemClick('privacy-policy')}
+          title={t('nav.privacyPolicy', 'Kebijakan Privasi')}
+          className="w-full flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer group"
+        >
+          <div
+            className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentTab === 'privacy-policy'
+                ? 'bg-[#EC6C1A] text-white shadow-orange-600/30 shadow-md'
+                : 'text-slate-400 group-hover:text-white group-hover:bg-white/5'
+            }`}
+          >
+            <ShieldCheck className="w-5 h-5 md:w-5.5 md:h-5.5" />
+          </div>
+          <span
+            className={`text-[11px] md:text-xs font-semibold tracking-tight mt-1 text-center leading-snug px-1 ${
+              currentTab === 'privacy-policy'
+                ? 'text-orange-400'
+                : 'text-slate-400 group-hover:text-slate-200'
+            }`}
+          >
+            {t('nav.privacyPolicy', 'Privasi')}
+          </span>
+        </button>
+      </div>
     </nav>
   );
 };

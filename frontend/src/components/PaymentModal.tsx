@@ -11,6 +11,7 @@ import {
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { api } from '../services/api.ts';
+import { ADMIN } from '../constants/roles.ts';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   ].filter((q) => q.amount >= total || q.label === t('payment.exactMoney', 'Uang Pas'));
 
   const handlePay = async () => {
-    if (user?.role === 'ADMIN') {
+    if (user?.role === ADMIN) {
       setPaymentError(t('pos.adminNoticeDesc', 'Role ADMIN tidak bisa bikin order. Hanya kasir atau pemilik toko yang dapat memproses transaksi.'));
       return;
     }

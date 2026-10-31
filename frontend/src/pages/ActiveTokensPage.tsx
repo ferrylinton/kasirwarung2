@@ -42,7 +42,7 @@ import {
   useTenants,
   useBlacklistToken,
 } from '../hooks/useQueries.ts';
-import { ActiveTokenItem, ADMIN } from '../services/api.ts';
+import { ActiveTokenItem, ADMIN, SHOP_OWNER, SHOP_CASHIER } from '../services/api.ts';
 
 interface ActiveTokensPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -300,25 +300,25 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
   // Role badge helper
   const renderRoleBadge = (role: string) => {
     const r = role.toUpperCase();
-    if (r === 'ADMIN') {
+    if (r === ADMIN) {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
           <KeyRound className="w-3 h-3" />
-          <span>ADMIN</span>
+          <span>{ADMIN}</span>
         </span>
       );
     }
-    if (r === 'SHOP_OWNER' || r === 'PEMILIK' || r === 'MANAGER') {
+    if (r === SHOP_OWNER || r === 'PEMILIK' || r === 'MANAGER') {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-700 border border-orange-200">
           <Users className="w-3 h-3" />
-          <span>MANAGER</span>
+          <span>{SHOP_OWNER}</span>
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-        <span>KASIR</span>
+        <span>{SHOP_CASHIER}</span>
       </span>
     );
   };

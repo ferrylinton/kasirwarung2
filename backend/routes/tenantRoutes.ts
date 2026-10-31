@@ -23,6 +23,7 @@ import {
   requestReactivationSchema,
   updateTenantSettingsSchema,
 } from '../models/schemas.ts';
+import { ADMIN, SHOP_OWNER } from '../constants/roles.ts';
 
 const router = Router();
 const apiLimiter = rateLimiter(90, 2);
@@ -39,38 +40,38 @@ router.get('/current', authenticateToken, getCurrentTenant);
 router.put(
   '/settings',
   authenticateToken,
-  requireRole('SHOP_OWNER', 'pemilik', 'ADMIN', 'MANAGER'),
+  requireRole(SHOP_OWNER, ADMIN),
   validateBody(updateTenantSettingsSchema),
   updateTenantSettings
 );
 router.post(
   '/request-deactivation',
   authenticateToken,
-  requireRole('SHOP_OWNER', 'pemilik'),
+  requireRole(SHOP_OWNER),
   validateBody(requestDeactivationSchema),
   requestDeactivation
 );
 router.post(
   '/cancel-deactivation',
   authenticateToken,
-  requireRole('SHOP_OWNER', 'pemilik'),
+  requireRole(SHOP_OWNER),
   cancelDeactivation
 );
 
 // Admin-only endpoints
-router.get('/deactivation-requests', authenticateToken, requireRole('ADMIN'), getDeactivationRequests);
-router.get('/', authenticateToken, requireRole('ADMIN'), getTenants);
+router.get('/deactivation-requests', authenticateToken, requireRole(ADMIN), getDeactivationRequests);
+router.get('/', authenticateToken, requireRole(ADMIN), getTenants);
 router.put(
   '/:id/status',
   authenticateToken,
-  requireRole('ADMIN'),
+  requireRole(ADMIN),
   validateBody(updateTenantStatusSchema),
   updateTenantStatus
 );
 router.post(
   '/:id/review-deactivation',
   authenticateToken,
-  requireRole('ADMIN'),
+  requireRole(ADMIN),
   validateBody(reviewDeactivationSchema),
   reviewDeactivation
 );

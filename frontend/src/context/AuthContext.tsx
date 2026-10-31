@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, api, tokenStorage } from '../services/api.ts';
+import { UserRole, SHOP_CASHIER } from '../constants/roles.ts';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   registerTenant: (data: { shopName: string; ownerEmail: string; username: string; password: string }) => Promise<any>;
-  register: (name: string, email: string, password: string, role?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, role?: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   switchCashier: (email: string) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -81,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return res;
   };
 
-  const register = async (name: string, email: string, password: string, role = 'kasir') => {
+  const register = async (name: string, email: string, password: string, role: UserRole = SHOP_CASHIER) => {
     const res = await api.register(name, email, password, role);
     if (res.success && res.data) {
       tokenStorage.setSession(res.data.accessToken, res.data.refreshToken, res.data.user);

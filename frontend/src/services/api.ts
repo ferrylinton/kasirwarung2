@@ -1,14 +1,12 @@
-export const ADMIN = 'ADMIN';
-export const SHOP_OWNER = 'SHOP_OWNER';
-export const SHOP_CASHIER = 'SHOP_CASHIER';
-
+export * from '../constants/roles.ts';
+import { UserRole, SHOP_CASHIER } from '../constants/roles.ts';
 
 export interface User {
   id: string;
   name: string;
   username?: string;
   email: string;
-  role: 'ADMIN' | 'SHOP_OWNER' | 'SHOP_CASHIER';
+  role: UserRole;
   shift?: string;
   tenantId?: string;
   tenantName?: string;
@@ -319,7 +317,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
-  register: (name: string, email: string, password: string, role = 'kasir') =>
+  register: (name: string, email: string, password: string, role: UserRole = SHOP_CASHIER) =>
     apiRequest('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name, email, password, role }),

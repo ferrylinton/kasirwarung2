@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { getCollection, ObjectId } from '../config/db.ts';
+import { ADMIN, SHOP_OWNER, SHOP_CASHIER } from '../constants/roles.ts';
 
 export const INITIAL_PRODUCTS = [
   {
@@ -157,7 +158,7 @@ export async function seedInitialData(): Promise<void> {
         username: 'admin',
         email: 'admin@kasirwarung.id',
         passwordHash: adminHash,
-        role: 'ADMIN',
+        role: ADMIN,
         shift: 'Shift Pusat',
         status: 'active',
         createdAt: new Date().toISOString(),
@@ -176,7 +177,7 @@ export async function seedInitialData(): Promise<void> {
           username: 'budi',
           email: 'budi@kasirwarung.id',
           passwordHash: ownerHash,
-          role: 'SHOP_OWNER',
+          role: SHOP_OWNER,
           shift: 'Shift Siang (08:00 - 16:00)',
           status: 'active',
           createdAt: new Date().toISOString(),
@@ -188,7 +189,7 @@ export async function seedInitialData(): Promise<void> {
           username: 'siti',
           email: 'siti@kasirwarung.id',
           passwordHash: ownerHash,
-          role: 'SHOP_CASHIER',
+          role: SHOP_CASHIER,
           shift: 'Shift Sore (16:00 - 22:00)',
           status: 'active',
           createdAt: new Date().toISOString(),
@@ -200,7 +201,7 @@ export async function seedInitialData(): Promise<void> {
           username: 'hendra',
           email: 'hendra@kelontong.id',
           passwordHash: ownerHash,
-          role: 'SHOP_OWNER',
+          role: SHOP_OWNER,
           shift: 'Shift Pagi (08:00 - 17:00)',
           status: 'active',
           createdAt: new Date().toISOString(),
@@ -211,11 +212,11 @@ export async function seedInitialData(): Promise<void> {
       // Ensure roles are updated to SHOP_OWNER / SHOP_CASHIER with tenantId
       await usersCol.updateOne(
         { email: 'budi@kasirwarung.id' },
-        { $set: { role: 'SHOP_OWNER', tenantId: t1Id, username: 'budi' } }
+        { $set: { role: SHOP_OWNER, tenantId: t1Id, username: 'budi' } }
       );
       await usersCol.updateOne(
         { email: 'siti@kasirwarung.id' },
-        { $set: { role: 'SHOP_CASHIER', tenantId: t1Id, username: 'siti' } }
+        { $set: { role: SHOP_CASHIER, tenantId: t1Id, username: 'siti' } }
       );
     }
 
@@ -229,7 +230,7 @@ export async function seedInitialData(): Promise<void> {
         username: 'hendra',
         email: 'hendra@kelontong.id',
         passwordHash: ownerHash,
-        role: 'SHOP_OWNER',
+        role: SHOP_OWNER,
         shift: 'Shift Pagi (08:00 - 17:00)',
         status: 'active',
         createdAt: new Date().toISOString(),
@@ -454,7 +455,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Super Administrator',
           username: 'admin',
           email: 'admin@kasirwarung.id',
-          role: 'ADMIN',
+          role: ADMIN,
           ipAddress: '182.253.14.88 (Kantor Pusat Jakarta)',
           device: 'Chrome 124 (macOS Sonoma)',
           status: 'Berhasil',
@@ -468,7 +469,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Budi Santoso',
           username: 'budi',
           email: 'budi@kasirwarung.id',
-          role: 'SHOP_OWNER',
+          role: SHOP_OWNER,
           ipAddress: '192.168.1.100 (Warung POS Terminal)',
           device: 'POS Terminal Touchscreen (Linux POS)',
           status: 'Berhasil',
@@ -482,7 +483,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Siti Aminah',
           username: 'siti',
           email: 'siti@kasirwarung.id',
-          role: 'SHOP_CASHIER',
+          role: SHOP_CASHIER,
           ipAddress: '192.168.1.102 (Kasir Meja 1)',
           device: 'Chrome 124 (Windows 11 POS)',
           status: 'Berhasil',
@@ -496,7 +497,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Hendra Gunawan',
           username: 'hendra',
           email: 'hendra@kelontong.id',
-          role: 'SHOP_OWNER',
+          role: SHOP_OWNER,
           ipAddress: '192.168.2.50 (Kelontong Terminal)',
           device: 'Safari 17 (iPadOS Tablet POS)',
           status: 'Berhasil',
@@ -510,7 +511,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Siti Aminah',
           username: 'siti',
           email: 'siti@kasirwarung.id',
-          role: 'SHOP_CASHIER',
+          role: SHOP_CASHIER,
           ipAddress: '192.168.1.102 (Kasir Meja 1)',
           device: 'Chrome 124 (Windows 11 POS)',
           status: 'Berhasil',
@@ -524,7 +525,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Budi Santoso',
           username: 'budi',
           email: 'budi@kasirwarung.id',
-          role: 'SHOP_OWNER',
+          role: SHOP_OWNER,
           ipAddress: '182.1.22.45 (Telkomsel 5G)',
           device: 'Chrome Mobile (Samsung Galaxy Tab)',
           status: 'Berhasil',
@@ -538,7 +539,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Hendra Gunawan',
           username: 'hendra',
           email: 'hendra@kelontong.id',
-          role: 'SHOP_OWNER',
+          role: SHOP_OWNER,
           ipAddress: '192.168.2.50 (Kelontong Terminal)',
           device: 'Safari 17 (iPadOS Tablet POS)',
           status: 'Berhasil',
@@ -552,7 +553,7 @@ export async function seedInitialData(): Promise<void> {
           name: 'Budi Santoso',
           username: 'budi',
           email: 'budi@kasirwarung.id',
-          role: 'SHOP_OWNER',
+          role: SHOP_OWNER,
           ipAddress: '192.168.1.100 (Warung POS Terminal)',
           device: 'POS Terminal Touchscreen (Linux POS)',
           status: 'Berhasil',

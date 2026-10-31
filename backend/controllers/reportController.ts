@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
+import { ADMIN } from '../constants/roles.ts';
 
 export async function getReportSummary(req: AuthenticatedRequest, res: Response): Promise<void> {
   const ordersCol = getCollection('orders');
@@ -8,7 +9,7 @@ export async function getReportSummary(req: AuthenticatedRequest, res: Response)
 
   const filter: Record<string, any> = {};
 
-  if (req.user?.role !== 'ADMIN') {
+  if (req.user?.role !== ADMIN) {
     const tenantId =
       safeObjectId(req.user?.tenantId) ||
       (req.query.tenantId && req.query.tenantId !== 'ALL' ? safeObjectId(String(req.query.tenantId)) : null) ||

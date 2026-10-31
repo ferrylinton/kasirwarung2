@@ -12,6 +12,7 @@ import {
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ProductIcon } from './ProductIcons.tsx';
+import { ADMIN } from '../constants/roles.ts';
 
 interface CartDrawerProps {
   onOpenPayment: () => void;
@@ -42,7 +43,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   } = useCart();
 
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === ADMIN;
 
   const isDrawerOpen = isOpenMobile !== undefined ? isOpenMobile : isMobileCartOpen;
   const handleClose = onCloseMobile || closeMobileCart;

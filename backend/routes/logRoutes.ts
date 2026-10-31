@@ -18,12 +18,13 @@ import {
 } from '../config/logger.ts';
 import { env, VALID_LOG_LEVELS } from '../config/env.ts';
 import { getCollection, ObjectId } from '../config/db.ts';
+import { ADMIN, SHOP_OWNER } from '../constants/roles.ts';
 
 const router = express.Router();
 
 const requireLogViewerRole = [
   authenticateToken,
-  requireRole('ADMIN', 'admin', 'SHOP_OWNER', 'pemilik', 'MANAGER'),
+  requireRole(ADMIN, SHOP_OWNER),
 ];
 
 /**
@@ -61,7 +62,7 @@ router.get('/config', ...requireLogViewerRole, (_req: AuthenticatedRequest, res:
  * PUT /api/logs/level
  * Dynamically adjust log level during runtime (Admin only)
  */
-router.put('/level', authenticateToken, requireRole('ADMIN', 'admin'), (req: AuthenticatedRequest, res: Response) => {
+router.put('/level', authenticateToken, requireRole(ADMIN), (req: AuthenticatedRequest, res: Response) => {
   const { level } = req.body;
   if (!level || typeof level !== 'string') {
     res.status(400).json({ success: false, message: 'Field level harus diisi' });
@@ -75,7 +76,7 @@ router.put('/level', authenticateToken, requireRole('ADMIN', 'admin'), (req: Aut
     });
     return;
   }
-  logger.info(`Log level diubah menjadi ${level.toLowerCase()} oleh ${req.user?.userId || 'ADMIN'}`);
+  logger.info(`Log level diubah menjadi ${level.toLowerCase()} oleh ${req.user?.userId || ADMIN}`);
   res.json({
     success: true,
     message: `Tingkat log berhasil diubah menjadi ${level.toLowerCase()}`,
@@ -137,7 +138,7 @@ router.get('/files', ...requireLogViewerRole, async (req: AuthenticatedRequest, 
 router.get('/', ...requireLogViewerRole, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userRole = req.user?.role;
-    const isGlobalAdmin = userRole === 'ADMIN' || userRole === 'admin';
+    const isGlobalAdmin = userRole === ADMIN;
     const userTenantId = req.user?.tenantId ? String(req.user.tenantId) : null;
 
     const requestedFile = req.query.file as string | undefined;

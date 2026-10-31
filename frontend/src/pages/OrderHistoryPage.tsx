@@ -35,6 +35,7 @@ import {
 import { Order, Tenant, api } from '../services/api.ts';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { ADMIN } from '../constants/roles.ts';
 import {
   useOrderHistory,
   useTenants,
@@ -51,7 +52,7 @@ export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language?.startsWith('en') ? enUS : localeId;
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === ADMIN;
 
   // Data states
   const [searchQuery, setSearchQuery] = useState<string>('');

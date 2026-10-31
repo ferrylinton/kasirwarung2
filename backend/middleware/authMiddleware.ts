@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { verifyToken, type TokenPayload } from '../utils/jwt.ts';
 import { isTokenBlacklisted } from '../config/redis.ts';
 import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
+import { ADMIN, type UserRole } from '../constants/roles.ts';
 
 export interface AuthenticatedRequest extends Request {
   user?: TokenPayload;
@@ -39,7 +40,7 @@ export async function authenticateToken(
     }
 
     // If user belongs to a tenant, ensure the tenant is still active
-    if (payload.tenantId && payload.role !== 'ADMIN') {
+    if (payload.tenantId && payload.role !== ADMIN) {
       const tId = safeObjectId(payload.tenantId);
       if (tId) {
         const tenantsCol = getCollection('tenants');
@@ -94,7 +95,7 @@ export async function optionalAuthenticateToken(
   next();
 }
 
-export function requireRole(...allowedRoles: string[]) {
+export function requireRole(...allowedRoles: (UserRole | string)[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       res.status(401).json({ success: false, message: 'Tidak terotentikasi' });
@@ -102,12 +103,11 @@ export function requireRole(...allowedRoles: string[]) {
     }
 
     const userRole = req.user.role;
-    // Normalized comparison for roles
+    // Strict comparison for role constants (ADMIN, SHOP_OWNER, SHOP_CASHIER)
     const matches = allowedRoles.some((role) => {
       if (role === userRole) return true;
-      if (role === 'ADMIN' && (userRole === 'admin' || userRole === 'ADMIN')) return true;
-      if ((role === 'SHOP_OWNER' || role === 'MANAGER') && (userRole === 'pemilik' || userRole === 'SHOP_OWNER' || userRole === 'MANAGER')) return true;
-      if (role === 'SHOP_CASHIER' && (userRole === 'kasir' || userRole === 'SHOP_CASHIER')) return true;
+      // Allow graceful fallback for legacy lowercase values if any
+      if (role === ADMIN && (userRole === 'admin' || userRole === ADMIN)) return true;
       return false;
     });
 
@@ -120,7 +120,7 @@ export function requireRole(...allowedRoles: string[]) {
 }
 
 export function requireTenant(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (req.user?.role === 'ADMIN') {
+  if (req.user?.role === ADMIN) {
     // Admin can bypass tenant check or specify in query
     next();
     return;

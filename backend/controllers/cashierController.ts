@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { getCollection, ObjectId, safeObjectId } from '../config/db.ts';
 import type { AuthenticatedRequest } from '../middleware/authMiddleware.ts';
 import { recordActivity } from '../services/activityLogService.ts';
+import { ADMIN, SHOP_CASHIER } from '../constants/roles.ts';
 
 /**
  * GET /api/cashiers
@@ -13,11 +14,11 @@ export async function getCashiers(req: AuthenticatedRequest, res: Response): Pro
   const tenantId = req.user?.tenantId ? safeObjectId(req.user.tenantId) : null;
 
   const filter: Record<string, any> = {
-    role: { $in: ['SHOP_CASHIER', 'kasir'] },
+    role: SHOP_CASHIER,
   };
 
   // If not super admin, scope to current tenant
-  if (req.user?.role !== 'ADMIN' && tenantId) {
+  if (req.user?.role !== ADMIN && tenantId) {
     filter.tenantId = tenantId;
   }
 
@@ -30,7 +31,7 @@ export async function getCashiers(req: AuthenticatedRequest, res: Response): Pro
       name: c.name,
       username: c.username || c.email.split('@')[0],
       email: c.email,
-      role: 'SHOP_CASHIER',
+      role: SHOP_CASHIER,
       shift: c.shift || 'Shift Pagi (08:00 - 16:00)',
       status: c.status || 'active',
       createdAt: c.createdAt,
@@ -135,10 +136,10 @@ export async function updateCashier(req: AuthenticatedRequest, res: Response): P
 
   const filter: Record<string, any> = {
     _id: cashierId,
-    role: { $in: ['SHOP_CASHIER', 'kasir'] },
+    role: SHOP_CASHIER,
   };
 
-  if (req.user?.role !== 'ADMIN') {
+  if (req.user?.role !== ADMIN) {
     filter.tenantId = tenantId;
   }
 
@@ -209,10 +210,10 @@ export async function deleteCashier(req: AuthenticatedRequest, res: Response): P
 
   const filter: Record<string, any> = {
     _id: cashierId,
-    role: { $in: ['SHOP_CASHIER', 'kasir'] },
+    role: SHOP_CASHIER,
   };
 
-  if (req.user?.role !== 'ADMIN') {
+  if (req.user?.role !== ADMIN) {
     filter.tenantId = tenantId;
   }
 

@@ -1,4 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, createContext, useContext } from 'react';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+  useNavigate,
+  useLocation,
+  Navigate,
+  useRouteError,
+} from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { CartProvider } from './context/CartContext.tsx';
@@ -6,8 +15,9 @@ import { Sidebar } from './components/Sidebar.tsx';
 import { IdleTimerModal } from './components/IdleTimerModal.tsx';
 import { useIdleTimer } from './hooks/useIdleTimer.ts';
 import { ActiveTab } from './components/TopNavbar.tsx';
+import { ADMIN, SHOP_OWNER, SHOP_CASHIER, ROLES, type UserRole } from './constants/roles.ts';
 
-// Direct component imports to ensure single React instance and avoid lazy chunk skews
+// Direct component imports
 import OrderPage from './pages/OrderPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
@@ -25,82 +35,54 @@ import StoreSettingsPage from './pages/StoreSettingsPage.tsx';
 import AdminDeactivationRequestsPage from './pages/AdminDeactivationRequestsPage.tsx';
 import ActivityLogPage from './pages/ActivityLogPage.tsx';
 import LogViewerPage from './pages/LogViewerPage.tsx';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 import ErrorPage from './pages/ErrorPage.tsx';
 import ErrorBoundary from './components/common/ErrorBoundary.tsx';
 
-const VALID_TABS: ActiveTab[] = [
-  'pos',
-  'products',
-  'categories',
-  'history',
-  'profile',
-  'login-history',
-  'active-tokens',
-  'activity-log',
-  'system-logs',
-  'change-password',
-  'tenants',
-  'admin-products',
-  'admin-categories',
-  'deactivation-requests',
-  'cashiers',
-  'store-settings',
-  'not-found',
-  'error',
-];
+// Admin Drill-down Context for filtering tenant products from categories
+interface AdminDrillContextType {
+  adminDrillTenantId: string;
+  setAdminDrillTenantId: (id: string) => void;
+  adminDrillCategory: string;
+  setAdminDrillCategory: (cat: string) => void;
+}
 
-const AppContent: React.FC = () => {
+const AdminDrillContext = createContext<AdminDrillContextType>({
+  adminDrillTenantId: 'ALL',
+  setAdminDrillTenantId: () => {},
+  adminDrillCategory: 'Semua Produk',
+  setAdminDrillCategory: () => {},
+});
+
+export const useAdminDrill = () => useContext(AdminDrillContext);
+
+/**
+ * Maps an ActiveTab to a URL pathname
+ */
+export const tabToPath = (tab: ActiveTab): string => {
+  if (tab === 'pos') return '/';
+  return `/${tab}`;
+};
+
+/**
+ * Maps a URL pathname to an ActiveTab
+ */
+export const pathToTab = (pathname: string, userRole?: string): ActiveTab => {
+  const clean = pathname.replace(/^\/+/, '').split('?')[0].split('#')[0];
+  if (!clean || clean === 'pos') {
+    return userRole === ADMIN ? 'tenants' : 'pos';
+  }
+  return (clean as ActiveTab) || 'pos';
+};
+
+/**
+ * Layout component for authenticated routes (Sidebar, Outlet, IdleTimer)
+ */
+const AppLayout: React.FC = () => {
   const { user, loading, logout, idleTimeoutMinutes } = useAuth();
-  const [attemptedInvalidPath, setAttemptedInvalidPath] = useState<string>('');
-
-  const [currentTab, setCurrentTab] = useState<ActiveTab>(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
-      const hashTab = window.location.hash.replace('#', '') as ActiveTab;
-      if (VALID_TABS.includes(hashTab)) {
-        return hashTab;
-      }
-      return 'not-found';
-    }
-    return user?.role === 'ADMIN' ? 'tenants' : 'pos';
-  });
-  const [adminDrillTenantId, setAdminDrillTenantId] = useState<string>('ALL');
-  const [adminDrillCategory, setAdminDrillCategory] = useState<string>('Semua Produk');
-
-  // Synchronize hash with currentTab
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const handleHashChange = () => {
-        const hash = window.location.hash.replace('#', '');
-        if (!hash) return;
-        if (VALID_TABS.includes(hash as ActiveTab)) {
-          setCurrentTab(hash as ActiveTab);
-        } else {
-          setAttemptedInvalidPath('#' + hash);
-          setCurrentTab('not-found');
-        }
-      };
-
-      window.addEventListener('hashchange', handleHashChange);
-      return () => window.removeEventListener('hashchange', handleHashChange);
-    }
-  }, []);
-
-  // Sync window hash when currentTab changes
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && currentTab) {
-      if (window.location.hash !== `#${currentTab}`) {
-        window.history.replaceState(null, '', `#${currentTab}`);
-      }
-    }
-  }, [currentTab]);
-
-  // Automatically switch tab if user role changes or is ADMIN trying to access POS
-  React.useEffect(() => {
-    if (user?.role === 'ADMIN' && currentTab === 'pos') {
-      setCurrentTab('tenants');
-    }
-  }, [user?.role, currentTab]);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Inactivity auto-logout hook based on IDLE_TIMEOUT_MINUTES from .env
   const { showWarning, secondsRemaining, resetTimer } = useIdleTimer({
@@ -111,6 +93,17 @@ const AppContent: React.FC = () => {
     warningSeconds: 30,
     enabled: !!user,
   });
+
+  // Backward compatibility: If accessed via hash (e.g. /#products), redirect to router path
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        window.history.replaceState(null, '', window.location.pathname);
+        navigate(hash === 'pos' ? '/' : `/${hash}`, { replace: true });
+      }
+    }
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -126,163 +119,13 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return <LoginPage />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  const renderCurrentPage = () => {
-    switch (currentTab) {
-      case 'tenants':
-        return (
-          <TenantsPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'admin-products':
-        return (
-          <AdminProductsPage
-            onNavigate={setCurrentTab}
-            initialTenantId={adminDrillTenantId}
-            initialCategory={adminDrillCategory}
-          />
-        );
-      case 'admin-categories':
-        return (
-          <AdminCategoriesPage
-            onNavigate={setCurrentTab}
-            onFilterTenantProducts={(tId, catName) => {
-              setAdminDrillTenantId(tId);
-              setAdminDrillCategory(catName);
-              setCurrentTab('admin-products');
-            }}
-          />
-        );
-      case 'cashiers':
-        return (
-          <UsersPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'store-settings':
-        return (
-          <StoreSettingsPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'deactivation-requests':
-        return (
-          <AdminDeactivationRequestsPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'products':
-        if (user?.role === 'ADMIN') {
-          return (
-            <AdminProductsPage
-              onNavigate={setCurrentTab}
-              initialTenantId={adminDrillTenantId}
-              initialCategory={adminDrillCategory}
-            />
-          );
-        }
-        return (
-          <ProductsPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'categories':
-        if (user?.role === 'ADMIN') {
-          return (
-            <AdminCategoriesPage
-              onNavigate={setCurrentTab}
-              onFilterTenantProducts={(tId, catName) => {
-                setAdminDrillTenantId(tId);
-                setAdminDrillCategory(catName);
-                setCurrentTab('admin-products');
-              }}
-            />
-          );
-        }
-        return (
-          <CategoriesPage
-            onNavigate={setCurrentTab}
-            onFilterCategory={() => setCurrentTab('products')}
-          />
-        );
-      case 'history':
-        return (
-          <OrderHistoryPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'profile':
-        return (
-          <ProfilePage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'login-history':
-        return (
-          <LoginHistoryPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'active-tokens':
-        return (
-          <ActiveTokensPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'activity-log':
-        return (
-          <ActivityLogPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'system-logs':
-        return (
-          <LogViewerPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'change-password':
-        return (
-          <ChangePasswordPage
-            onNavigate={setCurrentTab}
-          />
-        );
-      case 'not-found':
-        return (
-          <NotFoundPage
-            onNavigate={setCurrentTab}
-            attemptedPath={attemptedInvalidPath}
-          />
-        );
-      case 'error':
-        return (
-          <ErrorPage
-            onNavigate={setCurrentTab}
-            onReset={() => setCurrentTab(user?.role === 'ADMIN' ? 'tenants' : 'pos')}
-          />
-        );
-      case 'pos':
-        // Role ADMIN tidak bisa akses halaman order/pos, arahkan ke tenants
-        if (user?.role === 'ADMIN') {
-          return (
-            <TenantsPage
-              onNavigate={setCurrentTab}
-            />
-          );
-        }
-        return <OrderPage onNavigate={setCurrentTab} />;
-      default:
-        // Any unknown tab route triggers the 404 NotFoundPage
-        return (
-          <NotFoundPage
-            onNavigate={setCurrentTab}
-            attemptedPath={String(currentTab)}
-          />
-        );
-    }
+  const currentTab = pathToTab(location.pathname, user.role);
+
+  const handleSelectTab = (tab: ActiveTab) => {
+    navigate(tabToPath(tab));
   };
 
   return (
@@ -290,16 +133,14 @@ const AppContent: React.FC = () => {
       {/* Dark Sidebar with direct page navigation */}
       <Sidebar
         currentTab={currentTab}
-        onSelectTab={(tab) => {
-          setCurrentTab(tab);
-        }}
+        onSelectTab={handleSelectTab}
         onLogout={logout}
       />
 
       {/* Main View Area with ErrorBoundary protection */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <ErrorBoundary onNavigate={setCurrentTab}>
-          {renderCurrentPage()}
+        <ErrorBoundary onNavigate={handleSelectTab}>
+          <Outlet />
         </ErrorBoundary>
       </div>
 
@@ -314,6 +155,340 @@ const AppContent: React.FC = () => {
   );
 };
 
+// Route Error Boundary for React Router
+const RouteErrorBoundary: React.FC = () => {
+  const error = useRouteError();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  console.error('[KasirWarung Router Error]:', error);
+
+  return (
+    <ErrorPage
+      onNavigate={(tab) => navigate(tabToPath(tab))}
+      onReset={() => navigate(user?.role === ADMIN ? '/tenants' : '/')}
+    />
+  );
+};
+
+// Wrapper Components
+const LoginPageWrapper: React.FC = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#181A1F] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to={user.role === ADMIN ? '/tenants' : '/'} replace />;
+  }
+
+  return <LoginPage onOpenPrivacyPolicy={() => navigate('/privacy-policy')} />;
+};
+
+const PrivacyPolicyRouteWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  return (
+    <PrivacyPolicyPage
+      onNavigate={(tab) => navigate(tabToPath(tab))}
+      onBack={() => {
+        if (user) {
+          navigate(user.role === ADMIN ? '/tenants' : '/');
+        } else {
+          navigate('/login');
+        }
+      }}
+    />
+  );
+};
+
+const IndexRouteWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  if (user?.role === ADMIN) {
+    return <Navigate to="/tenants" replace />;
+  }
+
+  return <OrderPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const OrderPageWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  if (user?.role === ADMIN) {
+    return <Navigate to="/tenants" replace />;
+  }
+
+  return <OrderPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const ProductsPageWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { adminDrillTenantId, adminDrillCategory } = useAdminDrill();
+
+  if (user?.role === ADMIN) {
+    return (
+      <AdminProductsPage
+        onNavigate={(tab) => navigate(tabToPath(tab))}
+        initialTenantId={adminDrillTenantId}
+        initialCategory={adminDrillCategory}
+      />
+    );
+  }
+
+  return <ProductsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const CategoriesPageWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { setAdminDrillTenantId, setAdminDrillCategory } = useAdminDrill();
+
+  if (user?.role === ADMIN) {
+    return (
+      <AdminCategoriesPage
+        onNavigate={(tab) => navigate(tabToPath(tab))}
+        onFilterTenantProducts={(tId, catName) => {
+          setAdminDrillTenantId(tId);
+          setAdminDrillCategory(catName);
+          navigate('/admin-products');
+        }}
+      />
+    );
+  }
+
+  return (
+    <CategoriesPage
+      onNavigate={(tab) => navigate(tabToPath(tab))}
+      onFilterCategory={() => navigate('/products')}
+    />
+  );
+};
+
+const TenantsPageWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  if (user?.role !== ADMIN) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <TenantsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const AdminProductsPageWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { adminDrillTenantId, adminDrillCategory } = useAdminDrill();
+
+  if (user?.role !== ADMIN) {
+    return <Navigate to="/products" replace />;
+  }
+
+  return (
+    <AdminProductsPage
+      onNavigate={(tab) => navigate(tabToPath(tab))}
+      initialTenantId={adminDrillTenantId}
+      initialCategory={adminDrillCategory}
+    />
+  );
+};
+
+const AdminCategoriesPageWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { setAdminDrillTenantId, setAdminDrillCategory } = useAdminDrill();
+
+  if (user?.role !== ADMIN) {
+    return <Navigate to="/categories" replace />;
+  }
+
+  return (
+    <AdminCategoriesPage
+      onNavigate={(tab) => navigate(tabToPath(tab))}
+      onFilterTenantProducts={(tId, catName) => {
+        setAdminDrillTenantId(tId);
+        setAdminDrillCategory(catName);
+        navigate('/admin-products');
+      }}
+    />
+  );
+};
+
+const AdminDeactivationRequestsPageWrapper: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  if (user?.role !== ADMIN) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <AdminDeactivationRequestsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const UsersPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <UsersPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const StoreSettingsPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <StoreSettingsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const OrderHistoryPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <OrderHistoryPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const ProfilePageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <ProfilePage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const LoginHistoryPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <LoginHistoryPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const ActiveTokensPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <ActiveTokensPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const ActivityLogPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <ActivityLogPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const LogViewerPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <LogViewerPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const ChangePasswordPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  return <ChangePasswordPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+};
+
+const NotFoundPageWrapper: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  return (
+    <NotFoundPage
+      onNavigate={(tab) => navigate(tabToPath(tab))}
+      attemptedPath={location.pathname}
+    />
+  );
+};
+
+// Define application routes with createBrowserRouter
+const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <LoginPageWrapper />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: '/privacy-policy',
+    element: <PrivacyPolicyRouteWrapper />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: '/',
+    element: <AppLayout />,
+    errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        index: true,
+        element: <IndexRouteWrapper />,
+      },
+      {
+        path: 'pos',
+        element: <OrderPageWrapper />,
+      },
+      {
+        path: 'products',
+        element: <ProductsPageWrapper />,
+      },
+      {
+        path: 'categories',
+        element: <CategoriesPageWrapper />,
+      },
+      {
+        path: 'history',
+        element: <OrderHistoryPageWrapper />,
+      },
+      {
+        path: 'profile',
+        element: <ProfilePageWrapper />,
+      },
+      {
+        path: 'login-history',
+        element: <LoginHistoryPageWrapper />,
+      },
+      {
+        path: 'active-tokens',
+        element: <ActiveTokensPageWrapper />,
+      },
+      {
+        path: 'activity-log',
+        element: <ActivityLogPageWrapper />,
+      },
+      {
+        path: 'system-logs',
+        element: <LogViewerPageWrapper />,
+      },
+      {
+        path: 'change-password',
+        element: <ChangePasswordPageWrapper />,
+      },
+      {
+        path: 'tenants',
+        element: <TenantsPageWrapper />,
+      },
+      {
+        path: 'admin-products',
+        element: <AdminProductsPageWrapper />,
+      },
+      {
+        path: 'admin-categories',
+        element: <AdminCategoriesPageWrapper />,
+      },
+      {
+        path: 'cashiers',
+        element: <UsersPageWrapper />,
+      },
+      {
+        path: 'store-settings',
+        element: <StoreSettingsPageWrapper />,
+      },
+      {
+        path: 'deactivation-requests',
+        element: <AdminDeactivationRequestsPageWrapper />,
+      },
+      {
+        path: '*',
+        element: <NotFoundPageWrapper />,
+      },
+    ],
+  },
+  {
+    path: '*',
+    element: <NotFoundPageWrapper />,
+  },
+]);
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -325,16 +500,27 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const [adminDrillTenantId, setAdminDrillTenantId] = useState<string>('ALL');
+  const [adminDrillCategory, setAdminDrillCategory] = useState<string>('Semua Produk');
+
   return (
     <ErrorBoundary isFullPage>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <AppContent />
+            <AdminDrillContext.Provider
+              value={{
+                adminDrillTenantId,
+                setAdminDrillTenantId,
+                adminDrillCategory,
+                setAdminDrillCategory,
+              }}
+            >
+              <RouterProvider router={router} />
+            </AdminDrillContext.Provider>
           </CartProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
 }
-

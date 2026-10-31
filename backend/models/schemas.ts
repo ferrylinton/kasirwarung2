@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ROLES } from '../constants/roles.ts';
 
 // 1. Auth & Multi-Tenant Validation Schemas
 export const loginSchema = z.object({
@@ -10,7 +11,7 @@ export const registerSchema = z.object({
   name: z.string().min(2, 'Nama lengkap minimal 2 karakter').max(60),
   email: z.string().email('Format email tidak valid'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
-  role: z.enum(['ADMIN', 'SHOP_OWNER', 'SHOP_CASHIER', 'kasir', 'admin', 'pemilik']).default('SHOP_CASHIER'),
+  role: z.enum([ROLES.ADMIN, ROLES.SHOP_OWNER, ROLES.SHOP_CASHIER]).default(ROLES.SHOP_CASHIER),
 });
 
 // Pendaftaran Akun Tenan Baru oleh SHOP_OWNER

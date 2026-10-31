@@ -8,6 +8,7 @@ import {
   recentEmailSimulations,
 } from '../config/mailer.ts';
 import { recordActivity } from '../services/activityLogService.ts';
+import { ADMIN, SHOP_CASHIER } from '../constants/roles.ts';
 
 /**
  * GET /api/tenants
@@ -26,7 +27,7 @@ export async function getTenants(req: AuthenticatedRequest, res: Response): Prom
       const tenantId = t._id;
       const cashierCount = await usersCol.countDocuments({
         tenantId,
-        role: { $in: ['SHOP_CASHIER', 'kasir'] },
+        role: SHOP_CASHIER,
       });
       const productCount = await productsCol.countDocuments({ tenantId });
       const orderCount = await ordersCol.countDocuments({ tenantId });
@@ -94,7 +95,7 @@ export async function getCurrentTenant(req: AuthenticatedRequest, res: Response)
 export async function updateTenantSettings(req: AuthenticatedRequest, res: Response): Promise<void> {
   const userTenantId = safeObjectId(req.user?.tenantId);
   const targetTenantId =
-    (req.user?.role === 'ADMIN' && req.body.tenantId ? safeObjectId(req.body.tenantId) : null) ||
+    (req.user?.role === ADMIN && req.body.tenantId ? safeObjectId(req.body.tenantId) : null) ||
     userTenantId ||
     new ObjectId('6ace8019cb267df584bd0001');
 

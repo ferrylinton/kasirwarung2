@@ -9,6 +9,7 @@ import { validateBody } from '../middleware/validateMiddleware.ts';
 import { authenticateToken, optionalAuthenticateToken, requireRole } from '../middleware/authMiddleware.ts';
 import { rateLimiter } from '../middleware/rateLimiter.ts';
 import { createCategorySchema, updateCategorySchema } from '../models/schemas.ts';
+import { SHOP_OWNER } from '../constants/roles.ts';
 
 const router = Router();
 const apiLimiter = rateLimiter(90, 2);
@@ -17,21 +18,21 @@ router.get('/', apiLimiter, optionalAuthenticateToken, getCategories);
 router.post(
   '/',
   authenticateToken,
-  requireRole('SHOP_OWNER', 'pemilik'),
+  requireRole(SHOP_OWNER),
   validateBody(createCategorySchema),
   createCategory
 );
 router.put(
   '/:id',
   authenticateToken,
-  requireRole('SHOP_OWNER', 'pemilik'),
+  requireRole(SHOP_OWNER),
   validateBody(updateCategorySchema),
   updateCategory
 );
 router.delete(
   '/:id',
   authenticateToken,
-  requireRole('SHOP_OWNER', 'pemilik'),
+  requireRole(SHOP_OWNER),
   deleteCategory
 );
 

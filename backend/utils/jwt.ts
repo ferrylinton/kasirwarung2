@@ -1,12 +1,13 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.ts';
+import { type UserRole } from '../constants/roles.ts';
 
 export interface TokenPayload {
   userId: string;
   email: string;
   name: string;
   username?: string;
-  role: 'ADMIN' | 'SHOP_OWNER' | 'SHOP_CASHIER' | string;
+  role: UserRole;
   tenantId?: string;
   tenantName?: string;
   type: 'access' | 'refresh';

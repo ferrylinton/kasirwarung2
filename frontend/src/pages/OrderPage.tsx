@@ -9,6 +9,7 @@ import { PaymentModal } from '../components/PaymentModal.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
 import { Product } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
+import { ADMIN } from '../constants/roles.ts';
 import { RefreshCcw, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useProducts, useCategories } from '../hooks/useQueries.ts';
 
@@ -91,7 +92,7 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
         {/* Center Main POS Area */}
         <main ref={mainRef} className="flex-1 flex flex-col h-full overflow-y-auto p-4 md:p-6 lg:p-7">
           {/* ADMIN Notice Banner: role ADMIN tidak bisa bikin order */}
-          {user?.role === 'ADMIN' && (
+          {user?.role === ADMIN && (
             <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-purple-900 shadow-xs">
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 mt-0.5">

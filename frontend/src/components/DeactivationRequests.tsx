@@ -17,6 +17,7 @@ import {
 import { api, DeactivationRequestItem } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useDeactivationRequests } from '../hooks/useQueries.ts';
+import { ADMIN } from '../constants/roles.ts';
 
 export interface DeactivationRequestsProps {
   onNavigate?: (tab: any) => void;
@@ -27,7 +28,7 @@ export const DeactivationRequests: React.FC<DeactivationRequestsProps> = ({
   onRequestReviewed,
 }) => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === ADMIN;
 
   // TanStack Query for deactivation requests
   const {

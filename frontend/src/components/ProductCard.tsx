@@ -4,6 +4,7 @@ import { Product } from '../services/api.ts';
 import { ProductIcon } from './ProductIcons.tsx';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { ADMIN } from '../constants/roles.ts';
 
 interface ProductCardProps {
   product: Product;
@@ -11,7 +12,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === ADMIN;
   const { findItemQty, addItem, setItemQty } = useCart();
   const qty = findItemQty(product.id) || findItemQty(product.sku) || findItemQty(product.name);
   const isInCart = qty > 0;

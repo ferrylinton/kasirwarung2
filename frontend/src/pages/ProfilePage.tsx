@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { ADMIN } from '../constants/roles.ts';
 
 interface ProfilePageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -69,7 +70,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   Unit Toko / Warung
                 </span>
                 <p className="text-sm font-extrabold text-slate-900">
-                  {user?.tenantName || (user?.role === 'ADMIN' ? 'Platform Administrator' : 'Kasir Warung')}
+                  {user?.tenantName || (user?.role === ADMIN ? 'Platform Administrator' : 'Kasir Warung')}
                 </p>
               </div>
 

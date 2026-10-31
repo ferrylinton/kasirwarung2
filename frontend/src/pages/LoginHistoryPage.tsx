@@ -34,7 +34,7 @@ import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useLoginHistory, useTenants } from '../hooks/useQueries.ts';
-import { ADMIN, LoginHistoryItem } from '../services/api.ts';
+import { ADMIN, SHOP_OWNER, SHOP_CASHIER, LoginHistoryItem } from '../services/api.ts';
 
 interface LoginHistoryPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -250,25 +250,25 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
   // Role badge helper
   const renderRoleBadge = (role: string) => {
     const r = role.toUpperCase();
-    if (r === 'ADMIN') {
+    if (r === ADMIN) {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 border border-purple-200/80">
           <KeyRound className="w-3 h-3" />
-          <span>ADMIN</span>
+          <span>{ADMIN}</span>
         </span>
       );
     }
-    if (r === 'SHOP_OWNER' || r === 'PEMILIK' || r === 'MANAGER') {
+    if (r === SHOP_OWNER || r === 'PEMILIK' || r === 'MANAGER') {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-700 border border-orange-200/80">
           <Users className="w-3 h-3" />
-          <span>MANAGER</span>
+          <span>{SHOP_OWNER}</span>
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200/80">
-        <span>KASIR</span>
+        <span>{SHOP_CASHIER}</span>
       </span>
     );
   };
