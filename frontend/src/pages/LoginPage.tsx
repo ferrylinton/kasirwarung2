@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { api } from '../services/api.ts';
 import { LanguageSelector } from '../components/LanguageSelector.tsx';
 import { ADMIN, SHOP_OWNER, SHOP_CASHIER, UserRole } from '../constants/roles.ts';
+import { CaptchaField } from '../components/CaptchaField.tsx';
 
 const DEMO_ACCOUNTS: Array<{
   id: string;
@@ -97,6 +98,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
   const [loading, setLoading] = useState(false);
   const [tenantInactivePrompt, setTenantInactivePrompt] = useState<string | null>(null);
 
+  // CAPTCHA Challenge State (uppercase letters & numbers, 5-minute validity, reloadable)
+  const [captchaId, setCaptchaId] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
+  const [captchaCode, setCaptchaCode] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(false);
+
+  const fetchCaptcha = async () => {
+    setCaptchaLoading(true);
+    setCaptchaCode('');
+    try {
+      const res = await api.getCaptcha();
+      if (res.success && res.data) {
+        setCaptchaId(res.data.captchaId);
+        setCaptchaSvg(res.data.imageSvg);
+      }
+    } catch {
+      // Fallback
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCaptcha();
+    // Refresh CAPTCHA challenge periodically (every 4.5 minutes) before 5-minute expiration
+    const interval = setInterval(fetchCaptcha, 270 * 1000);
+    return () => clearInterval(interval);
+  }, [mode]);
+
   // Email simulation testing helper
   const [recentEmails, setRecentEmails] = useState<any[]>([]);
 
@@ -156,16 +186,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
     setError(null);
     setSuccessMsg(null);
     setTenantInactivePrompt(null);
+
+    if (!captchaCode.trim()) {
+      setError(t('auth.captchaRequired', 'Kode captcha wajib diisi'));
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(loginEmail, loginPassword);
+      await login(loginEmail, loginPassword, captchaId, captchaCode);
     } catch (err: any) {
       const msg = err.message || t('auth.invalidCredentials', 'Email/Username atau password salah');
       setError(msg);
       if (err.tenantInactive || msg.toLowerCase().includes('dinonaktifkan') || msg.toLowerCase().includes('deactivated')) {
         setTenantInactivePrompt(loginEmail);
       }
+      // Always reload captcha on failure
+      await fetchCaptcha();
     } finally {
       setLoading(false);
     }
@@ -175,6 +213,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+
+    if (!captchaCode.trim()) {
+      setError(t('auth.captchaRequired', 'Kode captcha wajib diisi'));
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -183,14 +227,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
         ownerEmail,
         username: ownerUsername,
         password: ownerPassword,
+        captchaId,
+        captchaCode,
       });
 
       if (res.success) {
         setSuccessMsg(res.message);
         await fetchRecentEmails();
       }
+      await fetchCaptcha();
     } catch (err: any) {
       setError(err.message || t('common.error', 'Gagal mendaftarkan warung baru'));
+      await fetchCaptcha();
     } finally {
       setLoading(false);
     }
@@ -200,16 +248,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+
+    if (!captchaCode.trim()) {
+      setError(t('auth.captchaRequired', 'Kode captcha wajib diisi'));
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await api.requestReactivation(reactivateEmail);
+      const res = await api.requestReactivation(reactivateEmail, captchaId, captchaCode);
       if (res.success) {
         setSuccessMsg(res.message);
         await fetchRecentEmails();
       }
+      await fetchCaptcha();
     } catch (err: any) {
       setError(err.message || t('common.error', 'Gagal mengajukan pengaktifan kembali'));
+      await fetchCaptcha();
     } finally {
       setLoading(false);
     }
@@ -370,9 +426,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
               </div>
             </div>
 
+            {/* Captcha Field (uppercase letters + numbers, 5-minute validity, reloadable) */}
+            <CaptchaField
+              captchaId={captchaId}
+              imageSvg={captchaSvg}
+              captchaCode={captchaCode}
+              onCodeChange={setCaptchaCode}
+              onReload={fetchCaptcha}
+              isLoading={captchaLoading}
+              disabled={loading}
+            />
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || captchaLoading}
               className="w-full bg-[#EC6C1A] hover:bg-orange-600 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <span>{loading ? t('auth.loggingIn', 'Memproses Masuk...') : t('auth.loginButton', 'Masuk ke Sistem')}</span>
@@ -524,9 +591,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
               </div>
             </div>
 
+            {/* Captcha Field (uppercase letters + numbers, 5-minute validity, reloadable) */}
+            <CaptchaField
+              captchaId={captchaId}
+              imageSvg={captchaSvg}
+              captchaCode={captchaCode}
+              onCodeChange={setCaptchaCode}
+              onReload={fetchCaptcha}
+              isLoading={captchaLoading}
+              disabled={loading}
+            />
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || captchaLoading}
               className="w-full bg-[#EC6C1A] hover:bg-orange-600 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <span>{loading ? t('auth.registering', 'Mendaftarkan...') : t('auth.registerButton', 'Daftarkan Warung & Kirim Verifikasi')}</span>
@@ -565,9 +643,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
               </div>
             </div>
 
+            {/* Captcha Field (uppercase letters + numbers, 5-minute validity, reloadable) */}
+            <CaptchaField
+              captchaId={captchaId}
+              imageSvg={captchaSvg}
+              captchaCode={captchaCode}
+              onCodeChange={setCaptchaCode}
+              onReload={fetchCaptcha}
+              isLoading={captchaLoading}
+              disabled={loading}
+            />
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || captchaLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <span>{loading ? t('auth.sending', 'Mengirim...') : t('auth.sendReactivationButton', 'Kirim Tautan Pengaktifan Kembali')}</span>

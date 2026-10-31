@@ -25,6 +25,9 @@ export const backendResources = {
         logoutSuccess: 'Logout berhasil.',
         passwordChanged: 'Password berhasil diubah. Silakan login kembali.',
         passwordMismatch: 'Password lama tidak cocok.',
+        captchaRequired: 'Kode captcha wajib diisi.',
+        captchaInvalid: 'Kode captcha tidak valid atau kedaluwarsa (masa aktif 5 menit). Silakan muat ulang captcha.',
+        captchaIncorrect: 'Kode captcha yang Anda masukkan salah. Silakan coba lagi.',
       },
       tenant: {
         settingsSaved: 'Pengaturan PPN dan toko berhasil diperbarui.',
@@ -79,6 +82,9 @@ export const backendResources = {
         logoutSuccess: 'Logged out successfully.',
         passwordChanged: 'Password changed successfully. Please log in again.',
         passwordMismatch: 'Current password does not match.',
+        captchaRequired: 'CAPTCHA code is required.',
+        captchaInvalid: 'CAPTCHA code is invalid or expired (5-minute validity). Please reload captcha.',
+        captchaIncorrect: 'Incorrect CAPTCHA code. Please try again.',
       },
       tenant: {
         settingsSaved: 'VAT and store settings successfully updated.',

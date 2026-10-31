@@ -11,6 +11,7 @@ import {
   getLoginHistory,
   getActiveTokens,
   blacklistActiveTokenController,
+  getCaptchaController,
 } from '../controllers/authController.ts';
 import { validateBody } from '../middleware/validateMiddleware.ts';
 import { authenticateToken } from '../middleware/authMiddleware.ts';
@@ -19,9 +20,11 @@ import { loginSchema, registerSchema, registerTenantSchema, refreshSchema } from
 
 const router = Router();
 
-// Token bucket rate limit for auth endpoints (15 req / min)
-const authLimiter = rateLimiter(15, 0.5);
+// Token bucket rate limit for auth endpoints
+const authLimiter = rateLimiter(20, 0.5);
+const captchaLimiter = rateLimiter(60, 1);
 
+router.get('/captcha', captchaLimiter, getCaptchaController);
 router.post('/login', authLimiter, validateBody(loginSchema), login);
 router.post('/register', authLimiter, validateBody(registerSchema), register);
 router.post('/register-tenant', authLimiter, validateBody(registerTenantSchema), registerTenant);

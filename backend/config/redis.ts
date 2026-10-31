@@ -361,3 +361,61 @@ export async function blacklistAccessToken(token: string, ttlSeconds: number): P
   await removeActiveAccessToken(token);
 }
 
+/**
+ * In-memory fallback map for CAPTCHA tokens
+ */
+const memoryCaptchaStore = new Map<string, { code: string; expiresAt: number }>();
+
+/**
+ * Store a CAPTCHA code with TTL (default 300s / 5 minutes)
+ */
+export async function storeCaptcha(id: string, code: string, ttlSeconds = 300): Promise<void> {
+  const expiresAt = Date.now() + ttlSeconds * 1000;
+  memoryCaptchaStore.set(id, { code, expiresAt });
+
+  if (redisClient && redisConnected) {
+    try {
+      await redisClient.set(`kw:cap:${id}`, code, 'EX', Math.max(1, Math.floor(ttlSeconds)));
+    } catch {
+      // Memory fallback handled
+    }
+  }
+}
+
+/**
+ * Validate and consume a CAPTCHA (single-use to prevent replay attacks)
+ */
+export async function consumeCaptcha(id: string): Promise<string | null> {
+  const now = Date.now();
+  let code: string | null = null;
+
+  if (redisClient && redisConnected) {
+    try {
+      const val = await redisClient.get(`kw:cap:${id}`);
+      if (val) {
+        code = val;
+        await redisClient.del(`kw:cap:${id}`);
+      }
+    } catch {
+      // Memory fallback
+    }
+  }
+
+  const mem = memoryCaptchaStore.get(id);
+  if (mem) {
+    memoryCaptchaStore.delete(id);
+    if (!code && now <= mem.expiresAt) {
+      code = mem.code;
+    }
+  }
+
+  // Purge any expired memory entries
+  for (const [k, v] of memoryCaptchaStore.entries()) {
+    if (v.expiresAt <= now) {
+      memoryCaptchaStore.delete(k);
+    }
+  }
+
+  return code;
+}
+

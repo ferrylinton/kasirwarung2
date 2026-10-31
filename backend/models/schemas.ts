@@ -5,6 +5,8 @@ import { ROLES } from '../constants/roles.ts';
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email atau username wajib diisi'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
+  captchaId: z.string().min(1, 'ID Captcha wajib diisi'),
+  captchaCode: z.string().min(1, 'Kode captcha wajib diisi'),
 });
 
 export const registerSchema = z.object({
@@ -24,6 +26,8 @@ export const registerTenantSchema = z.object({
     .max(30)
     .regex(/^[a-zA-Z0-9_.-]+$/, 'Username hanya boleh huruf, angka, titik, atau underscore'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
+  captchaId: z.string().min(1, 'ID Captcha wajib diisi'),
+  captchaCode: z.string().min(1, 'Kode captcha wajib diisi'),
 });
 
 // Tambah / Ubah Kasir oleh SHOP_OWNER
@@ -58,6 +62,8 @@ export const reviewDeactivationSchema = z.object({
 
 export const requestReactivationSchema = z.object({
   email: z.string().email('Format email pemilik toko tidak valid'),
+  captchaId: z.string().min(1, 'ID Captcha wajib diisi'),
+  captchaCode: z.string().min(1, 'Kode captcha wajib diisi'),
 });
 
 export const updateTenantStatusSchema = z.object({

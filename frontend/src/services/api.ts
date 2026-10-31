@@ -310,12 +310,20 @@ export async function apiRequest<T = any>(
   return data;
 }
 
+export interface CaptchaData {
+  captchaId: string;
+  imageSvg: string;
+  expiresInSeconds: number;
+}
+
 export const api = {
   // Auth
-  login: (email: string, password: string) =>
+  getCaptcha: () =>
+    apiRequest<{ success: boolean; data: CaptchaData }>('/api/auth/captcha'),
+  login: (email: string, password: string, captchaId: string, captchaCode: string) =>
     apiRequest('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, captchaId, captchaCode }),
     }),
   register: (name: string, email: string, password: string, role: UserRole = SHOP_CASHIER) =>
     apiRequest('/api/auth/register', {
@@ -423,7 +431,14 @@ export const api = {
     }),
 
   // Tenant & Multi-Tenant Management
-  registerTenant: (data: { shopName: string; ownerEmail: string; username: string; password: string }) =>
+  registerTenant: (data: {
+    shopName: string;
+    ownerEmail: string;
+    username: string;
+    password: string;
+    captchaId: string;
+    captchaCode: string;
+  }) =>
     apiRequest('/api/auth/register-tenant', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -433,10 +448,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ token }),
     }),
-  requestReactivation: (email: string) =>
+  requestReactivation: (email: string, captchaId: string, captchaCode: string) =>
     apiRequest('/api/tenants/request-reactivation', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, captchaId, captchaCode }),
     }),
   confirmReactivation: (token: string) =>
     apiRequest('/api/tenants/confirm-reactivation', {

@@ -6,8 +6,15 @@ interface AuthContextType {
   user: User | null;
   tenantId: string;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  registerTenant: (data: { shopName: string; ownerEmail: string; username: string; password: string }) => Promise<any>;
+  login: (email: string, password: string, captchaId: string, captchaCode: string) => Promise<void>;
+  registerTenant: (data: {
+    shopName: string;
+    ownerEmail: string;
+    username: string;
+    password: string;
+    captchaId: string;
+    captchaCode: string;
+  }) => Promise<any>;
   register: (name: string, email: string, password: string, role?: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   switchCashier: (email: string) => Promise<void>;
@@ -93,8 +100,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const res = await api.login(email, password);
+  const login = async (email: string, password: string, captchaId: string, captchaCode: string) => {
+    const res = await api.login(email, password, captchaId, captchaCode);
     if (res.success && res.data) {
       const resolvedUser = resolveUserWithTenantId(res.data.user);
       if (resolvedUser) {
@@ -107,7 +114,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const registerTenant = async (data: { shopName: string; ownerEmail: string; username: string; password: string }) => {
+  const registerTenant = async (data: {
+    shopName: string;
+    ownerEmail: string;
+    username: string;
+    password: string;
+    captchaId: string;
+    captchaCode: string;
+  }) => {
     const res = await api.registerTenant(data);
     return res;
   };

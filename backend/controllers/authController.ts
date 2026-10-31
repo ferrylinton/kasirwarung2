@@ -24,9 +24,35 @@ import { env } from '../config/env.ts';
 import { sendTenantVerificationEmail } from '../config/mailer.ts';
 import { recordActivity } from '../services/activityLogService.ts';
 import { ROLES, ADMIN, SHOP_OWNER, SHOP_CASHIER, isValidRole } from '../constants/roles.ts';
+import { createCaptcha, verifyAndConsumeCaptcha } from '../services/captchaService.ts';
+
+/**
+ * GET /api/auth/captcha
+ * Generate new CAPTCHA (uppercase letters and numbers, 5-minute validity)
+ */
+export async function getCaptchaController(_req: Request, res: Response): Promise<void> {
+  const result = await createCaptcha();
+  res.json({
+    success: true,
+    data: result,
+  });
+}
 
 export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body;
+  const { email, password, captchaId, captchaCode } = req.body;
+  const isEnglish = (req.headers['accept-language'] || '').toLowerCase().startsWith('en');
+
+  // Verify CAPTCHA (single-use, 5 minutes TTL, uppercase + numbers)
+  const captchaCheck = await verifyAndConsumeCaptcha(captchaId, captchaCode, isEnglish);
+  if (!captchaCheck.valid) {
+    res.status(400).json({
+      success: false,
+      message: captchaCheck.message,
+      captchaError: true,
+    });
+    return;
+  }
+
   const usersCol = getCollection('users');
   const tenantsCol = getCollection('tenants');
 
@@ -172,7 +198,20 @@ export async function login(req: Request, res: Response): Promise<void> {
  * Register a new tenant account with SHOP_OWNER
  */
 export async function registerTenant(req: Request, res: Response): Promise<void> {
-  const { shopName, ownerEmail, username, password } = req.body;
+  const { shopName, ownerEmail, username, password, captchaId, captchaCode } = req.body;
+  const isEnglish = (req.headers['accept-language'] || '').toLowerCase().startsWith('en');
+
+  // Verify CAPTCHA (single-use, 5 minutes TTL, uppercase + numbers)
+  const captchaCheck = await verifyAndConsumeCaptcha(captchaId, captchaCode, isEnglish);
+  if (!captchaCheck.valid) {
+    res.status(400).json({
+      success: false,
+      message: captchaCheck.message,
+      captchaError: true,
+    });
+    return;
+  }
+
   const tenantsCol = getCollection('tenants');
   const usersCol = getCollection('users');
 

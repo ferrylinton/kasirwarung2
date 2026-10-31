@@ -9,6 +9,7 @@ import {
 } from '../config/mailer.ts';
 import { recordActivity } from '../services/activityLogService.ts';
 import { ADMIN, SHOP_CASHIER } from '../constants/roles.ts';
+import { verifyAndConsumeCaptcha } from '../services/captchaService.ts';
 
 /**
  * GET /api/tenants
@@ -508,7 +509,20 @@ export async function getDeactivationRequests(_req: AuthenticatedRequest, res: R
  * SHOP_OWNER requests reactivation by entering email
  */
 export async function requestReactivation(req: Request, res: Response): Promise<void> {
-  const { email } = req.body;
+  const { email, captchaId, captchaCode } = req.body;
+  const isEnglish = (req.headers['accept-language'] || '').toLowerCase().startsWith('en');
+
+  // Verify CAPTCHA (single-use, 5 minutes TTL, uppercase + numbers)
+  const captchaCheck = await verifyAndConsumeCaptcha(captchaId, captchaCode, isEnglish);
+  if (!captchaCheck.valid) {
+    res.status(400).json({
+      success: false,
+      message: captchaCheck.message,
+      captchaError: true,
+    });
+    return;
+  }
+
   if (!email || !email.includes('@')) {
     res.status(400).json({ success: false, message: 'Masukkan alamat email pemilik toko yang valid' });
     return;
