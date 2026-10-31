@@ -34,7 +34,7 @@ import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useLoginHistory, useTenants } from '../hooks/useQueries.ts';
-import { LoginHistoryItem } from '../services/api.ts';
+import { ADMIN, LoginHistoryItem } from '../services/api.ts';
 
 interface LoginHistoryPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -46,11 +46,7 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
   onNavigate,
 }) => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
-  const isManager =
-    user?.role === 'MANAGER' ||
-    user?.role === 'SHOP_OWNER' ||
-    user?.role === 'pemilik';
+  const isAdmin = user?.role === ADMIN;
 
   // Admin tenant filter state
   const [selectedTenantId, setSelectedTenantId] = useState<string>('ALL');

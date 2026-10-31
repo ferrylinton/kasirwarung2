@@ -41,7 +41,7 @@ import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useActivityLogs, useTenants } from '../hooks/useQueries.ts';
-import { ActivityLogItem } from '../services/api.ts';
+import { ActivityLogItem, ADMIN } from '../services/api.ts';
 
 interface ActivityLogPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -51,7 +51,7 @@ type DateSelectionMode = 'range' | 'single';
 
 export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
+  const isAdmin = user?.role === ADMIN;
 
   // Filters state
   const [selectedTenantId, setSelectedTenantId] = useState<string>('ALL');

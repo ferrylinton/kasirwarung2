@@ -1,9 +1,14 @@
+export const ADMIN = 'ADMIN';
+export const SHOP_OWNER = 'SHOP_OWNER';
+export const SHOP_CASHIER = 'SHOP_CASHIER';
+
+
 export interface User {
   id: string;
   name: string;
   username?: string;
   email: string;
-  role: 'ADMIN' | 'SHOP_OWNER' | 'SHOP_CASHIER' | 'admin' | 'pemilik' | 'kasir' | string;
+  role: 'ADMIN' | 'SHOP_OWNER' | 'SHOP_CASHIER';
   shift?: string;
   tenantId?: string;
   tenantName?: string;

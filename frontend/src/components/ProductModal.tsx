@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, PackagePlus, Save, Shield } from 'lucide-react';
-import { Product, Category } from '../services/api.ts';
+import { Product, Category, SHOP_OWNER } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCategories, useProductMutations } from '../hooks/useQueries.ts';
 
@@ -18,7 +18,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   initialProduct,
 }) => {
   const { user } = useAuth();
-  const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
+  const isShopOwner = user?.role === SHOP_OWNER;
 
   const [name, setName] = useState(initialProduct?.name || '');
   const [sku, setSku] = useState(initialProduct?.sku || '');

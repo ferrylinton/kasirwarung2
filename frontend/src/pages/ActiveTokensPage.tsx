@@ -42,7 +42,7 @@ import {
   useTenants,
   useBlacklistToken,
 } from '../hooks/useQueries.ts';
-import { ActiveTokenItem } from '../services/api.ts';
+import { ActiveTokenItem, ADMIN } from '../services/api.ts';
 
 interface ActiveTokensPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -54,11 +54,8 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
   onNavigate,
 }) => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
-  const isManager =
-    user?.role === 'MANAGER' ||
-    user?.role === 'SHOP_OWNER' ||
-    user?.role === 'pemilik';
+  const isAdmin = user?.role === ADMIN;
+
 
   // Filters
   const [selectedTenantId, setSelectedTenantId] = useState<string>('ALL');

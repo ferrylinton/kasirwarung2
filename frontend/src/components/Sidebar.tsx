@@ -20,6 +20,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ActiveTab } from './TopNavbar.tsx';
+import { ADMIN, SHOP_OWNER } from '../services/api.ts';
 
 interface SidebarProps {
   currentTab: ActiveTab;
@@ -83,7 +84,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
   };
 
   const isDataActive =
-    user?.role === 'ADMIN'
+    user?.role === ADMIN
       ? currentTab === 'admin-products' || currentTab === 'admin-categories'
       : currentTab === 'products' || currentTab === 'categories';
 
@@ -96,15 +97,13 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
     currentTab === 'active-tokens';
 
   const canAccessAuth =
-    user?.role === 'ADMIN' ||
-    user?.role === 'SHOP_OWNER' ||
-    user?.role === 'pemilik' ||
-    user?.role === 'MANAGER';
+    user?.role === ADMIN ||
+    user?.role === SHOP_OWNER
 
   return (
     <nav className="flex-1 w-full flex flex-col items-center gap-2.5 px-2 overflow-y-auto overflow-x-hidden min-h-0 pt-1 pb-6 overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/25">
       {/* Active POS Cashier Button with badge (Only for non-ADMIN) */}
-      {user?.role !== 'ADMIN' ? (
+      {user?.role !== ADMIN ? (
         <button
           onClick={() => handleItemClick('pos')}
           title={t('nav.pos', 'Pesanan')}
@@ -165,9 +164,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
       )}
 
       {/* MANAGER / SHOP_OWNER ONLY: Toko Tab */}
-      {(user?.role === 'SHOP_OWNER' ||
-        user?.role === 'pemilik' ||
-        user?.role === 'MANAGER') && (
+      {(user?.role === SHOP_OWNER) && (
         <button
           onClick={() => handleItemClick('store-settings')}
           title={t('nav.storeSettings', 'Pengaturan Toko & Akun Tenan')}
@@ -283,7 +280,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                     {t('nav.history', 'Riwayat Transaksi')}
                   </span>
                   <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                    {user?.role === 'ADMIN'
+                    {user?.role === ADMIN
                       ? 'Penjualan Seluruh Tenan'
                       : 'Daftar Penjualan & Struk'}
                   </span>
@@ -313,7 +310,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                     {t('nav.activityLog', 'Aktivitas')}
                   </span>
                   <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                    {user?.role === 'ADMIN'
+                    {user?.role === ADMIN
                       ? 'Audit Trail Semua Tenan'
                       : 'Audit Trail Perubahan Toko'}
                   </span>
@@ -343,7 +340,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                     Log Sistem
                   </span>
                   <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                    {user?.role === 'ADMIN'
+                    {user?.role === ADMIN
                       ? 'Winston Log Semua Tenan'
                       : 'Winston Log Tenan Toko'}
                   </span>
@@ -371,7 +368,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
           <button
             type="button"
             title={
-              user?.role === 'ADMIN'
+              user?.role === ADMIN
                 ? 'Menu Data (Produk & Kategori Tenan)'
                 : 'Menu Data (Produk & Kategori)'
             }
@@ -430,7 +427,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
               <DropdownMenu.Item
                 onSelect={() =>
                   handleItemClick(
-                    user?.role === 'ADMIN' ? 'admin-products' : 'products'
+                    user?.role === ADMIN ? 'admin-products' : 'products'
                   )
                 }
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer outline-none transition-all ${
@@ -453,7 +450,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                     {t('nav.products', 'Produk')}
                   </span>
                   <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                    {user?.role === 'ADMIN'
+                    {user?.role === ADMIN
                       ? t('nav.adminProducts', 'Semua Produk Tenan')
                       : t('nav.products', 'Katalog & Stok')}
                   </span>
@@ -464,7 +461,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
               <DropdownMenu.Item
                 onSelect={() =>
                   handleItemClick(
-                    user?.role === 'ADMIN' ? 'admin-categories' : 'categories'
+                    user?.role === ADMIN ? 'admin-categories' : 'categories'
                   )
                 }
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer outline-none transition-all ${
@@ -487,7 +484,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                     {t('nav.categories', 'Kategori')}
                   </span>
                   <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                    {user?.role === 'ADMIN'
+                    {user?.role === ADMIN
                       ? t('nav.adminCategories', 'Semua Kategori Tenan')
                       : t('nav.categories', 'Kelola Kategori')}
                   </span>
@@ -566,7 +563,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
 
               <div className="flex flex-col gap-1">
                 {/* Submenu: Pengguna (Non-ADMIN only) */}
-                {user?.role !== 'ADMIN' && (
+                {user?.role !== ADMIN && (
                   <DropdownMenu.Item
                     onSelect={() => handleItemClick('cashiers')}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer outline-none transition-all ${
@@ -618,7 +615,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                       {t('nav.auditLogin', 'Audit Login')}
                     </span>
                     <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                      {user?.role === 'ADMIN'
+                      {user?.role === ADMIN
                         ? t(
                             'nav.loginHistory',
                             'Histori Login Seluruh Tenan'
@@ -651,7 +648,7 @@ const SidebarNavItems: React.FC<SidebarNavItemsProps> = ({
                       {t('nav.activeTokens', 'Sesi Token')}
                     </span>
                     <span className="text-[10px] text-slate-400 font-normal leading-tight">
-                      {user?.role === 'ADMIN'
+                      {user?.role === ADMIN
                         ? t(
                             'nav.activeTokens',
                             'Token Aktif Seluruh Tenan'

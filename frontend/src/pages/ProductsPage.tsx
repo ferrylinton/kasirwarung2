@@ -11,7 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { Product, Category } from '../services/api.ts';
+import { Product, Category, SHOP_OWNER } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
@@ -34,7 +34,7 @@ const CATEGORIES = [
 export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
+  const isShopOwner = user?.role === SHOP_OWNER;
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');

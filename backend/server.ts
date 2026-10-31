@@ -18,6 +18,13 @@ import { errorHandler } from './middleware/errorMiddleware.ts';
 import { initMidnightCleanupScheduler } from './services/cleanupScheduler.ts';
 import { i18nMiddleware } from './config/i18n.ts';
 import { httpLogger, logger } from './config/logger.ts';
+import dns from 'node:dns/promises';
+
+try {
+  dns.setServers(['1.1.1.1', '8.8.8.8']);
+} catch (e) {
+  // Ignore DNS configuration errors in restricted containers
+}
 
 export async function createApp(): Promise<Express> {
   const app = express();
@@ -60,7 +67,7 @@ export async function createApp(): Promise<Express> {
   app.use('/api/logs', logRoutes);
 
   // 404 handler for unhandled API routes
-  app.all('/api/*', (req, res) => {
+  app.all('/api/*splat', (req, res) => {
     res.status(404).json({
       success: false,
       message: `API endpoint ${req.method} ${req.originalUrl} tidak ditemukan`,

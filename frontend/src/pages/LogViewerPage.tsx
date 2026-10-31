@@ -30,7 +30,7 @@ import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useSystemLogs, useLogFiles, useTenants } from '../hooks/useQueries.ts';
-import { api, SystemLogItem } from '../services/api.ts';
+import { ADMIN, api, SystemLogItem } from '../services/api.ts';
 
 interface LogViewerPageProps {
   onNavigate?: (tab: ActiveTab) => void;
@@ -38,7 +38,7 @@ interface LogViewerPageProps {
 
 export const LogViewerPage: React.FC<LogViewerPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin';
+  const isAdmin = user?.role === ADMIN;
 
   // Filters state
   const [selectedFile, setSelectedFile] = useState<string>('');

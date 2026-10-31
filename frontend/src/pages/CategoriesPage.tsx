@@ -19,7 +19,7 @@ import {
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
-import { Category } from '../services/api.ts';
+import { Category, SHOP_OWNER } from '../services/api.ts';
 import { useCategories, useCategoryMutations } from '../hooks/useQueries.ts';
 
 interface CategoriesPageProps {
@@ -33,7 +33,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const isShopOwner = user?.role === 'SHOP_OWNER' || user?.role === 'pemilik';
+  const isShopOwner = user?.role === SHOP_OWNER;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
