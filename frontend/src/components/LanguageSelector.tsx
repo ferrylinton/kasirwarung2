@@ -70,7 +70,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
       <Select.Trigger
         aria-label={t('common.selectLanguage', 'Pilih Bahasa')}
         title={currentLang === 'id' ? 'Bahasa Indonesia' : 'English (US)'}
-        className={`inline-flex items-center gap-1.5 sm:gap-2 border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer ${
+        className={`inline-flex items-center gap-1.5 sm:gap-2 border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer ${
           variant === 'compact'
             ? 'h-9 md:h-10 px-2.5 sm:px-3 text-xs md:text-sm font-semibold rounded-full justify-center sm:justify-between'
             : 'w-full h-10 md:h-11 px-3.5 py-2.5 text-sm font-semibold rounded-xl justify-between'
@@ -99,7 +99,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         </div>
         <Select.Icon asChild>
           <ChevronDown
-            className={`w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+            className={`w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400 dark:text-slate-400 shrink-0 transition-transform duration-200 ${
               variant === 'compact' ? 'hidden sm:inline-block' : ''
             }`}
           />
@@ -111,12 +111,12 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           position="popper"
           sideOffset={6}
           align="end"
-          className="z-50 min-w-[170px] overflow-hidden rounded-2xl bg-white p-1.5 shadow-xl border border-slate-200 text-xs font-semibold text-slate-800 animate-in fade-in-80 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2"
+          className="z-50 min-w-[170px] overflow-hidden rounded-2xl bg-[var(--bg-surface-elevated)] p-1.5 shadow-xl border border-[var(--border-default)] text-xs font-semibold text-slate-800 dark:text-slate-100 animate-in fade-in-80 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2"
         >
           <Select.Viewport className="p-0.5 space-y-0.5">
             <Select.Item
               value="id"
-              className="relative flex items-center justify-between gap-3 px-3 py-2 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-900 data-[highlighted]:bg-orange-50 data-[highlighted]:text-orange-900 cursor-pointer transition-colors"
+              className="relative flex items-center justify-between gap-3 px-3 py-2 rounded-xl outline-none select-none hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-900 dark:hover:text-orange-300 data-[highlighted]:bg-orange-50 dark:data-[highlighted]:bg-orange-950/40 data-[highlighted]:text-orange-900 dark:data-[highlighted]:text-orange-300 cursor-pointer transition-colors"
             >
               <div className="flex items-center gap-2.5">
                 <IndonesiaFlag className="w-5 h-5" />
@@ -129,7 +129,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
             <Select.Item
               value="en"
-              className="relative flex items-center justify-between gap-3 px-3 py-2 rounded-xl outline-none select-none hover:bg-orange-50 hover:text-orange-900 data-[highlighted]:bg-orange-50 data-[highlighted]:text-orange-900 cursor-pointer transition-colors"
+              className="relative flex items-center justify-between gap-3 px-3 py-2 rounded-xl outline-none select-none hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-900 dark:hover:text-orange-300 data-[highlighted]:bg-orange-50 dark:data-[highlighted]:bg-orange-950/40 data-[highlighted]:text-orange-900 dark:data-[highlighted]:text-orange-300 cursor-pointer transition-colors"
             >
               <div className="flex items-center gap-2.5">
                 <UKFlag className="w-5 h-5" />

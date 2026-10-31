@@ -1,17 +1,215 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --rdp-accent-color: #F97316;
-    --rdp-accent-background-color: #FFF7ED;
-  }
+@custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  /* Surface & Backgrounds */
+  --bg-app: #f5f6f8;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-surface-hover: #f8fafc;
+  --bg-muted: #f1f5f9;
+  --bg-subtle: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --bg-dropdown: #ffffff;
+  --bg-sidebar: #181a1f;
+
+  /* Borders */
+  --border-subtle: #f1f5f9;
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --border-hover: #94a3b8;
+  --border-focus: #f97316;
+
+  /* Text & Typography */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --text-inverted: #ffffff;
+
+  /* Brand Colors (Orange POS) */
+  --color-brand: #ea580c;
+  --color-brand-hover: #c2410c;
+  --color-brand-active: #9a3412;
+  --color-brand-light: #fff7ed;
+  --color-brand-border: #fed7aa;
+  --color-brand-text: #c2410c;
+
+  /* Accent Colors (Green / Emerald) */
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-light: #ecfdf5;
+  --color-success-border: #a7f3d0;
+  --color-success-text: #166534;
+
+  /* Accent Colors (Blue / Info) */
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
+  --color-info-light: #eff6ff;
+  --color-info-border: #bfdbfe;
+  --color-info-text: #1e40af;
+
+  /* Accent Colors (Purple / Admin) */
+  --color-purple: #7c3aed;
+  --color-purple-hover: #6d28d9;
+  --color-purple-light: #f5f3ff;
+  --color-purple-border: #ddd6fe;
+  --color-purple-text: #5b21b6;
+
+  /* Accent Colors (Red / Danger) */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-light: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-danger-text: #991b1b;
+
+  /* Accent Colors (Amber / Warning) */
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-light: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-warning-text: #92400e;
+
+  /* Elevation & Shadows */
+  --shadow-2xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-xs: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+
+  /* Datepicker */
+  --rdp-accent-color: #F97316;
+  --rdp-accent-background-color: #FFF7ED;
+}
+
+.dark, [data-theme="dark"] {
+  /* Surface & Backgrounds */
+  --bg-app: #0b0f17;
+  --bg-surface: #131b2a;
+  --bg-surface-elevated: #1a2436;
+  --bg-surface-hover: #222f46;
+  --bg-muted: #1a2436;
+  --bg-subtle: #0f1726;
+  --bg-card: #131b2a;
+  --bg-input: #101622;
+  --bg-dropdown: #172032;
+  --bg-sidebar: #0a0d14;
+
+  /* Borders */
+  --border-subtle: #1e293b;
+  --border-default: #2a374d;
+  --border-strong: #3b4d6a;
+  --border-hover: #4e6386;
+  --border-focus: #fb923c;
+
+  /* Text & Typography */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --text-inverted: #0b0f17;
+
+  /* Brand Colors (Orange POS) */
+  --color-brand: #f97316;
+  --color-brand-hover: #fb923c;
+  --color-brand-active: #ea580c;
+  --color-brand-light: rgba(249, 115, 22, 0.16);
+  --color-brand-border: rgba(249, 115, 22, 0.35);
+  --color-brand-text: #fdba74;
+
+  /* Accent Colors (Green / Emerald) */
+  --color-success: #22c55e;
+  --color-success-hover: #4ade80;
+  --color-success-light: rgba(34, 197, 94, 0.16);
+  --color-success-border: rgba(34, 197, 94, 0.35);
+  --color-success-text: #86efac;
+
+  /* Accent Colors (Blue / Info) */
+  --color-info: #3b82f6;
+  --color-info-hover: #60a5fa;
+  --color-info-light: rgba(59, 130, 246, 0.16);
+  --color-info-border: rgba(59, 130, 246, 0.35);
+  --color-info-text: #93c5fd;
+
+  /* Accent Colors (Purple / Admin) */
+  --color-purple: #a855f7;
+  --color-purple-hover: #c084fc;
+  --color-purple-light: rgba(168, 85, 247, 0.16);
+  --color-purple-border: rgba(168, 85, 247, 0.35);
+  --color-purple-text: #d8b4fe;
+
+  /* Accent Colors (Red / Danger) */
+  --color-danger: #ef4444;
+  --color-danger-hover: #f87171;
+  --color-danger-light: rgba(239, 68, 68, 0.16);
+  --color-danger-border: rgba(239, 68, 68, 0.35);
+  --color-danger-text: #fca5a5;
+
+  /* Accent Colors (Amber / Warning) */
+  --color-warning: #f59e0b;
+  --color-warning-hover: #fbbf24;
+  --color-warning-light: rgba(245, 158, 11, 0.16);
+  --color-warning-border: rgba(245, 158, 11, 0.35);
+  --color-warning-text: #fde68a;
+
+  /* Elevation & Shadows */
+  --shadow-2xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-xs: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
+
+  /* Datepicker */
+  --rdp-accent-color: #FB923C;
+  --rdp-accent-background-color: rgba(251, 146, 60, 0.2);
+}
+
+@theme {
+  --color-theme-bg: var(--bg-app);
+  --color-theme-surface: var(--bg-surface);
+  --color-theme-surface-elevated: var(--bg-surface-elevated);
+  --color-theme-surface-hover: var(--bg-surface-hover);
+  --color-theme-muted: var(--bg-muted);
+  --color-theme-subtle: var(--bg-subtle);
+  --color-theme-card: var(--bg-card);
+  --color-theme-input: var(--bg-input);
+  --color-theme-border: var(--border-default);
+  --color-theme-border-subtle: var(--border-subtle);
+  --color-theme-border-strong: var(--border-strong);
+  --color-theme-text: var(--text-primary);
+  --color-theme-text-secondary: var(--text-secondary);
+  --color-theme-text-muted: var(--text-muted);
+  --color-theme-brand: var(--color-brand);
+  --color-theme-brand-light: var(--color-brand-light);
+  --color-theme-brand-border: var(--color-brand-border);
+  --color-theme-brand-text: var(--color-brand-text);
+}
+
+@layer base {
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
-}
 
+  /* Custom styled scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+}

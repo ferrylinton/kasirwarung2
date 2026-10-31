@@ -33,13 +33,13 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
   return (
     <div className="mb-5">
       {/* Section Header */}
-      <div className="flex items-center justify-between text-xs md:text-sm font-semibold tracking-wide text-slate-600 my-3">
-        <div className="flex items-center gap-1.5 text-slate-700">
+      <div className="flex items-center justify-between text-xs md:text-sm font-semibold tracking-wide text-[var(--text-secondary)] my-3">
+        <div className="flex items-center gap-1.5 text-[var(--text-primary)]">
           <span>{t('pos.savedOrders', 'Pesanan Sementara')}</span>
         </div>
         <button
           onClick={onOpenAllSaved}
-          className="text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-0.5 lowercase first-letter:uppercase text-xs cursor-pointer"
+          className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold flex items-center gap-0.5 lowercase first-letter:uppercase text-xs cursor-pointer"
         >
           <span>{savedOrdersCount} {t('pos.savedBadge', 'Disimpan')}</span>
           <ChevronRight className="w-3.5 h-3.5" />
@@ -52,18 +52,18 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
         {savedOrders.map((order: Order) => (
           <div
             key={order.id || order.invoiceNo}
-            className="w-64 md:w-72 bg-white rounded-2xl p-3.5 border-2 border-[#F59E0B]/80 shadow-xs flex flex-col justify-between shrink-0 hover:shadow-md transition-shadow relative"
+            className="w-64 md:w-72 bg-[var(--bg-surface)] dark:bg-slate-900 rounded-2xl p-3.5 border-2 border-amber-500/70 shadow-xs flex flex-col justify-between shrink-0 hover:shadow-md transition-shadow relative"
           >
             {/* Top row: Status pill + options */}
             <div className="flex items-center justify-between mb-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30">
                 <span className="text-[10px]">⏸</span>
                 <span>{t('pos.unpaidBadge', 'Belum Dibayar')}</span>
               </span>
               <button
                 onClick={() => deleteSavedOrder(order.invoiceNo)}
                 title={t('pos.deleteSavedOrder', 'Hapus / Batalkan pesanan tersimpan')}
-                className="text-slate-400 hover:text-slate-600 p-0.5 rounded-sm hover:bg-slate-100"
+                className="text-[var(--text-subtle)] hover:text-red-500 p-0.5 rounded-sm hover:bg-[var(--bg-muted)] transition-colors cursor-pointer"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
@@ -71,17 +71,17 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
 
             {/* Invoice & Time */}
             <div className="flex items-center justify-between gap-1 mb-1">
-              <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-800">
+              <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-[var(--text-primary)]">
                 <span className="text-amber-500">📄</span>
                 <span>{order.invoiceNo}</span>
               </div>
-              <span className="text-[11px] text-slate-400 font-medium">
+              <span className="text-[11px] text-[var(--text-subtle)] font-medium">
                 {order.timeLabel || '14:15'}
               </span>
             </div>
 
             {/* Summary items */}
-            <p className="text-xs text-slate-500 truncate mb-3">
+            <p className="text-xs text-[var(--text-muted)] truncate mb-3">
               {order.summaryLabel ||
                 `${order.items?.length || 0} ${t('common.items', 'Item')}: ${order.items
                   ?.map((i) => i.name)
@@ -89,13 +89,13 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
             </p>
 
             {/* Price & Action Button */}
-            <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-              <span className="font-bold text-sm md:text-base text-slate-900 tabular-nums">
+            <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
+              <span className="font-bold text-sm md:text-base text-[var(--text-primary)] tabular-nums">
                 Rp{(order.total || 0).toLocaleString('id-ID')}
               </span>
               <button
                 onClick={() => resumeOrder(order)}
-                className="text-xs font-semibold text-orange-600 hover:text-orange-700 flex items-center gap-0.5 hover:underline cursor-pointer"
+                className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 flex items-center gap-0.5 hover:underline cursor-pointer"
               >
                 <span>{t('pos.resumeSavedOrder', 'Lanjutkan')}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -106,29 +106,29 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
 
         {/* Fallback mock card if no saved orders exist */}
         {savedOrders.length === 0 && (
-          <div className="w-64 md:w-72 bg-white rounded-2xl p-3.5 border-2 border-[#F59E0B]/80 shadow-xs flex flex-col justify-between shrink-0">
+          <div className="w-64 md:w-72 bg-[var(--bg-surface)] dark:bg-slate-900 rounded-2xl p-3.5 border-2 border-amber-500/70 shadow-xs flex flex-col justify-between shrink-0">
             <div className="flex items-center justify-between mb-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30">
                 <span>⏸</span>
                 <span>{t('pos.unpaidBadge', 'Belum Dibayar')}</span>
               </span>
-              <span className="text-slate-400 text-xs">...</span>
+              <span className="text-[var(--text-subtle)] text-xs">...</span>
             </div>
             <div className="flex items-center justify-between gap-1 mb-1">
-              <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-800">
+              <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-[var(--text-primary)]">
                 <span className="text-amber-500">📄</span>
                 <span>INV/2025/05/28-0041</span>
               </div>
-              <span className="text-[11px] text-slate-400 font-medium">14:15</span>
+              <span className="text-[11px] text-[var(--text-subtle)] font-medium">14:15</span>
             </div>
-            <p className="text-xs text-slate-500 truncate mb-3">
+            <p className="text-xs text-[var(--text-muted)] truncate mb-3">
               4 Item: Beras, Telur, Minyak...
             </p>
-            <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-              <span className="font-bold text-sm md:text-base text-slate-900 tabular-nums">
+            <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
+              <span className="font-bold text-sm md:text-base text-[var(--text-primary)] tabular-nums">
                 Rp85.500
               </span>
-              <span className="text-xs font-semibold text-orange-600 cursor-pointer">
+              <span className="text-xs font-semibold text-orange-600 dark:text-orange-400 cursor-pointer">
                 {t('pos.resumeSavedOrder', 'Lanjutkan')} &gt;
               </span>
             </div>
@@ -139,15 +139,15 @@ export const SavedOrdersBar: React.FC<SavedOrdersBarProps> = ({ onOpenAllSaved }
         <button
           onClick={startNewTransaction}
           title={`${t('pos.newTransactionCTA', 'Buka Transaksi Baru')} (Shift + N)`}
-          className="w-52 md:w-60 h-[126px] bg-white hover:bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-300 p-3.5 flex flex-col items-center justify-center gap-1.5 text-center shrink-0 cursor-pointer transition-colors group"
+          className="w-52 md:w-60 h-[126px] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] dark:bg-slate-900 dark:hover:bg-slate-800/80 rounded-2xl border-2 border-dashed border-[var(--border-default)] dark:border-slate-700 p-3.5 flex flex-col items-center justify-center gap-1.5 text-center shrink-0 cursor-pointer transition-colors group"
         >
-          <div className="w-7 h-7 rounded-full bg-slate-100 group-hover:bg-orange-50 text-slate-500 group-hover:text-orange-600 flex items-center justify-center transition-colors">
+          <div className="w-7 h-7 rounded-full bg-[var(--bg-muted)] dark:bg-slate-800 group-hover:bg-orange-500/20 text-[var(--text-secondary)] group-hover:text-orange-600 dark:group-hover:text-orange-400 flex items-center justify-center transition-colors">
             <Plus className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <span className="text-xs md:text-sm font-semibold text-slate-700 group-hover:text-slate-900">
+          <span className="text-xs md:text-sm font-semibold text-[var(--text-primary)] group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
             {t('pos.newTransactionCTA', 'Buka Transaksi Baru')}
           </span>
-          <span className="text-[11px] text-slate-400 font-medium">
+          <span className="text-[11px] text-[var(--text-subtle)] font-medium">
             (Shift + N)
           </span>
         </button>

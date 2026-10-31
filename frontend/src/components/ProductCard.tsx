@@ -19,22 +19,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div
-      className={`relative bg-white rounded-2xl p-3 flex flex-col justify-between transition-all select-none ${
+      className={`relative bg-[var(--bg-surface)] dark:bg-slate-900 rounded-2xl p-3 flex flex-col justify-between transition-all select-none ${
         isInCart
-          ? 'ring-2 ring-[#16A34A] shadow-xs'
-          : 'border border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
+          ? 'ring-2 ring-[#16A34A] dark:ring-emerald-500 shadow-xs'
+          : 'border border-[var(--border-default)] dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs'
       }`}
     >
       {/* Illustration Card Container with Pastel Tint */}
       <div
-        className="w-full h-28 md:h-32 rounded-xl relative flex items-center justify-center p-2 mb-2.5 transition-colors overflow-hidden"
+        className="w-full h-28 md:h-32 rounded-xl relative flex items-center justify-center p-2 mb-2.5 transition-colors overflow-hidden dark:brightness-90"
         style={{ backgroundColor: product.bgTint || '#FDF8EE' }}
       >
         {/* Top-left Stock Badge */}
         <div className="absolute top-2 left-2 z-10">
           <span
             className={`px-2 py-0.5 rounded-full text-[11px] font-bold text-white shadow-2xs ${
-              isInCart ? 'bg-[#10B981]' : 'bg-[#1E293B]'
+              isInCart ? 'bg-[#10B981]' : 'bg-[#1E293B]/90'
             }`}
           >
             Stok: {product.stock}
@@ -55,15 +55,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="mb-2">
         <h3
           title={product.name}
-          className="text-xs md:text-sm font-semibold text-slate-800 truncate"
+          className="text-xs md:text-sm font-semibold text-[var(--text-primary)] truncate"
         >
           {product.name}
         </h3>
       </div>
 
       {/* Price & Quantity Stepper */}
-      <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100">
-        <span className="font-bold text-xs md:text-sm text-slate-900 tabular-nums">
+      <div className="flex items-center justify-between gap-1 pt-1 border-t border-[var(--border-subtle)]">
+        <span className="font-bold text-xs md:text-sm text-[var(--text-primary)] tabular-nums">
           Rp{product.price.toLocaleString('id-ID')}
         </span>
 
@@ -74,8 +74,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             disabled={qty <= 0 || isAdmin}
             className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-colors ${
               qty > 0 && !isAdmin
-                ? 'text-slate-600 hover:bg-slate-100 active:bg-slate-200 cursor-pointer'
-                : 'text-slate-300 cursor-not-allowed opacity-50'
+                ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-muted)] active:bg-[var(--bg-surface-hover)] cursor-pointer'
+                : 'text-[var(--text-subtle)] cursor-not-allowed opacity-40'
             }`}
             title={isAdmin ? 'Role ADMIN tidak bisa bikin order' : 'Kurangi jumlah'}
           >
@@ -84,7 +84,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
           <span
             className={`text-xs md:text-sm font-bold min-w-[16px] text-center tabular-nums ${
-              isInCart ? 'text-slate-900' : 'text-slate-400'
+              isInCart ? 'text-[var(--text-primary)]' : 'text-[var(--text-subtle)]'
             }`}
           >
             {qty}
@@ -95,10 +95,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             disabled={isAdmin}
             className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-2xs ${
               isAdmin
-                ? 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-50'
+                ? 'bg-[var(--bg-muted)] text-[var(--text-subtle)] cursor-not-allowed opacity-40'
                 : isInCart
                 ? 'bg-[#16A34A] text-white hover:bg-[#15803D] active:scale-95 cursor-pointer'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer'
+                : 'bg-[var(--bg-muted)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] cursor-pointer'
             }`}
             title={isAdmin ? 'Role ADMIN tidak bisa bikin order' : 'Tambah jumlah'}
           >

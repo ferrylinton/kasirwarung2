@@ -10,6 +10,7 @@ import {
 } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
+import { ThemeProvider } from './context/ThemeContext.tsx';
 import { CartProvider } from './context/CartContext.tsx';
 import { Sidebar } from './components/Sidebar.tsx';
 import { IdleTimerModal } from './components/IdleTimerModal.tsx';
@@ -113,7 +114,7 @@ const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#F5F6F8] font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] font-sans">
       {/* Dark Sidebar with direct page navigation */}
       <Sidebar
         currentTab={currentTab}
@@ -431,15 +432,17 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <ErrorBoundary isFullPage>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CartProvider>
-            <AdminDrillProvider>
-              <RouterProvider router={router} />
-            </AdminDrillProvider>
-          </CartProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <CartProvider>
+              <AdminDrillProvider>
+                <RouterProvider router={router} />
+              </AdminDrillProvider>
+            </CartProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

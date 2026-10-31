@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../context/AuthContext.tsx';
 import { api } from '../services/api.ts';
 import { LanguageSelector } from '../components/LanguageSelector.tsx';
+import { ThemeToggle } from '../components/ThemeToggle.tsx';
 import { ADMIN, SHOP_OWNER, SHOP_CASHIER, UserRole } from '../constants/roles.ts';
 import { CaptchaField } from '../components/CaptchaField.tsx';
 
@@ -279,36 +280,39 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F6F8] flex flex-col items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-xl border border-slate-200/80 p-6 md:p-8 space-y-6">
-        {/* Top bar with Language Selector */}
+    <div className="min-h-screen bg-[var(--bg-app)] flex flex-col items-center justify-center p-4 transition-colors">
+      <div className="bg-[var(--bg-surface)] dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-xl border border-[var(--border-default)] dark:border-slate-800 p-6 md:p-8 space-y-6 text-[var(--text-primary)]">
+        {/* Top bar with Language Selector & Theme Toggle */}
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <span className="text-[11px] font-semibold text-[var(--text-subtle)] uppercase tracking-wider">
             Kasir Warung POS
           </span>
-          <LanguageSelector variant="compact" />
+          <div className="flex items-center gap-2">
+            <LanguageSelector variant="compact" />
+            <ThemeToggle variant="compact" />
+          </div>
         </div>
 
         {/* Brand Lockup with KasirWarung Logo */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-gradient-to-b from-orange-50/50 to-emerald-50/50 border border-orange-100 rounded-2xl p-2 flex items-center justify-center mx-auto shadow-sm">
+          <div className="w-16 h-16 bg-gradient-to-b from-orange-50/50 to-emerald-50/50 dark:from-orange-950/40 dark:to-emerald-950/40 border border-orange-200/60 dark:border-orange-500/30 rounded-2xl p-2 flex items-center justify-center mx-auto shadow-sm">
             <img
               src="/src/assets/images/kasir_warung_logo_1791830546088.jpg"
               alt="Logo KasirWarung"
               referrerPolicy="no-referrer"
-              className="w-full h-full object-contain mix-blend-multiply"
+              className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal rounded-xl"
             />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
             {t('auth.title', 'Kasir Warung')}
           </h2>
-          <p className="text-xs text-slate-500 max-w-xs mx-auto">
+          <p className="text-xs text-[var(--text-muted)] max-w-xs mx-auto">
             {t('auth.subtitle', 'Sistem POS Kasir Modern untuk Warung & Toko Kelontong')}
           </p>
         </div>
 
         {/* Tab Switcher: Masuk vs Daftar Warung Baru */}
-        <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600">
+        <div className="grid grid-cols-2 p-1 bg-[var(--bg-muted)] dark:bg-slate-800/80 rounded-2xl text-xs font-bold text-[var(--text-secondary)]">
           <button
             type="button"
             onClick={() => {
@@ -318,8 +322,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
             }}
             className={`py-2 rounded-xl transition-all cursor-pointer ${
               mode === 'login'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-[var(--bg-surface)] dark:bg-slate-900 text-[var(--text-primary)] shadow-2xs'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
           >
             {t('auth.loginTab', 'Masuk')}
@@ -333,8 +337,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
             }}
             className={`py-2 rounded-xl transition-all cursor-pointer ${
               mode === 'register_tenant'
-                ? 'bg-white text-orange-600 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-[var(--bg-surface)] dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-2xs'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
           >
             {t('auth.registerTab', '+ Daftar Warung Baru')}
@@ -343,8 +347,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
 
         {/* Alerts */}
         {error && (
-          <div className="bg-red-50 text-red-700 text-xs p-3.5 rounded-2xl border border-red-200 font-medium flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <div className="bg-red-500/10 text-red-600 dark:text-red-400 text-xs p-3.5 rounded-2xl border border-red-500/30 font-medium flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
             <div>
               <p>{error}</p>
               {tenantInactivePrompt && (
@@ -355,7 +359,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
                     setMode('reactivate_tenant');
                     setError(null);
                   }}
-                  className="mt-2 text-xs font-bold text-red-700 underline hover:text-red-800 cursor-pointer block"
+                  className="mt-2 text-xs font-bold text-red-600 dark:text-red-400 underline hover:text-red-700 dark:hover:text-red-300 cursor-pointer block"
                 >
                   {t('auth.requestReactivationLink', 'Minta Tautan Pengaktifan Warung Kembali →')}
                 </button>
@@ -365,11 +369,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
         )}
 
         {successMsg && (
-          <div className="bg-emerald-50 text-emerald-800 text-xs p-3.5 rounded-2xl border border-emerald-200 font-medium flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <div className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs p-3.5 rounded-2xl border border-emerald-500/30 font-medium flex items-start gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="font-semibold">{successMsg}</p>
-              <p className="text-[11px] text-emerald-700">
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
                 {t('auth.checkInboxNotice', 'Silakan periksa kotak masuk email atau klik tautan verifikasi pada panel simulasi di bawah.')}
               </p>
             </div>
@@ -380,25 +384,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
         {mode === 'login' && (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 {t('auth.emailOrUsername', 'Email atau Username')}
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-3" />
                 <input
                   type="text"
                   required
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   placeholder={t('auth.emailPlaceholder', 'budi@kasirwarung.id atau budi')}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full pl-9 pr-3 py-2 border border-[var(--border-default)] dark:border-slate-800 rounded-xl text-xs md:text-sm bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">
+                <label className="block text-xs font-semibold text-[var(--text-secondary)]">
                   {t('auth.password', 'Kata Sandi (Password)')}
                 </label>
                 <button
@@ -408,20 +412,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
                     setError(null);
                     setSuccessMsg(null);
                   }}
-                  className="text-[11px] text-orange-600 hover:underline cursor-pointer"
+                  className="text-[11px] text-orange-600 dark:text-orange-400 hover:underline cursor-pointer"
                 >
                   {t('auth.shopDeactivatedQuestion', 'Warung Dinonaktifkan?')}
                 </button>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Lock className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-3" />
                 <input
                   type="password"
                   required
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   placeholder={t('auth.passwordPlaceholder', '••••••••')}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full pl-9 pr-3 py-2 border border-[var(--border-default)] dark:border-slate-800 rounded-xl text-xs md:text-sm bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
@@ -440,20 +444,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
             <button
               type="submit"
               disabled={loading || captchaLoading}
-              className="w-full bg-[#EC6C1A] hover:bg-orange-600 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="w-full bg-[#EC6C1A] hover:bg-orange-600 active:scale-[0.99] text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <span>{loading ? t('auth.loggingIn', 'Memproses Masuk...') : t('auth.loginButton', 'Masuk ke Sistem')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             {/* Quick Demo Accounts Select Dropdown using @radix-ui/react-select */}
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/60 space-y-2">
+            <div className="bg-[var(--bg-subtle)] dark:bg-slate-800/60 p-3.5 rounded-2xl border border-[var(--border-default)] dark:border-slate-800 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-orange-600" />
+                <p className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                   {t('auth.demoAccountsTitle', 'Akun Demo Siap Pakai:')}
                 </p>
-                <span className="text-[10px] text-slate-400 font-mono">Quick Access</span>
+                <span className="text-[10px] text-[var(--text-subtle)] font-mono">Quick Access</span>
               </div>
 
               <Select.Root
@@ -471,10 +475,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
               >
                 <Select.Trigger
                   aria-label={t('auth.demoAccountsTitle', 'Pilih Akun Demo Cepat')}
-                  className="w-full h-11 px-3.5 bg-white border border-slate-200 rounded-xl text-xs md:text-sm text-slate-800 flex items-center justify-between gap-2 shadow-2xs hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
+                  className="w-full h-11 px-3.5 bg-[var(--bg-surface)] dark:bg-slate-800 border border-[var(--border-default)] dark:border-slate-700 rounded-xl text-xs md:text-sm text-[var(--text-primary)] flex items-center justify-between gap-2 shadow-2xs hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
                 >
                   <Select.Value placeholder="-- Pilih Akun Demo Cepat --" />
-                  <Select.Icon className="text-slate-400">
+                  <Select.Icon className="text-[var(--text-muted)]">
                     <ChevronDown className="w-4 h-4" />
                   </Select.Icon>
                 </Select.Trigger>
@@ -483,14 +487,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
                   <Select.Content
                     position="popper"
                     sideOffset={6}
-                    className="z-50 min-w-[280px] sm:min-w-[340px] bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 animate-in fade-in-80 zoom-in-95 max-h-[300px] overflow-y-auto"
+                    className="z-50 min-w-[280px] sm:min-w-[340px] bg-[var(--bg-dropdown)] dark:bg-slate-900 rounded-2xl shadow-xl border border-[var(--border-default)] dark:border-slate-800 p-1.5 animate-in fade-in-80 zoom-in-95 max-h-[300px] overflow-y-auto"
                   >
                     <Select.Viewport className="p-1 space-y-1">
                       {DEMO_ACCOUNTS.map((acc) => (
                         <Select.Item
                           key={acc.id}
                           value={acc.id}
-                          className="flex items-center justify-between gap-3 px-3 py-2 text-xs rounded-xl hover:bg-orange-50 hover:text-orange-950 focus:bg-orange-50 focus:text-orange-950 cursor-pointer outline-none transition-colors data-[highlighted]:bg-orange-50 data-[state=checked]:bg-orange-50/70"
+                          className="flex items-center justify-between gap-3 px-3 py-2 text-xs rounded-xl hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-500/10 focus:text-orange-600 dark:focus:text-orange-400 cursor-pointer outline-none transition-colors data-[highlighted]:bg-orange-500/10 data-[state=checked]:bg-orange-500/20"
                         >
                           <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
@@ -500,14 +504,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
                                 {acc.role}
                               </span>
                               <Select.ItemText>
-                                <span className="font-bold text-slate-800">{acc.label}</span>
+                                <span className="font-bold text-[var(--text-primary)]">{acc.label}</span>
                               </Select.ItemText>
                             </div>
-                            <span className="text-[10px] text-slate-500 font-mono mt-0.5">
+                            <span className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">
                               {acc.email} • {acc.subtext}
                             </span>
                           </div>
-                          <Select.ItemIndicator className="text-orange-600 shrink-0">
+                          <Select.ItemIndicator className="text-orange-600 dark:text-orange-400 shrink-0">
                             <Check className="w-4 h-4 stroke-[2.5]" />
                           </Select.ItemIndicator>
                         </Select.Item>
@@ -524,69 +528,69 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
         {mode === 'register_tenant' && (
           <form onSubmit={handleRegisterTenantSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 {t('auth.storeName', 'Nama Warung / Toko')}
               </label>
               <div className="relative">
-                <Store className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Store className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-3" />
                 <input
                   type="text"
                   required
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
                   placeholder={t('auth.storeNamePlaceholder', 'Warung Berkah Jaya')}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full pl-9 pr-3 py-2 border border-[var(--border-default)] dark:border-slate-800 rounded-xl text-xs md:text-sm bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 {t('auth.ownerEmail', 'Email Pemilik Warung')}
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-3" />
                 <input
                   type="email"
                   required
                   value={ownerEmail}
                   onChange={(e) => setOwnerEmail(e.target.value)}
                   placeholder={t('auth.ownerEmailPlaceholder', 'pemilik@warung.id')}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full pl-9 pr-3 py-2 border border-[var(--border-default)] dark:border-slate-800 rounded-xl text-xs md:text-sm bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 {t('auth.ownerUsername', 'Username Pemilik')}
               </label>
               <div className="relative">
-                <AtSign className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <AtSign className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-3" />
                 <input
                   type="text"
                   required
                   value={ownerUsername}
                   onChange={(e) => setOwnerUsername(e.target.value)}
                   placeholder={t('auth.ownerUsernamePlaceholder', 'budi')}
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full pl-9 pr-3 py-2 border border-[var(--border-default)] dark:border-slate-800 rounded-xl text-xs md:text-sm bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 {t('auth.ownerPassword', 'Kata Sandi (Password)')}
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Lock className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-3" />
                 <input
                   type="password"
                   required
                   value={ownerPassword}
                   onChange={(e) => setOwnerPassword(e.target.value)}
                   placeholder="Minimal 6 karakter"
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full pl-9 pr-3 py-2 border border-[var(--border-default)] dark:border-slate-800 rounded-xl text-xs md:text-sm bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
@@ -616,29 +620,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
         {/* MODE 3: REACTIVATE TENANT */}
         {mode === 'reactivate_tenant' && (
           <form onSubmit={handleReactivateSubmit} className="space-y-4">
-            <div className="bg-blue-50/80 p-3 rounded-2xl border border-blue-200 text-xs text-blue-900 space-y-1">
+            <div className="bg-blue-500/10 p-3 rounded-2xl border border-blue-500/30 text-xs text-blue-700 dark:text-blue-300 space-y-1">
               <p className="font-bold flex items-center gap-1.5">
-                <RotateCcw className="w-4 h-4 text-blue-600" />
+                <RotateCcw className="w-4 h-4 text-blue-500" />
                 {t('auth.reactivateHeading', 'Pengaktifan Kembali Toko')}
               </p>
-              <p className="text-[11px] leading-relaxed text-blue-700">
+              <p className="text-[11px] leading-relaxed text-blue-600 dark:text-blue-400">
                 {t('auth.reactivateSubheading', 'Masukkan email pemilik toko yang terdaftar untuk menerima tautan pengaktifan kembali via email simulasi.')}
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 {t('auth.ownerEmail', 'Email Pemilik Warung')}
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-3" />
                 <input
                   type="email"
                   required
                   value={reactivateEmail}
                   onChange={(e) => setReactivateEmail(e.target.value)}
                   placeholder="pemilik@warung.id"
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full pl-9 pr-3 py-2 border border-[var(--border-default)] dark:border-slate-800 rounded-xl text-xs md:text-sm bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
@@ -669,7 +673,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
                 setMode('login');
                 setError(null);
               }}
-              className="w-full text-xs text-slate-500 hover:text-slate-800 text-center cursor-pointer"
+              className="w-full text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] text-center cursor-pointer"
             >
               {t('auth.backToLogin', '← Kembali ke Halaman Masuk')}
             </button>
@@ -678,16 +682,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
 
         {/* Simulated Email Inbox for Testing in Preview */}
         {recentEmails.length > 0 && (
-          <div className="pt-3 border-t border-slate-100 space-y-2">
+          <div className="pt-3 border-t border-[var(--border-subtle)] space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-700 flex items-center gap-1.5">
+              <span className="font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-orange-500" />
                 {t('auth.emailSimulatorHeading', 'Kotak Masuk Email Simulasi (Pratinjau)')}:
               </span>
               <button
                 type="button"
                 onClick={fetchRecentEmails}
-                className="text-[11px] text-slate-400 hover:text-slate-700 cursor-pointer flex items-center gap-1"
+                className="text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer flex items-center gap-1"
               >
                 <RefreshCw className="w-3 h-3" />
                 {t('common.refresh', 'Segarkan')}
@@ -698,17 +702,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
               {recentEmails.slice(0, 3).map((item, idx) => (
                 <div
                   key={idx}
-                  className="p-2.5 bg-slate-50 hover:bg-orange-50/50 rounded-xl border border-slate-200/80 text-[11px] space-y-1"
+                  className="p-2.5 bg-[var(--bg-subtle)] dark:bg-slate-800/80 hover:bg-orange-500/10 rounded-xl border border-[var(--border-default)] dark:border-slate-800 text-[11px] space-y-1"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-[var(--text-primary)]">
                       {item.type === 'verification' ? 'Konfirmasi Pendaftaran' : 'Pengaktifan Kembali'}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-[var(--text-muted)] font-mono">
                       {new Date(item.timestamp).toLocaleTimeString('id-ID')}
                     </span>
                   </div>
-                  <p className="text-slate-500 truncate">Penerima: {item.toEmail}</p>
+                  <p className="text-[var(--text-muted)] truncate">Penerima: {item.toEmail}</p>
                   {item.token && (
                     <div className="pt-1 flex items-center gap-2">
                       <button
@@ -734,7 +738,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
         )}
 
         {/* Footer info & Kebijakan Privasi */}
-        <div className="pt-2 text-center border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+        <div className="pt-2 text-center border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-subtle)]">
           <span>&copy; {new Date().getFullYear()} Kasir Warung</span>
           <button
             type="button"
@@ -745,7 +749,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
                 window.location.href = '/privacy-policy';
               }
             }}
-            className="hover:text-orange-600 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+            className="hover:text-orange-600 dark:hover:text-orange-400 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Kebijakan Privasi</span>

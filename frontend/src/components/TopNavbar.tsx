@@ -21,6 +21,7 @@ import {
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { LanguageSelector } from './LanguageSelector.tsx';
+import { ThemeToggle } from './ThemeToggle.tsx';
 import { ADMIN } from '../constants/roles.ts';
 
 export type ActiveTab =
@@ -122,7 +123,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   };
 
   return (
-    <nav className="w-full bg-white border-b border-slate-200/90 px-4 md:px-6 py-2.5 flex items-center justify-between shrink-0 shadow-2xs z-30 select-none">
+    <nav className="w-full bg-[var(--bg-surface)] border-b border-[var(--border-default)] px-4 md:px-6 py-2.5 flex items-center justify-between shrink-0 shadow-2xs z-30 select-none transition-colors">
       {/* Left: Mobile Hamburger Menu & Judul Halaman Saja */}
       <div className="flex items-center gap-2 md:gap-3">
         {/* Mobile Hamburger Menu to toggle Sidebar */}
@@ -131,18 +132,21 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           onClick={toggleMobileSidebar}
           aria-label={t('common.actions', 'Menu')}
           title={t('common.actions', 'Menu')}
-          className="md:hidden w-8 h-8 rounded-xl bg-slate-100 hover:bg-orange-50 active:scale-95 text-slate-700 hover:text-orange-600 border border-slate-200/80 flex items-center justify-center transition-colors cursor-pointer"
+          className="md:hidden w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center transition-colors cursor-pointer"
         >
           <Menu className="w-4.5 h-4.5" />
         </button>
 
-        <h2 className="text-sm md:text-base font-bold text-slate-900 tracking-tight">
+        <h2 className="text-sm md:text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
           {getSectionTitle()}
         </h2>
       </div>
 
-      {/* Right: Language Selector, Shopping Cart, and User Dropdown Menu */}
+      {/* Right: Language Selector, Theme Toggle, Shopping Cart, and User Dropdown Menu */}
       <div className="flex items-center gap-2 md:gap-3">
+        {/* Theme Toggle Button */}
+        <ThemeToggle variant="compact" />
+
         {/* Language Selector using Radix UI Select */}
         <LanguageSelector variant="compact" />
 
@@ -180,15 +184,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               type="button"
               aria-label={t('profile.title', 'Menu Pengguna')}
               title={`${t('profile.title', 'Menu Pengguna')}: ${user?.name || 'Kasir'}`}
-              className="h-9 md:h-10 px-2.5 sm:px-3 rounded-full bg-slate-100 hover:bg-orange-50 text-slate-700 hover:text-orange-600 border border-slate-200/80 flex items-center justify-center gap-2 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-orange-500/20 group"
+              className="h-9 md:h-10 px-2.5 sm:px-3 rounded-full bg-slate-100 hover:bg-orange-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center gap-2 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-orange-500/20 group"
             >
-              <div className="text-orange-600 flex items-center justify-center shrink-0">
+              <div className="text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
                 <UserIcon className="w-4 h-4 md:w-4.5 md:h-4.5" />
               </div>
-              <span className="hidden sm:inline font-semibold text-xs md:text-sm text-slate-800 group-hover:text-orange-600 max-w-[150px] truncate">
+              <span className="hidden sm:inline font-semibold text-xs md:text-sm text-slate-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 max-w-[150px] truncate">
                 {user?.name || 'Kasir'}
               </span>
-              <ChevronDown className="hidden sm:inline w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400 group-hover:text-orange-600 transition-colors shrink-0" />
+              <ChevronDown className="hidden sm:inline w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors shrink-0" />
             </button>
           </DropdownMenu.Trigger>
 
@@ -196,11 +200,11 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             <DropdownMenu.Content
               align="end"
               sideOffset={6}
-              className="z-50 min-w-[210px] bg-white rounded-2xl shadow-xl border border-slate-200/80 p-1.5 animate-in fade-in-80 zoom-in-95"
+              className="z-50 min-w-[210px] bg-[var(--bg-surface-elevated)] rounded-2xl shadow-xl border border-[var(--border-default)] p-1.5 animate-in fade-in-80 zoom-in-95 text-[var(--text-primary)]"
             >
               <DropdownMenu.Item
                 onSelect={() => handleNav('profile')}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-950/40 cursor-pointer outline-none transition-colors"
               >
                 <UserIcon className="w-4 h-4 text-slate-400" />
                 <span>{t('nav.profile', 'Profil')}</span>
@@ -209,7 +213,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               {/* Ubah password */}
               <DropdownMenu.Item
                 onSelect={() => handleNav('change-password')}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-950/40 cursor-pointer outline-none transition-colors"
               >
                 <KeyRound className="w-4 h-4 text-slate-400" />
                 <span>{t('nav.changePassword', 'Ubah Password')}</span>
@@ -218,19 +222,19 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               {/* Kebijakan Privasi */}
               <DropdownMenu.Item
                 onSelect={() => handleNav('privacy-policy')}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-50 dark:focus:bg-orange-950/40 cursor-pointer outline-none transition-colors"
               >
                 <ShieldCheck className="w-4 h-4 text-slate-400" />
                 <span>{t('nav.privacyPolicy', 'Kebijakan Privasi')}</span>
               </DropdownMenu.Item>
 
               {/* Separator */}
-              <DropdownMenu.Separator className="h-px bg-slate-100 my-1" />
+              <DropdownMenu.Separator className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
 
               {/* Keluar */}
               <DropdownMenu.Item
                 onSelect={() => setShowLogoutConfirm(true)}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-red-600 rounded-xl hover:bg-red-50 focus:bg-red-50 cursor-pointer outline-none transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 focus:bg-red-50 dark:focus:bg-red-950/40 cursor-pointer outline-none transition-colors"
               >
                 <LogOut className="w-4 h-4 text-red-500" />
                 <span>{t('nav.logout', 'Keluar')}</span>
@@ -244,21 +248,21 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div
-            className="bg-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-200/80 p-6 animate-in zoom-in-95 duration-150 space-y-4 text-center"
+            className="bg-[var(--bg-surface)] rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-[var(--border-default)] p-6 animate-in zoom-in-95 duration-150 space-y-4 text-center text-[var(--text-primary)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="logout-confirm-title"
           >
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto shadow-2xs">
               <LogOut className="w-6 h-6" />
             </div>
 
             <div className="space-y-1.5">
-              <h3 id="logout-confirm-title" className="text-base md:text-lg font-extrabold text-slate-900 tracking-tight">
+              <h3 id="logout-confirm-title" className="text-base md:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                 {t('nav.logout', 'Konfirmasi Keluar')}
               </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {t('common.confirm', 'Apakah Anda yakin ingin keluar dari akun')} <strong className="text-slate-800">{user?.name || 'Pengguna'}</strong>?
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                {t('common.confirm', 'Apakah Anda yakin ingin keluar dari akun')} <strong className="text-slate-800 dark:text-slate-200">{user?.name || 'Pengguna'}</strong>?
               </p>
             </div>
 
@@ -266,7 +270,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               <button
                 type="button"
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs md:text-sm font-semibold transition-colors cursor-pointer"
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs md:text-sm font-semibold transition-colors cursor-pointer"
               >
                 {t('common.cancel', 'Batal')}
               </button>

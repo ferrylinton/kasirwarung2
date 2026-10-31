@@ -78,7 +78,7 @@ export const OrderPage: React.FC = () => {
   }, [categoriesData]);
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] transition-colors">
       {/* Top Navbar with breadcrumb on left & tablet/mobile cart button with badge on right */}
       <TopNavbar
         currentTab="pos"
@@ -90,16 +90,16 @@ export const OrderPage: React.FC = () => {
         <main ref={mainRef} className="flex-1 flex flex-col h-full overflow-y-auto p-4 md:p-6 lg:p-7">
           {/* ADMIN Notice Banner: role ADMIN tidak bisa bikin order */}
           {user?.role === ADMIN && (
-            <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-purple-900 shadow-xs">
+            <div className="mb-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-purple-700 dark:text-purple-300 shadow-xs">
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 mt-0.5">
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-purple-900">
+                  <p className="text-sm font-bold text-purple-900 dark:text-purple-200">
                     {t('pos.adminNoticeTitle', 'Mode Akun Administrator Platform (Role ADMIN)')}
                   </p>
-                  <p className="text-xs text-purple-700 mt-0.5">
+                  <p className="text-xs text-purple-700 dark:text-purple-300 mt-0.5">
                     {t('pos.adminNoticeDesc', 'Role ADMIN bertugas mengelola data tenan dan tidak dapat membuat order/transaksi. Hanya akun Pemilik Toko (SHOP_OWNER) atau Kasir (SHOP_CASHIER) yang dapat membuat transaksi penjualan.')}
                   </p>
                 </div>
@@ -132,21 +132,21 @@ export const OrderPage: React.FC = () => {
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
                 key={i}
-                className="h-56 bg-white/70 rounded-2xl animate-pulse border border-slate-200/50"
+                className="h-56 bg-[var(--bg-surface)] dark:bg-slate-800/60 rounded-2xl animate-pulse border border-[var(--border-default)] dark:border-slate-800"
               />
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200/70">
-            <p className="text-base font-semibold text-slate-600">
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-[var(--text-muted)] bg-[var(--bg-surface)] dark:bg-slate-900 rounded-2xl border border-[var(--border-default)] dark:border-slate-800">
+            <p className="text-base font-semibold text-[var(--text-primary)]">
               {t('common.noProducts', 'Tidak ada produk ditemukan')}
             </p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[var(--text-muted)] mt-1">
               {t('common.noProductsHelp', 'Coba kata kunci lain atau tambahkan produk baru.')}
             </p>
             <button
               onClick={() => fetchProducts()}
-              className="mt-4 px-3 py-1.5 text-xs font-semibold bg-orange-50 text-orange-600 rounded-lg flex items-center gap-1.5 hover:bg-orange-100 cursor-pointer"
+              className="mt-4 px-3 py-1.5 text-xs font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-lg flex items-center gap-1.5 hover:bg-orange-500/20 cursor-pointer"
             >
               <RefreshCcw className="w-3.5 h-3.5" />
               <span>{t('common.reload', 'Muat Ulang')}</span>
@@ -162,19 +162,19 @@ export const OrderPage: React.FC = () => {
 
             {/* Pagination Controls (10 items per page) */}
             {totalItems > 0 && (
-              <div className="mt-5 mb-24 lg:mb-4 bg-white border border-slate-200/90 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+              <div className="mt-5 mb-24 lg:mb-4 bg-[var(--bg-surface)] dark:bg-slate-900 border border-[var(--border-default)] dark:border-slate-800 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
                 {/* Left: Info */}
-                <div className="text-xs text-slate-500 font-medium">
+                <div className="text-xs text-[var(--text-muted)] font-medium">
                   {t('common.showing', 'Menampilkan')}{' '}
-                  <span className="font-bold text-slate-900 tabular-nums">
+                  <span className="font-bold text-[var(--text-primary)] tabular-nums">
                     {startIndex + 1}
                   </span>
                   –
-                  <span className="font-bold text-slate-900 tabular-nums">
+                  <span className="font-bold text-[var(--text-primary)] tabular-nums">
                     {endIndex}
                   </span>{' '}
                   {t('common.of', 'dari')}{' '}
-                  <span className="font-bold text-slate-900 tabular-nums">
+                  <span className="font-bold text-[var(--text-primary)] tabular-nums">
                     {totalItems}
                   </span>{' '}
                 </div>
@@ -184,7 +184,7 @@ export const OrderPage: React.FC = () => {
                   <button
                     onClick={() => handlePageChange(safeCurrentPage - 1)}
                     disabled={safeCurrentPage === 1}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-[var(--border-default)] dark:border-slate-700 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold cursor-pointer"
                     aria-label={t('common.paginationPrevious', 'Halaman Sebelumnya')}
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -207,14 +207,14 @@ export const OrderPage: React.FC = () => {
                         return (
                           <React.Fragment key={page}>
                             {showEllipsisBefore && (
-                              <span className="px-1 text-slate-400 select-none text-xs">...</span>
+                              <span className="px-1 text-[var(--text-subtle)] select-none text-xs">...</span>
                             )}
                             <button
                               onClick={() => handlePageChange(page)}
                               className={`min-w-[32px] h-8 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                                 safeCurrentPage === page
                                   ? 'bg-[#EC6C1A] text-white shadow-2xs'
-                                  : 'border border-slate-200 text-slate-700 hover:bg-slate-100'
+                                  : 'border border-[var(--border-default)] dark:border-slate-700 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
                               }`}
                             >
                               {page}
@@ -227,7 +227,7 @@ export const OrderPage: React.FC = () => {
                   <button
                     onClick={() => handlePageChange(safeCurrentPage + 1)}
                     disabled={safeCurrentPage === totalPages}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-[var(--border-default)] dark:border-slate-700 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold cursor-pointer"
                     aria-label={t('common.paginationNext', 'Halaman Selanjutnya')}
                   >
                     <span className="hidden sm:inline">{t('common.paginationNext', 'Selanjutnya')}</span>
