@@ -6,7 +6,6 @@ import { api } from '../../services/api.ts';
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
-  onNavigate?: (tab: ActiveTab) => void;
   isFullPage?: boolean;
 }
 
@@ -68,7 +67,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           error={this.state.error}
           errorInfo={this.state.errorInfo}
           onReset={this.handleReset}
-          onNavigate={this.props.onNavigate}
           isFullPage={this.props.isFullPage}
         />
       );

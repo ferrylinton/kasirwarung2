@@ -20,12 +20,10 @@ import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCashiers, useCashierMutations } from '../hooks/useQueries.ts';
 
-interface UsersPageProps {
-  onNavigate?: (tab: any) => void;
-}
+export interface UsersPageProps {}
 export type CashiersPageProps = UsersPageProps;
 
-export const UsersPage: React.FC<UsersPageProps> = ({ onNavigate }) => {
+export const UsersPage: React.FC<UsersPageProps> = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState('');
@@ -147,7 +145,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      <TopNavbar currentTab="cashiers" onNavigate={onNavigate} />
+      <TopNavbar currentTab="cashiers" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 space-y-6">
 

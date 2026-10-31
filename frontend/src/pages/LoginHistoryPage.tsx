@@ -30,21 +30,15 @@ import {
   isSameDay,
 } from 'date-fns';
 
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useLoginHistory, useTenants } from '../hooks/useQueries.ts';
 import { ADMIN, SHOP_OWNER, SHOP_CASHIER, LoginHistoryItem } from '../services/api.ts';
 
-interface LoginHistoryPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
-
 type DateSelectionMode = 'range' | 'single';
 
-export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
-  onNavigate,
-}) => {
+export const LoginHistoryPage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === ADMIN;
 
@@ -276,7 +270,7 @@ export const LoginHistoryPage: React.FC<LoginHistoryPageProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
       {/* Top Navigation */}
-      <TopNavbar currentTab="login-history" onNavigate={onNavigate} />
+      <TopNavbar currentTab="login-history" />
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">

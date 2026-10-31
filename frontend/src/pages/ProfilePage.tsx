@@ -6,23 +6,16 @@ import {
   Store,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { ADMIN } from '../constants/roles.ts';
 
-interface ProfilePageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
-
-export const ProfilePage: React.FC<ProfilePageProps> = ({
-  onNavigate,
-}) => {
+export const ProfilePage: React.FC = () => {
   const { user } = useAuth();
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
       <TopNavbar
         currentTab="profile"
-        onNavigate={onNavigate}
       />
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto w-full space-y-6">

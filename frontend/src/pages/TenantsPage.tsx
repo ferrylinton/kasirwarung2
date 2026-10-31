@@ -10,11 +10,10 @@ import { TenantsList } from '../components/TenantsList.tsx';
 import { useTenants } from '../hooks/useQueries.ts';
 
 interface TenantsPageProps {
-  onNavigate?: (tab: any) => void;
   initialTab?: 'tenants' | 'deactivation-requests';
 }
 
-export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab = 'tenants' }) => {
+export const TenantsPage: React.FC<TenantsPageProps> = ({ initialTab = 'tenants' }) => {
   const [activeSubTab, setActiveSubTab] = useState<'tenants' | 'deactivation-requests'>(initialTab);
 
   useEffect(() => {
@@ -35,7 +34,7 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      <TopNavbar currentTab="tenants" onNavigate={onNavigate} />
+      <TopNavbar currentTab="tenants" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 space-y-6">
         {/* Sub-navigation Tabs */}
@@ -79,7 +78,6 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab
         {/* View Mode: DeactivationRequests vs Tenants List */}
         {activeSubTab === 'deactivation-requests' ? (
           <DeactivationRequests
-            onNavigate={onNavigate}
             onRequestReviewed={() => { fetchTenants(); }}
           />
         ) : (
@@ -87,7 +85,6 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ onNavigate, initialTab
             tenants={tenants}
             loading={loading}
             onRefresh={() => { fetchTenants(); }}
-            onNavigate={onNavigate}
           />
         )}
       </main>

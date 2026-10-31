@@ -13,14 +13,10 @@ import {
 } from 'lucide-react';
 import { Product, Category, SHOP_OWNER } from '../services/api.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { ProductModal } from '../components/ProductModal.tsx';
 import { ProductFilterBar } from '../components/ProductFilterBar.tsx';
 import { useProducts, useCategories, useProductMutations } from '../hooks/useQueries.ts';
-
-interface ProductsPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
 
 const CATEGORIES = [
   'Semua Produk',
@@ -31,7 +27,7 @@ const CATEGORIES = [
   'Kebutuhan Rumah',
 ];
 
-export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
+export const ProductsPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isShopOwner = user?.role === SHOP_OWNER;
@@ -136,7 +132,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      <TopNavbar currentTab="products" onNavigate={onNavigate} />
+      <TopNavbar currentTab="products" />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto w-full space-y-6">

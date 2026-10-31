@@ -21,11 +21,7 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { useCurrentTenant } from '../hooks/useQueries.ts';
 import { LanguageSelector } from '../components/LanguageSelector.tsx';
 
-interface StoreSettingsPageProps {
-  onNavigate?: (tab: any) => void;
-}
-
-export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate }) => {
+export const StoreSettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [actionLoading, setActionLoading] = useState(false);
@@ -136,7 +132,7 @@ export const StoreSettingsPage: React.FC<StoreSettingsPageProps> = ({ onNavigate
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      <TopNavbar currentTab="store-settings" onNavigate={onNavigate} />
+      <TopNavbar currentTab="store-settings" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 space-y-6">
         {/* Feedback Alert */}

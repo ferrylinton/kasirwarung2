@@ -67,7 +67,7 @@ export async function getProducts(req: AuthenticatedRequest, res: Response): Pro
 }
 
 export async function createProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
-  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+  if (req.user?.role !== 'SHOP_OWNER') {
     res.status(403).json({
       success: false,
       message: 'Hanya role SHOP_OWNER yang bisa menambah data produk.',
@@ -109,7 +109,7 @@ export async function createProduct(req: AuthenticatedRequest, res: Response): P
 }
 
 export async function updateProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
-  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+  if (req.user?.role !== 'SHOP_OWNER') {
     const msg = (req as any).t ? (req as any).t('common.forbidden', 'Hanya role SHOP_OWNER yang bisa mengubah data produk.') : 'Hanya role SHOP_OWNER yang bisa mengubah data produk.';
     res.status(403).json({
       success: false,
@@ -165,7 +165,7 @@ export async function updateProduct(req: AuthenticatedRequest, res: Response): P
 }
 
 export async function deleteProduct(req: AuthenticatedRequest, res: Response): Promise<void> {
-  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+  if (req.user?.role !== 'SHOP_OWNER') {
     const msg = (req as any).t ? (req as any).t('common.forbidden', 'Hanya role SHOP_OWNER yang bisa menghapus data produk.') : 'Hanya role SHOP_OWNER yang bisa menghapus data produk.';
     res.status(403).json({
       success: false,

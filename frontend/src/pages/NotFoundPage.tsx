@@ -14,19 +14,19 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ActiveTab, TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ADMIN, SHOP_OWNER, SHOP_CASHIER, type UserRole } from '../constants/roles.ts';
 
 interface NotFoundPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
   attemptedPath?: string;
 }
 
 export const NotFoundPage: React.FC<NotFoundPageProps> = ({
-  onNavigate,
   attemptedPath,
 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
@@ -119,7 +119,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
       {/* Top Navbar */}
-      <TopNavbar currentTab="not-found" onNavigate={onNavigate} />
+      <TopNavbar currentTab="not-found" />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 md:px-8 py-8 md:py-12 flex flex-col items-center">
         {/* Visual 404 Hero Container */}
@@ -166,7 +166,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
           {/* Primary Action Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-3 w-full max-w-md">
             <button
-              onClick={() => onNavigate?.(defaultHomeTab)}
+              onClick={() => navigate(user?.role === ADMIN ? '/tenants' : '/')}
               type="button"
               className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
             >
@@ -179,7 +179,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
                 if (window.history.length > 1) {
                   window.history.back();
                 } else {
-                  onNavigate?.(defaultHomeTab);
+                  navigate(user?.role === ADMIN ? '/tenants' : '/');
                 }
               }}
               type="button"
@@ -220,7 +220,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
             {filteredLinks.map((link) => (
               <button
                 key={link.id}
-                onClick={() => onNavigate?.(link.id)}
+                onClick={() => navigate(link.id === 'pos' ? '/' : `/${link.id}`)}
                 type="button"
                 className="group p-4 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-orange-300 rounded-xl text-left transition-all shadow-2xs hover:shadow-xs flex items-start gap-3 cursor-pointer"
               >

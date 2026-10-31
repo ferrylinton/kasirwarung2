@@ -106,8 +106,7 @@ export function requireRole(...allowedRoles: (UserRole | string)[]) {
     // Strict comparison for role constants (ADMIN, SHOP_OWNER, SHOP_CASHIER)
     const matches = allowedRoles.some((role) => {
       if (role === userRole) return true;
-      // Allow graceful fallback for legacy lowercase values if any
-      if (role === ADMIN && (userRole === 'admin' || userRole === ADMIN)) return true;
+      if (role === ADMIN && (userRole as string) === 'admin') return true;
       return false;
     });
 

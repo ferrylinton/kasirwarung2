@@ -26,17 +26,13 @@ import {
 import { format, parseISO } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useSystemLogs, useLogFiles, useTenants } from '../hooks/useQueries.ts';
 import { ADMIN, api, SystemLogItem } from '../services/api.ts';
 
-interface LogViewerPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
-
-export const LogViewerPage: React.FC<LogViewerPageProps> = ({ onNavigate }) => {
+export const LogViewerPage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === ADMIN;
 
@@ -198,7 +194,7 @@ export const LogViewerPage: React.FC<LogViewerPageProps> = ({ onNavigate }) => {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#F5F6F8] overflow-hidden font-sans">
       {/* Top Navbar */}
-      <TopNavbar currentTab="system-logs" onNavigate={onNavigate} />
+      <TopNavbar currentTab="system-logs" />
 
       {/* Main Container */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">

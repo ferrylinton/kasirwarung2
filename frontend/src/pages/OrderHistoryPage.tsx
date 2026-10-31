@@ -33,7 +33,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Order, Tenant, api } from '../services/api.ts';
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ADMIN } from '../constants/roles.ts';
 import {
@@ -42,13 +42,9 @@ import {
 } from '../hooks/useQueries.ts';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 
-interface OrderHistoryPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
-
 type DateSelectionMode = 'range' | 'single';
 
-export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }) => {
+export const OrderHistoryPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language?.startsWith('en') ? enUS : localeId;
   const { user } = useAuth();
@@ -231,7 +227,7 @@ export const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ onNavigate }
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      <TopNavbar currentTab="history" onNavigate={onNavigate} />
+      <TopNavbar currentTab="history" />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto w-full space-y-6">

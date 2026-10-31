@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Tags,
@@ -23,14 +24,13 @@ import { Category, SHOP_OWNER } from '../services/api.ts';
 import { useCategories, useCategoryMutations } from '../hooks/useQueries.ts';
 
 interface CategoriesPageProps {
-  onNavigate?: (tab: any) => void;
   onFilterCategory?: (categoryName: string) => void;
 }
 
 export const CategoriesPage: React.FC<CategoriesPageProps> = ({
-  onNavigate,
   onFilterCategory,
 }) => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { user } = useAuth();
   const isShopOwner = user?.role === SHOP_OWNER;
@@ -190,7 +190,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8FAFC]">
-      <TopNavbar currentTab="categories" onNavigate={onNavigate} />
+      <TopNavbar currentTab="categories" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -357,7 +357,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({
                     <button
                       onClick={() => {
                         if (onFilterCategory) onFilterCategory(category.name);
-                        if (onNavigate) onNavigate('products');
+                        navigate('/products');
                       }}
                       className="text-xs font-semibold text-orange-600 hover:text-orange-700 flex items-center gap-1.5 transition-colors cursor-pointer"
                     >

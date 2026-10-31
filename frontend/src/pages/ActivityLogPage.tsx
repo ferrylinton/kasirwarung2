@@ -37,19 +37,15 @@ import {
   parseISO,
 } from 'date-fns';
 
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useActivityLogs, useTenants } from '../hooks/useQueries.ts';
 import { ActivityLogItem, ADMIN } from '../services/api.ts';
 
-interface ActivityLogPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
-
 type DateSelectionMode = 'range' | 'single';
 
-export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) => {
+export const ActivityLogPage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === ADMIN;
 
@@ -293,7 +289,7 @@ export const ActivityLogPage: React.FC<ActivityLogPageProps> = ({ onNavigate }) 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8F9FA]">
       {/* Top Header Navbar */}
-      <TopNavbar currentTab="activity-log" onNavigate={onNavigate} />
+      <TopNavbar currentTab="activity-log" />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">

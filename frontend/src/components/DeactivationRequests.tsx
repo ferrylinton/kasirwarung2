@@ -20,7 +20,6 @@ import { useDeactivationRequests } from '../hooks/useQueries.ts';
 import { ADMIN } from '../constants/roles.ts';
 
 export interface DeactivationRequestsProps {
-  onNavigate?: (tab: any) => void;
   onRequestReviewed?: () => void;
 }
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   ShoppingCart,
   User as UserIcon,
@@ -55,10 +56,19 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   onOpenMobileCart,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { items, total, openMobileCart, toggleMobileSidebar } = useCart();
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const totalItemCount = items.reduce((sum, item) => sum + item.qty, 0);
+
+  const handleNav = (tab: ActiveTab) => {
+    if (onNavigate) {
+      onNavigate(tab);
+    } else {
+      navigate(tab === 'pos' ? '/' : `/${tab}`);
+    }
+  };
 
   const getSectionTitle = () => {
     switch (currentTab) {
@@ -189,7 +199,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               className="z-50 min-w-[210px] bg-white rounded-2xl shadow-xl border border-slate-200/80 p-1.5 animate-in fade-in-80 zoom-in-95"
             >
               <DropdownMenu.Item
-                onSelect={() => onNavigate?.('profile')}
+                onSelect={() => handleNav('profile')}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
               >
                 <UserIcon className="w-4 h-4 text-slate-400" />
@@ -198,7 +208,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
               {/* Ubah password */}
               <DropdownMenu.Item
-                onSelect={() => onNavigate?.('change-password')}
+                onSelect={() => handleNav('change-password')}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
               >
                 <KeyRound className="w-4 h-4 text-slate-400" />
@@ -207,7 +217,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
               {/* Kebijakan Privasi */}
               <DropdownMenu.Item
-                onSelect={() => onNavigate?.('privacy-policy')}
+                onSelect={() => handleNav('privacy-policy')}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs md:text-sm font-semibold text-slate-700 rounded-xl hover:bg-orange-50 hover:text-orange-600 focus:bg-orange-50 focus:text-orange-600 cursor-pointer outline-none transition-colors"
               >
                 <ShieldCheck className="w-4 h-4 text-slate-400" />

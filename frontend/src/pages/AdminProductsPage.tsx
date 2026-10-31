@@ -6,19 +6,17 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { Product, Tenant } from '../services/api.ts';
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useProducts, useTenants, useCategories } from '../hooks/useQueries.ts';
 import { CategorySelect } from '../components/CategorySelect.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 
 interface AdminProductsPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
   initialTenantId?: string;
   initialCategory?: string;
 }
 
 export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
-  onNavigate,
   initialTenantId = 'ALL',
   initialCategory = 'Semua Produk',
 }) => {
@@ -68,7 +66,7 @@ export const AdminProductsPage: React.FC<AdminProductsPageProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8FAFC]">
-      <TopNavbar currentTab="admin-products" onNavigate={onNavigate} />
+      <TopNavbar currentTab="admin-products" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">

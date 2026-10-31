@@ -91,7 +91,7 @@ export async function getCategories(req: AuthenticatedRequest, res: Response): P
 
 export async function createCategory(req: AuthenticatedRequest, res: Response): Promise<void> {
   // Hanya role SHOP_OWNER yang bisa menambah data kategori
-  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+  if (req.user?.role !== 'SHOP_OWNER') {
     res.status(403).json({
       success: false,
       message: 'Hanya role SHOP_OWNER yang bisa menambah kategori produk.',
@@ -161,7 +161,7 @@ export async function createCategory(req: AuthenticatedRequest, res: Response): 
 
 export async function updateCategory(req: AuthenticatedRequest, res: Response): Promise<void> {
   // Hanya role SHOP_OWNER yang bisa mengubah data kategori
-  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+  if (req.user?.role !== 'SHOP_OWNER') {
     res.status(403).json({
       success: false,
       message: 'Hanya role SHOP_OWNER yang bisa mengubah data kategori produk.',
@@ -261,7 +261,7 @@ export async function updateCategory(req: AuthenticatedRequest, res: Response): 
 
 export async function deleteCategory(req: AuthenticatedRequest, res: Response): Promise<void> {
   // Hanya role SHOP_OWNER yang bisa menghapus data kategori
-  if (req.user?.role !== 'SHOP_OWNER' && req.user?.role !== 'pemilik') {
+  if (req.user?.role !== 'SHOP_OWNER') {
     res.status(403).json({
       success: false,
       message: 'Hanya role SHOP_OWNER yang bisa menghapus kategori produk.',

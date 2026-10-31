@@ -139,7 +139,7 @@ const AppLayout: React.FC = () => {
 
       {/* Main View Area with ErrorBoundary protection */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <ErrorBoundary onNavigate={handleSelectTab}>
+        <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>
       </div>
@@ -165,7 +165,6 @@ const RouteErrorBoundary: React.FC = () => {
 
   return (
     <ErrorPage
-      onNavigate={(tab) => navigate(tabToPath(tab))}
       onReset={() => navigate(user?.role === ADMIN ? '/tenants' : '/')}
     />
   );
@@ -197,7 +196,6 @@ const PrivacyPolicyRouteWrapper: React.FC = () => {
 
   return (
     <PrivacyPolicyPage
-      onNavigate={(tab) => navigate(tabToPath(tab))}
       onBack={() => {
         if (user) {
           navigate(user.role === ADMIN ? '/tenants' : '/');
@@ -211,42 +209,38 @@ const PrivacyPolicyRouteWrapper: React.FC = () => {
 
 const IndexRouteWrapper: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   if (user?.role === ADMIN) {
     return <Navigate to="/tenants" replace />;
   }
 
-  return <OrderPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <OrderPage />;
 };
 
 const OrderPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   if (user?.role === ADMIN) {
     return <Navigate to="/tenants" replace />;
   }
 
-  return <OrderPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <OrderPage />;
 };
 
 const ProductsPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { adminDrillTenantId, adminDrillCategory } = useAdminDrill();
 
   if (user?.role === ADMIN) {
     return (
       <AdminProductsPage
-        onNavigate={(tab) => navigate(tabToPath(tab))}
         initialTenantId={adminDrillTenantId}
         initialCategory={adminDrillCategory}
       />
     );
   }
 
-  return <ProductsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <ProductsPage />;
 };
 
 const CategoriesPageWrapper: React.FC = () => {
@@ -257,7 +251,6 @@ const CategoriesPageWrapper: React.FC = () => {
   if (user?.role === ADMIN) {
     return (
       <AdminCategoriesPage
-        onNavigate={(tab) => navigate(tabToPath(tab))}
         onFilterTenantProducts={(tId, catName) => {
           setAdminDrillTenantId(tId);
           setAdminDrillCategory(catName);
@@ -269,7 +262,6 @@ const CategoriesPageWrapper: React.FC = () => {
 
   return (
     <CategoriesPage
-      onNavigate={(tab) => navigate(tabToPath(tab))}
       onFilterCategory={() => navigate('/products')}
     />
   );
@@ -277,18 +269,16 @@ const CategoriesPageWrapper: React.FC = () => {
 
 const TenantsPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   if (user?.role !== ADMIN) {
     return <Navigate to="/" replace />;
   }
 
-  return <TenantsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <TenantsPage />;
 };
 
 const AdminProductsPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { adminDrillTenantId, adminDrillCategory } = useAdminDrill();
 
   if (user?.role !== ADMIN) {
@@ -297,7 +287,6 @@ const AdminProductsPageWrapper: React.FC = () => {
 
   return (
     <AdminProductsPage
-      onNavigate={(tab) => navigate(tabToPath(tab))}
       initialTenantId={adminDrillTenantId}
       initialCategory={adminDrillCategory}
     />
@@ -315,7 +304,6 @@ const AdminCategoriesPageWrapper: React.FC = () => {
 
   return (
     <AdminCategoriesPage
-      onNavigate={(tab) => navigate(tabToPath(tab))}
       onFilterTenantProducts={(tId, catName) => {
         setAdminDrillTenantId(tId);
         setAdminDrillCategory(catName);
@@ -327,66 +315,54 @@ const AdminCategoriesPageWrapper: React.FC = () => {
 
 const AdminDeactivationRequestsPageWrapper: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   if (user?.role !== ADMIN) {
     return <Navigate to="/" replace />;
   }
 
-  return <AdminDeactivationRequestsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <AdminDeactivationRequestsPage />;
 };
 
 const UsersPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <UsersPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <UsersPage />;
 };
 
 const StoreSettingsPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <StoreSettingsPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <StoreSettingsPage />;
 };
 
 const OrderHistoryPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <OrderHistoryPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <OrderHistoryPage />;
 };
 
 const ProfilePageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <ProfilePage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <ProfilePage />;
 };
 
 const LoginHistoryPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <LoginHistoryPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <LoginHistoryPage />;
 };
 
 const ActiveTokensPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <ActiveTokensPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <ActiveTokensPage />;
 };
 
 const ActivityLogPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <ActivityLogPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <ActivityLogPage />;
 };
 
 const LogViewerPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <LogViewerPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <LogViewerPage />;
 };
 
 const ChangePasswordPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  return <ChangePasswordPage onNavigate={(tab) => navigate(tabToPath(tab))} />;
+  return <ChangePasswordPage />;
 };
 
 const NotFoundPageWrapper: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   return (
     <NotFoundPage
-      onNavigate={(tab) => navigate(tabToPath(tab))}
       attemptedPath={location.pathname}
     />
   );

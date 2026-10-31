@@ -24,7 +24,6 @@ export interface ErrorPageProps {
   title?: string;
   message?: string;
   onReset?: () => void;
-  onNavigate?: (tab: ActiveTab) => void;
   isFullPage?: boolean;
 }
 
@@ -35,7 +34,6 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
   title,
   message,
   onReset,
-  onNavigate,
   isFullPage = false,
 }) => {
   const { user } = useAuth();
@@ -168,7 +166,9 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
           <button
             onClick={() => {
               if (onReset) onReset();
-              onNavigate?.(defaultHomeTab);
+              if (typeof window !== 'undefined') {
+                window.location.assign(defaultHomeTab === 'pos' ? '/' : `/${defaultHomeTab}`);
+              }
             }}
             type="button"
             className="flex-1 min-w-[150px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 active:text-slate-900 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
@@ -181,7 +181,9 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
             <button
               onClick={() => {
                 if (onReset) onReset();
-                onNavigate?.('system-logs');
+                if (typeof window !== 'undefined') {
+                  window.location.assign('/system-logs');
+                }
               }}
               type="button"
               className="flex-1 min-w-[150px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer"
@@ -295,7 +297,7 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
-      <TopNavbar currentTab="error" onNavigate={onNavigate} />
+      <TopNavbar currentTab="error" />
       {content}
     </div>
   );

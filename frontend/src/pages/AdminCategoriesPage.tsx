@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Tags,
   Search,
@@ -7,19 +8,18 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { Category, Tenant } from '../services/api.ts';
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useCategories, useTenants } from '../hooks/useQueries.ts';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 
 interface AdminCategoriesPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
   onFilterTenantProducts?: (tenantId: string, categoryName: string) => void;
 }
 
 export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
-  onNavigate,
   onFilterTenantProducts,
 }) => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenantId, setSelectedTenantId] = useState('ALL');
 
@@ -46,7 +46,7 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8FAFC]">
-      <TopNavbar currentTab="admin-categories" onNavigate={onNavigate} />
+      <TopNavbar currentTab="admin-categories" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -165,8 +165,8 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
                       onClick={() => {
                         if (onFilterTenantProducts && category.tenantId) {
                           onFilterTenantProducts(category.tenantId, category.name);
-                        } else if (onNavigate) {
-                          onNavigate('admin-products');
+                        } else {
+                          navigate('/admin-products');
                         }
                       }}
                       className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 transition-colors cursor-pointer"

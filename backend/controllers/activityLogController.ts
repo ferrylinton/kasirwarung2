@@ -9,11 +9,8 @@ export async function getActivityLogs(req: AuthenticatedRequest, res: Response):
     return;
   }
 
-  const isAdmin = user.role === 'ADMIN' || user.role === 'admin';
-  const isShopOwner =
-    user.role === 'SHOP_OWNER' ||
-    user.role === 'pemilik' ||
-    user.role === 'MANAGER';
+  const isAdmin = user.role === 'ADMIN';
+  const isShopOwner = user.role === 'SHOP_OWNER';
 
   if (!isAdmin && !isShopOwner) {
     res.status(403).json({

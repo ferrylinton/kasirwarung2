@@ -691,10 +691,7 @@ export async function getLoginHistory(req: AuthenticatedRequest, res: Response):
       },
     ];
 
-    if (isAdmin) {
-      res.json({ success: true, data: demoItems });
-      return;
-    } else if (isManager) {
+    if (isAdmin || isShopOwner) {
       res.json({ success: true, data: demoItems });
       return;
     }

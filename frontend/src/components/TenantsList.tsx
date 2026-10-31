@@ -15,7 +15,6 @@ export interface TenantsListProps {
   tenants?: Tenant[];
   loading?: boolean;
   onRefresh?: () => void | Promise<void>;
-  onNavigate?: (tab: any) => void;
 }
 
 export const TenantsList: React.FC<TenantsListProps> = ({

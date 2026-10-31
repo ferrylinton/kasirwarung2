@@ -18,30 +18,30 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { useNavigate } from 'react-router-dom';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { ADMIN } from '../constants/roles.ts';
 
 interface PrivacyPolicyPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
   onBack?: () => void;
   isModal?: boolean;
 }
 
 export const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({
-  onNavigate,
   onBack,
   isModal = false,
 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const handleBack = () => {
     if (onBack) {
       onBack();
-    } else if (onNavigate) {
-      onNavigate(user?.role === ADMIN ? 'tenants' : 'pos');
-    } else if (typeof window !== 'undefined' && window.history.length > 1) {
-      window.history.back();
+    } else if (user) {
+      navigate(user.role === ADMIN ? '/tenants' : '/');
+    } else {
+      navigate('/login');
     }
   };
 
@@ -49,7 +49,7 @@ export const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({
     <div className={`flex-1 flex flex-col h-full bg-[#F5F6F8] font-sans ${isModal ? 'p-0' : 'overflow-hidden'}`}>
       {/* Top Navbar if rendered as full page and logged in */}
       {!isModal && user && (
-        <TopNavbar currentTab="privacy-policy" onNavigate={onNavigate} />
+        <TopNavbar currentTab="privacy-policy" />
       )}
 
       {/* Main Container */}
@@ -78,16 +78,14 @@ export const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({
               </div>
 
               {/* Action: Kembali */}
-              {(onBack || onNavigate) && (
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs font-semibold shadow-2xs transition-all cursor-pointer self-start sm:self-center"
-                >
-                  <ArrowLeft className="w-4 h-4 text-slate-500" />
-                  <span>Kembali</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs font-semibold shadow-2xs transition-all cursor-pointer self-start sm:self-center"
+              >
+                <ArrowLeft className="w-4 h-4 text-slate-500" />
+                <span>Kembali</span>
+              </button>
             </div>
 
             <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs text-slate-500">

@@ -7,13 +7,9 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { api } from '../services/api.ts';
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 
-interface ChangePasswordPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
-
-export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onNavigate }) => {
+export const ChangePasswordPage: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -54,7 +50,7 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({ onNaviga
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      <TopNavbar currentTab="change-password" onNavigate={onNavigate} />
+      <TopNavbar currentTab="change-password" />
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto w-full space-y-6">
 

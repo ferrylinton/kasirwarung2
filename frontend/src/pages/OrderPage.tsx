@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TopNavbar } from '../components/TopNavbar.tsx';
 import { SavedOrdersBar } from '../components/SavedOrdersBar.tsx';
@@ -22,11 +23,8 @@ const CATEGORIES = [
   'Kebutuhan Rumah',
 ];
 
-interface OrderPageProps {
-  onNavigate?: (tab: any) => void;
-}
-
-export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
+export const OrderPage: React.FC = () => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua Produk');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -84,7 +82,6 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
       {/* Top Navbar with breadcrumb on left & tablet/mobile cart button with badge on right */}
       <TopNavbar
         currentTab="pos"
-        onNavigate={onNavigate}
         onOpenMobileCart={() => setIsMobileCartOpen(true)}
       />
 
@@ -108,7 +105,7 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
                 </div>
               </div>
               <button
-                onClick={() => onNavigate?.('tenants')}
+                onClick={() => navigate('/tenants')}
                 className="shrink-0 px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
               >
                 {t('common.openTenants', 'Buka Kelola Tenan →')}
@@ -117,7 +114,7 @@ export const OrderPage: React.FC<OrderPageProps> = ({ onNavigate }) => {
           )}
 
           {/* Section: PESANAN DISIMPAN (BELUM DIBAYAR) */}
-          <SavedOrdersBar onOpenAllSaved={() => onNavigate?.('history')} />
+          <SavedOrdersBar onOpenAllSaved={() => navigate('/history')} />
 
           {/* ProductFilterBar Component */}
           <ProductFilterBar

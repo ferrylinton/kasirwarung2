@@ -34,7 +34,7 @@ import {
   isSameDay,
 } from 'date-fns';
 
-import { TopNavbar, ActiveTab } from '../components/TopNavbar.tsx';
+import { TopNavbar } from '../components/TopNavbar.tsx';
 import { TenantSelect } from '../components/TenantSelect.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import {
@@ -44,15 +44,9 @@ import {
 } from '../hooks/useQueries.ts';
 import { ActiveTokenItem, ADMIN, SHOP_OWNER, SHOP_CASHIER } from '../services/api.ts';
 
-interface ActiveTokensPageProps {
-  onNavigate?: (tab: ActiveTab) => void;
-}
-
 type DateSelectionMode = 'range' | 'single';
 
-export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
-  onNavigate,
-}) => {
+export const ActiveTokensPage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === ADMIN;
 
@@ -337,7 +331,7 @@ export const ActiveTokensPage: React.FC<ActiveTokensPageProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
       {/* Top Navigation */}
-      <TopNavbar currentTab="active-tokens" onNavigate={onNavigate} />
+      <TopNavbar currentTab="active-tokens" />
 
       {/* Main Container */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
