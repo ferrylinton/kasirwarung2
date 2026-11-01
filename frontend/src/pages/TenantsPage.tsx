@@ -33,18 +33,18 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ initialTab = 'tenants'
 
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] transition-colors duration-200">
       <TopNavbar currentTab="tenants" />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 space-y-6">
         {/* Sub-navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3 flex-wrap">
+        <div className="flex items-center gap-2 border-b border-[var(--border-default)] pb-3 flex-wrap">
           <button
             onClick={() => setActiveSubTab('tenants')}
             className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
               activeSubTab === 'tenants'
                 ? 'bg-[#EC6C1A] text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'
+                : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-default)]'
             }`}
           >
             <Building2 className="w-4 h-4" />
@@ -56,7 +56,7 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ initialTab = 'tenants'
             className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
               activeSubTab === 'deactivation-requests'
                 ? 'bg-[#EC6C1A] text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'
+                : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-default)]'
             }`}
           >
             <ShieldAlert className="w-4 h-4" />
@@ -65,7 +65,7 @@ export const TenantsPage: React.FC<TenantsPageProps> = ({ initialTab = 'tenants'
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                   activeSubTab === 'deactivation-requests'
-                    ? 'bg-white text-purple-700'
+                    ? 'bg-white text-orange-700'
                     : 'bg-amber-500 text-white animate-pulse'
                 }`}
               >

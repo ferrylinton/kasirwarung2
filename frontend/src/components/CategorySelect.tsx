@@ -19,12 +19,12 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
     <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
         aria-label="Kategori Produk"
-        className={`inline-flex items-center justify-between gap-2.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-lg text-xs md:text-sm font-medium text-slate-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[130px] md:min-w-[150px] transition-all ${className}`}
+        className={`inline-flex items-center justify-between gap-2.5 px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-default)] hover:border-[var(--border-strong)] rounded-lg text-xs md:text-sm font-medium text-[var(--text-primary)] shadow-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer min-w-[130px] md:min-w-[150px] transition-all ${className}`}
       >
         <div className="flex items-center gap-1.5 truncate">
           <Select.Value placeholder="Pilih Kategori" />
         </div>
-        <Select.Icon className="text-slate-400">
+        <Select.Icon className="text-[var(--text-muted)]">
           <ChevronDown className="w-4 h-4" />
         </Select.Icon>
       </Select.Trigger>
@@ -33,17 +33,17 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
         <Select.Content
           position="popper"
           sideOffset={5}
-          className="z-50 min-w-[180px] bg-white rounded-xl shadow-lg border border-slate-200/80 p-1.5 animate-in fade-in-80 zoom-in-95"
+          className="z-50 min-w-[180px] bg-[var(--bg-dropdown)] rounded-xl shadow-lg border border-[var(--border-default)] p-1.5 animate-in fade-in-80 zoom-in-95 text-[var(--text-primary)]"
         >
           <Select.Viewport className="p-1 space-y-0.5">
             {categories.map((cat) => (
               <Select.Item
                 key={cat}
                 value={cat}
-                className="flex items-center justify-between px-3 py-2 text-xs md:text-sm font-medium text-slate-700 rounded-lg hover:bg-orange-50 hover:text-orange-700 focus:bg-orange-50 focus:text-orange-700 focus:outline-none cursor-pointer select-none transition-colors"
+                className="flex items-center justify-between px-3 py-2 text-xs md:text-sm font-medium text-[var(--text-primary)] rounded-lg hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-500/10 focus:text-orange-600 dark:focus:text-orange-400 focus:outline-none cursor-pointer select-none transition-colors"
               >
                 <Select.ItemText>{cat}</Select.ItemText>
-                <Select.ItemIndicator className="text-orange-600">
+                <Select.ItemIndicator className="text-orange-600 dark:text-orange-400">
                   <Check className="w-4 h-4" />
                 </Select.ItemIndicator>
               </Select.Item>

@@ -296,7 +296,7 @@ export const ActiveTokensPage: React.FC = () => {
     const r = role.toUpperCase();
     if (r === ADMIN) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
           <KeyRound className="w-3 h-3" />
           <span>{ADMIN}</span>
         </span>
@@ -304,14 +304,14 @@ export const ActiveTokensPage: React.FC = () => {
     }
     if (r === SHOP_OWNER || r === 'PEMILIK' || r === 'MANAGER') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-700 border border-orange-200">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-500/20">
           <Users className="w-3 h-3" />
           <span>{SHOP_OWNER}</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
         <span>{SHOP_CASHIER}</span>
       </span>
     );
@@ -320,16 +320,16 @@ export const ActiveTokensPage: React.FC = () => {
   const getDeviceIcon = (deviceStr: string) => {
     const d = deviceStr.toLowerCase();
     if (d.includes('mobile') || d.includes('android') || d.includes('phone') || d.includes('redmi') || d.includes('iphone')) {
-      return <Smartphone className="w-4 h-4 text-emerald-600" />;
+      return <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />;
     }
     if (d.includes('ipad') || d.includes('tablet')) {
-      return <Tablet className="w-4 h-4 text-sky-600" />;
+      return <Tablet className="w-4 h-4 text-sky-600 dark:text-sky-400" />;
     }
-    return <Laptop className="w-4 h-4 text-indigo-600" />;
+    return <Laptop className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />;
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)]">
       {/* Top Navigation */}
       <TopNavbar currentTab="active-tokens" />
 
@@ -338,41 +338,39 @@ export const ActiveTokensPage: React.FC = () => {
         <div className="max-w-7xl mx-auto w-full space-y-6">
           {/* Toast message */}
           {toastMessage && (
-            <div className="p-3.5 bg-green-50 border border-green-200 text-green-800 rounded-xl text-xs md:text-sm font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
+            <div className="p-3.5 bg-green-500/10 border border-green-500/20 text-green-800 dark:text-green-300 rounded-xl text-xs md:text-sm font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
                 <span>{toastMessage}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setToastMessage(null)}
-                className="text-green-600 hover:text-green-800"
+                className="text-green-600 hover:text-green-800 dark:text-green-400 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
-
-
           {/* Filter Bar with TenantSelect & react-day-picker Dropdown */}
-          <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
+          <div className="bg-[var(--bg-surface)] p-4 md:p-5 rounded-2xl border border-[var(--border-default)] shadow-xs space-y-3.5">
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative flex-1 min-w-[240px]">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-3" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari nama, email, username, IP, perangkat, atau token..."
-                  className="w-full pl-10 pr-9 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-slate-50/50"
+                  className="w-full pl-10 pr-9 py-2 border border-[var(--border-default)] rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -396,7 +394,6 @@ export const ActiveTokensPage: React.FC = () => {
                   </div>
                 )}
 
-
                 {/* 3. react-day-picker Dropdown Filter */}
                 <div className="relative" ref={calendarDropdownRef}>
                   <div className="flex items-center gap-1.5">
@@ -405,14 +402,14 @@ export const ActiveTokensPage: React.FC = () => {
                       onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                       className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
                         selectedRange?.from || selectedSingleDate
-                          ? 'bg-purple-50 border-purple-300 text-purple-700 shadow-2xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-purple-300'
+                          ? 'bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-300 shadow-2xs'
+                          : 'bg-[var(--bg-surface)] border-[var(--border-default)] text-[var(--text-secondary)] hover:border-purple-400'
                       }`}
                     >
-                      <CalendarRange className="w-4 h-4 text-purple-600" />
+                      <CalendarRange className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       <span>{activeDateLabel}</span>
                       <ChevronDown
-                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        className={`w-3.5 h-3.5 text-[var(--text-muted)] transition-transform duration-200 ${
                           isCalendarOpen ? 'rotate-180' : ''
                         }`}
                       />
@@ -423,7 +420,7 @@ export const ActiveTokensPage: React.FC = () => {
                         type="button"
                         onClick={handleResetDateFilter}
                         title="Reset Filter Tanggal"
-                        className="inline-flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center p-2 rounded-xl text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -432,22 +429,22 @@ export const ActiveTokensPage: React.FC = () => {
 
                   {/* Dropdown Panel */}
                   {isCalendarOpen && (
-                    <div className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2.5rem)] max-w-sm sm:max-w-none sm:w-[380px] bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 space-y-3.5 animate-in fade-in zoom-in-95">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                          <Calendar className="w-4 h-4 text-purple-600" />
+                    <div className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2.5rem)] max-w-sm sm:max-w-none sm:w-[380px] bg-[var(--bg-dropdown)] rounded-2xl border border-[var(--border-default)] shadow-2xl p-4 space-y-3.5 animate-in fade-in zoom-in-95">
+                      <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
+                          <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                           <span>Filter Tanggal Sesi Terbit</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setIsCalendarOpen(false)}
-                          className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                          className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors cursor-pointer"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-between gap-1 p-1 bg-slate-100 rounded-xl text-xs">
+                      <div className="flex items-center justify-between gap-1 p-1 bg-[var(--bg-muted)] rounded-xl text-xs">
                         <button
                           type="button"
                           onClick={() => {
@@ -456,8 +453,8 @@ export const ActiveTokensPage: React.FC = () => {
                           }}
                           className={`flex-1 py-1 px-2 rounded-lg font-bold text-center transition-all cursor-pointer ${
                             dateMode === 'range'
-                              ? 'bg-white text-purple-700 shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900'
+                              ? 'bg-[var(--bg-surface)] text-purple-700 dark:text-purple-300 shadow-2xs'
+                              : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                           }`}
                         >
                           Rentang Tanggal
@@ -470,15 +467,15 @@ export const ActiveTokensPage: React.FC = () => {
                           }}
                           className={`flex-1 py-1 px-2 rounded-lg font-bold text-center transition-all cursor-pointer ${
                             dateMode === 'single'
-                              ? 'bg-white text-purple-700 shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900'
+                              ? 'bg-[var(--bg-surface)] text-purple-700 dark:text-purple-300 shadow-2xs'
+                              : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                           }`}
                         >
                           Satu Tanggal
                         </button>
                       </div>
 
-                      <div className="flex justify-center bg-slate-50/70 p-2 rounded-xl border border-slate-100 overflow-x-auto">
+                      <div className="flex justify-center bg-[var(--bg-muted)]/50 p-2 rounded-xl border border-[var(--border-subtle)] overflow-x-auto">
                         {dateMode === 'range' ? (
                           <DayPicker
                             mode="range"
@@ -506,22 +503,22 @@ export const ActiveTokensPage: React.FC = () => {
                         )}
                       </div>
 
-                      <p className="text-[10px] text-center text-slate-400">
+                      <p className="text-[10px] text-center text-[var(--text-muted)]">
                         * Data sesi aktif dapat difilter berdasarkan waktu diterbitkan.
                       </p>
 
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-subtle)]">
                         <button
                           type="button"
                           onClick={handleResetDateFilter}
-                          className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                         >
                           Reset Filter
                         </button>
                         <button
                           type="button"
                           onClick={() => setIsCalendarOpen(false)}
-                          className="px-4 py-1.5 bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
+                          className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
                         >
                           Terapkan
                         </button>
@@ -537,16 +534,16 @@ export const ActiveTokensPage: React.FC = () => {
               searchQuery ||
               selectedRange?.from ||
               selectedSingleDate) && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs">
-                <span className="text-[11px] font-semibold text-slate-400">Filter aktif:</span>
+              <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[var(--border-subtle)] text-xs">
+                <span className="text-[11px] font-semibold text-[var(--text-muted)]">Filter aktif:</span>
 
                 {isAdmin && selectedTenantId !== 'ALL' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-50 text-purple-700 text-[11px] font-semibold border border-purple-200">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-purple-700 dark:text-purple-300 text-[11px] font-semibold border border-purple-500/20">
                     <span>Tenan: {tenants.find((t) => t.id === selectedTenantId)?.name || selectedTenantId}</span>
                     <button
                       type="button"
                       onClick={() => setSelectedTenantId('ALL')}
-                      className="hover:text-purple-900"
+                      className="hover:text-purple-900 dark:hover:text-purple-200 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -554,12 +551,12 @@ export const ActiveTokensPage: React.FC = () => {
                 )}
 
                 {(selectedRange?.from || selectedSingleDate) && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-200">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-400 text-[11px] font-semibold border border-blue-500/20">
                     <span>Tanggal: {activeDateLabel}</span>
                     <button
                       type="button"
                       onClick={handleResetDateFilter}
-                      className="hover:text-blue-900"
+                      className="hover:text-blue-900 dark:hover:text-blue-200 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -567,12 +564,12 @@ export const ActiveTokensPage: React.FC = () => {
                 )}
 
                 {searchQuery && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-semibold border border-slate-200">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[var(--bg-muted)] text-[var(--text-secondary)] text-[11px] font-semibold border border-[var(--border-default)]">
                     <span>Pencarian: "{searchQuery}"</span>
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="hover:text-slate-900"
+                      className="hover:text-[var(--text-primary)] cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -586,7 +583,7 @@ export const ActiveTokensPage: React.FC = () => {
                     setSearchQuery('');
                     handleResetDateFilter();
                   }}
-                  className="text-[11px] font-bold text-red-600 hover:underline ml-1 cursor-pointer"
+                  className="text-[11px] font-bold text-red-600 dark:text-red-400 hover:underline ml-1 cursor-pointer"
                 >
                   Reset Semua
                 </button>
@@ -595,32 +592,33 @@ export const ActiveTokensPage: React.FC = () => {
           </div>
 
           {/* Active Tokens Table Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-slate-100 flex items-center justify-between">
+          {/* Active Tokens Table Card */}
+          <div className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-default)] shadow-xs overflow-hidden">
+            <div className="p-4 md:p-5 border-b border-[var(--border-subtle)] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-purple-600" />
-                <h3 className="font-bold text-slate-900 text-sm md:text-base">
+                <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <h3 className="font-bold text-[var(--text-primary)] text-sm md:text-base">
                   Daftar Sesi Access Token Aktif ({filteredTokens.length})
                 </h3>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs text-slate-500 font-semibold">Live Redis Sync</span>
+                <span className="text-xs text-[var(--text-secondary)] font-semibold">Live Redis Sync</span>
               </div>
             </div>
 
             {loading ? (
-              <div className="p-12 text-center text-xs text-slate-400 space-y-2">
+              <div className="p-12 text-center text-xs text-[var(--text-muted)] space-y-2">
                 <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto" />
                 <p>Memuat sesi access token dari Redis...</p>
               </div>
             ) : filteredTokens.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-400 space-y-3">
-                <KeyRound className="w-10 h-10 text-slate-300 mx-auto" />
-                <p className="font-bold text-slate-700 text-sm">
+              <div className="p-12 text-center text-xs text-[var(--text-muted)] space-y-3">
+                <KeyRound className="w-10 h-10 text-[var(--text-muted)] mx-auto opacity-50" />
+                <p className="font-bold text-[var(--text-primary)] text-sm">
                   Tidak ada access token aktif yang ditemukan
                 </p>
-                <p className="text-slate-400 max-w-sm mx-auto">
+                <p className="text-[var(--text-muted)] max-w-sm mx-auto">
                   Semua sesi mungkin telah kedaluwarsa, telah dicabut/diblacklist, atau tidak cocok dengan filter pencarian.
                 </p>
                 <button
@@ -630,7 +628,7 @@ export const ActiveTokensPage: React.FC = () => {
                     setSearchQuery('');
                     handleResetDateFilter();
                   }}
-                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[var(--bg-muted)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-default)] text-[var(--text-secondary)] font-bold rounded-xl text-xs transition-colors cursor-pointer"
                 >
                   Reset Filter
                 </button>
@@ -639,7 +637,7 @@ export const ActiveTokensPage: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-200/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <tr className="bg-[var(--bg-table-header)] border-b border-[var(--border-default)] text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                       <th className="py-3 px-4">Pengguna</th>
                       <th className="py-3 px-4">Role</th>
                       {isAdmin && <th className="py-3 px-4">Toko / Tenan</th>}
@@ -649,7 +647,7 @@ export const ActiveTokensPage: React.FC = () => {
                       <th className="py-3 px-4 text-center">Aksi Blacklist</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+                  <tbody className="divide-y divide-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
                     {filteredTokens.map((item, index) => {
                       const countdown = getRemainingTime(
                         item.expiresAt,
@@ -665,19 +663,19 @@ export const ActiveTokensPage: React.FC = () => {
                       return (
                         <tr
                           key={item.token || index}
-                          className="hover:bg-slate-50/70 transition-colors"
+                          className="hover:bg-[var(--bg-table-row-hover)] transition-colors"
                         >
                           {/* Pengguna */}
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 font-black flex items-center justify-center shrink-0 border border-purple-200">
+                              <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-700 dark:text-purple-300 font-black flex items-center justify-center shrink-0 border border-purple-500/20">
                                 {initial}
                               </div>
                               <div className="min-w-0">
-                                <p className="font-bold text-slate-900 truncate">
+                                <p className="font-bold text-[var(--text-primary)] truncate">
                                   {item.name}
                                 </p>
-                                <p className="text-[11px] text-slate-500 font-mono truncate">
+                                <p className="text-[11px] text-[var(--text-muted)] font-mono truncate">
                                   {item.email}
                                 </p>
                               </div>
@@ -692,8 +690,8 @@ export const ActiveTokensPage: React.FC = () => {
                           {/* Toko / Tenan */}
                           {isAdmin && (
                             <td className="py-3.5 px-4 whitespace-nowrap">
-                              <div className="flex items-center gap-1.5 font-medium text-slate-800">
-                                <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <div className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
+                                <Building2 className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                                 <span className="font-bold">
                                   {item.tenantName || 'Platform Administrator'}
                                 </span>
@@ -704,14 +702,14 @@ export const ActiveTokensPage: React.FC = () => {
                           {/* Perangkat & IP */}
                           <td className="py-3.5 px-4">
                             <div className="space-y-0.5 max-w-xs">
-                              <div className="flex items-center gap-1.5 text-slate-800 font-medium truncate">
+                              <div className="flex items-center gap-1.5 text-[var(--text-primary)] font-medium truncate">
                                 {getDeviceIcon(item.device)}
                                 <span className="text-[11px] truncate" title={item.device}>
                                   {item.device}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-slate-500 font-mono text-[10px]">
-                                <Globe className="w-3 h-3 text-slate-400 shrink-0" />
+                              <div className="flex items-center gap-1.5 text-[var(--text-muted)] font-mono text-[10px]">
+                                <Globe className="w-3 h-3 text-[var(--text-muted)] shrink-0" />
                                 <span>{item.ipAddress}</span>
                               </div>
                             </div>
@@ -724,17 +722,17 @@ export const ActiveTokensPage: React.FC = () => {
                                 <span
                                   className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono font-bold text-xs ${
                                     countdown.status === 'active'
-                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
                                       : countdown.status === 'warning'
-                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                      : 'bg-red-50 text-red-700 border border-red-200 animate-pulse'
+                                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                                      : 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 animate-pulse'
                                   }`}
                                 >
                                   <Clock className="w-3 h-3" />
                                   <span>{countdown.label}</span>
                                 </span>
                               </div>
-                              <p className="text-[10px] text-slate-400">
+                              <p className="text-[10px] text-[var(--text-muted)]">
                                 Terbit: {format(new Date(item.issuedAt), 'HH:mm:ss')} WIB
                               </p>
                             </div>
@@ -742,18 +740,18 @@ export const ActiveTokensPage: React.FC = () => {
 
                           {/* Token Preview & Copy */}
                           <td className="py-3.5 px-4 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5 bg-slate-100/80 px-2 py-1 rounded-lg border border-slate-200/70 w-fit">
-                              <span className="font-mono text-[10px] text-slate-600">
+                            <div className="flex items-center gap-1.5 bg-[var(--bg-muted)] px-2 py-1 rounded-lg border border-[var(--border-subtle)] w-fit">
+                              <span className="font-mono text-[10px] text-[var(--text-secondary)]">
                                 {tokenSnippet}
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleCopyToken(item.token)}
                                 title="Salin JWT Token Lengkap"
-                                className="text-slate-400 hover:text-purple-600 p-0.5 rounded transition-colors"
+                                className="text-[var(--text-muted)] hover:text-purple-600 dark:hover:text-purple-400 p-0.5 rounded transition-colors cursor-pointer"
                               >
                                 {copiedToken === item.token ? (
-                                  <Check className="w-3.5 h-3.5 text-green-600" />
+                                  <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
                                 ) : (
                                   <Copy className="w-3.5 h-3.5" />
                                 )}
@@ -773,7 +771,7 @@ export const ActiveTokensPage: React.FC = () => {
                                     : `Pencabutan sesi oleh Manajer Toko`
                                 );
                               }}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-600 text-red-700 hover:text-white border border-red-200/80 text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-600 text-red-700 dark:text-red-400 hover:text-white border border-red-500/20 text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
                               title="Blacklist token di Redis & cabut sesi"
                             >
                               <Ban className="w-3.5 h-3.5" />
@@ -793,51 +791,51 @@ export const ActiveTokensPage: React.FC = () => {
 
       {/* Confirmation Modal to Blacklist Token */}
       {tokenToBlacklist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xs animate-in fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-[var(--bg-modal)] rounded-3xl border border-[var(--border-default)] shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 border border-red-200">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 border border-red-500/20">
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900">
+                <h3 className="text-base font-extrabold text-[var(--text-primary)]">
                   Konfirmasi Blacklist Access Token
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
                   Sesi ini akan segera dicabut dan dinonaktifkan di Redis.
                 </p>
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2 text-xs">
+            <div className="bg-[var(--bg-muted)] rounded-2xl p-4 border border-[var(--border-subtle)] space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Pengguna:</span>
-                <span className="font-bold text-slate-900">{tokenToBlacklist.name}</span>
+                <span className="text-[var(--text-muted)] font-medium">Pengguna:</span>
+                <span className="font-bold text-[var(--text-primary)]">{tokenToBlacklist.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Email / Akun:</span>
-                <span className="font-mono text-slate-700">{tokenToBlacklist.email}</span>
+                <span className="text-[var(--text-muted)] font-medium">Email / Akun:</span>
+                <span className="font-mono text-[var(--text-secondary)]">{tokenToBlacklist.email}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Role Pengguna:</span>
+                <span className="text-[var(--text-muted)] font-medium">Role Pengguna:</span>
                 <span>{renderRoleBadge(tokenToBlacklist.role)}</span>
               </div>
               {tokenToBlacklist.tenantName && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Toko / Tenan:</span>
-                  <span className="font-bold text-slate-900">{tokenToBlacklist.tenantName}</span>
+                  <span className="text-[var(--text-muted)] font-medium">Toko / Tenan:</span>
+                  <span className="font-bold text-[var(--text-primary)]">{tokenToBlacklist.tenantName}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Sisa TTL Redis:</span>
-                <span className="font-mono font-bold text-red-600">
+                <span className="text-[var(--text-muted)] font-medium">Sisa TTL Redis:</span>
+                <span className="font-mono font-bold text-red-600 dark:text-red-400">
                   {getRemainingTime(tokenToBlacklist.expiresAt, tokenToBlacklist.remainingSeconds).label}
                 </span>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">
+              <label className="text-xs font-bold text-[var(--text-primary)]">
                 Alasan Pencabutan / Blacklist:
               </label>
               <input
@@ -845,12 +843,12 @@ export const ActiveTokensPage: React.FC = () => {
                 value={blacklistReason}
                 onChange={(e) => setBlacklistReason(e.target.value)}
                 placeholder="Contoh: Pergantian shift / dugaan akses mencurigakan"
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl text-xs text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-red-500/20"
               />
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 flex items-start gap-2 text-[11px] text-amber-800">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-800 dark:text-amber-300">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <span>
                 Token yang di-blacklist akan disimpan di daftar hitam Redis dengan TTL sesuai sisa masa aktifnya. Seluruh request dari pengguna dengan token ini akan langsung ditolak (401 Unauthorized).
               </span>
@@ -861,7 +859,7 @@ export const ActiveTokensPage: React.FC = () => {
                 type="button"
                 onClick={() => setTokenToBlacklist(null)}
                 disabled={blacklistMutation.isPending}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-default)] rounded-xl transition-colors cursor-pointer"
               >
                 Batalkan
               </button>

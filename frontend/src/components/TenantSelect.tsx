@@ -26,13 +26,13 @@ export const TenantSelect: React.FC<TenantSelectProps> = ({
     <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
         aria-label="Pilih Tenan"
-        className={`inline-flex items-center justify-between gap-2.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 rounded-xl text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 cursor-pointer min-w-[170px] md:min-w-[200px] transition-all ${className}`}
+        className={`inline-flex items-center justify-between gap-2.5 px-3 py-2 bg-[var(--bg-surface)] border border-[var(--border-default)] hover:border-[var(--border-strong)] rounded-xl text-xs md:text-sm font-semibold text-[var(--text-primary)] shadow-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 cursor-pointer min-w-[170px] md:min-w-[200px] transition-all ${className}`}
       >
         <div className="flex items-center gap-2 truncate">
-          <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+          <Building2 className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
           <Select.Value placeholder={placeholder} />
         </div>
-        <Select.Icon className="text-slate-400 shrink-0">
+        <Select.Icon className="text-[var(--text-muted)] shrink-0">
           <ChevronDown className="w-4 h-4" />
         </Select.Icon>
       </Select.Trigger>
@@ -41,9 +41,9 @@ export const TenantSelect: React.FC<TenantSelectProps> = ({
         <Select.Content
           position="popper"
           sideOffset={5}
-          className="z-50 min-w-[210px] max-h-[300px] bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200/80 dark:border-slate-800 p-1.5 animate-in fade-in-80 zoom-in-95 text-slate-700 dark:text-slate-200"
+          className="z-50 min-w-[210px] max-h-[300px] bg-[var(--bg-dropdown)] rounded-xl shadow-lg border border-[var(--border-default)] p-1.5 animate-in fade-in-80 zoom-in-95 text-[var(--text-primary)]"
         >
-          <Select.ScrollUpButton className="flex items-center justify-center h-6 text-slate-400 cursor-default">
+          <Select.ScrollUpButton className="flex items-center justify-center h-6 text-[var(--text-muted)] cursor-default">
             <ChevronUp className="w-4 h-4" />
           </Select.ScrollUpButton>
 
@@ -51,7 +51,7 @@ export const TenantSelect: React.FC<TenantSelectProps> = ({
             {includeAllOption && (
               <Select.Item
                 value="ALL"
-                className="flex items-center justify-between px-3 py-2 text-xs md:text-sm font-medium text-slate-700 dark:text-slate-200 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-700 dark:hover:text-purple-300 focus:bg-purple-50 dark:focus:bg-purple-950/40 focus:text-purple-700 dark:focus:text-purple-300 focus:outline-none cursor-pointer select-none transition-colors"
+                className="flex items-center justify-between px-3 py-2 text-xs md:text-sm font-medium text-[var(--text-primary)] rounded-lg hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 focus:outline-none cursor-pointer select-none transition-colors"
               >
                 <div className="flex items-center gap-2 truncate">
                   <span>🏢</span>
@@ -69,7 +69,7 @@ export const TenantSelect: React.FC<TenantSelectProps> = ({
               <Select.Item
                 key={t.id}
                 value={t.id}
-                className="flex items-center justify-between px-3 py-2 text-xs md:text-sm font-medium text-slate-700 dark:text-slate-200 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-700 dark:hover:text-purple-300 focus:bg-purple-50 dark:focus:bg-purple-950/40 focus:text-purple-700 dark:focus:text-purple-300 focus:outline-none cursor-pointer select-none transition-colors"
+                className="flex items-center justify-between px-3 py-2 text-xs md:text-sm font-medium text-[var(--text-primary)] rounded-lg hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 focus:outline-none cursor-pointer select-none transition-colors"
               >
                 <div className="flex items-center gap-1.5 truncate">
                   <Select.ItemText>
@@ -83,7 +83,7 @@ export const TenantSelect: React.FC<TenantSelectProps> = ({
             ))}
           </Select.Viewport>
 
-          <Select.ScrollDownButton className="flex items-center justify-center h-6 text-slate-400 cursor-default">
+          <Select.ScrollDownButton className="flex items-center justify-center h-6 text-[var(--text-muted)] cursor-default">
             <ChevronDown className="w-4 h-4" />
           </Select.ScrollDownButton>
         </Select.Content>

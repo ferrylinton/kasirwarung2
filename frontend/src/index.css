@@ -14,13 +14,17 @@
   --bg-input: #ffffff;
   --bg-dropdown: #ffffff;
   --bg-sidebar: #181a1f;
+  --bg-modal: #ffffff;
+  --bg-table-header: #f8fafc;
+  --bg-table-row-hover: #f8fafc;
+  --bg-code-block: #0f172a;
 
   /* Borders */
   --border-subtle: #f1f5f9;
   --border-default: #e2e8f0;
   --border-strong: #cbd5e1;
   --border-hover: #94a3b8;
-  --border-focus: #f97316;
+  --border-focus: #ea580c;
 
   /* Text & Typography */
   --text-primary: #0f172a;
@@ -72,6 +76,12 @@
   --color-warning-border: #fde68a;
   --color-warning-text: #92400e;
 
+  /* Accent Colors (Teal / Activate) */
+  --color-teal: #0d9488;
+  --color-teal-light: #f0fdfa;
+  --color-teal-border: #99f6e4;
+  --color-teal-text: #115e59;
+
   /* Elevation & Shadows */
   --shadow-2xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
   --shadow-xs: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.08);
@@ -79,8 +89,9 @@
   --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
 
   /* Datepicker */
-  --rdp-accent-color: #F97316;
-  --rdp-accent-background-color: #FFF7ED;
+  --rdp-accent-color: #ea580c;
+  --rdp-accent-background-color: #fff7ed;
+  --rdp-day-color: #0f172a;
 }
 
 .dark, [data-theme="dark"] {
@@ -95,6 +106,10 @@
   --bg-input: #101622;
   --bg-dropdown: #172032;
   --bg-sidebar: #0a0d14;
+  --bg-modal: #131b2a;
+  --bg-table-header: #0f1726;
+  --bg-table-row-hover: #1a2436;
+  --bg-code-block: #06090e;
 
   /* Borders */
   --border-subtle: #1e293b;
@@ -153,6 +168,12 @@
   --color-warning-border: rgba(245, 158, 11, 0.35);
   --color-warning-text: #fde68a;
 
+  /* Accent Colors (Teal / Activate) */
+  --color-teal: #14b8a6;
+  --color-teal-light: rgba(20, 184, 166, 0.16);
+  --color-teal-border: rgba(20, 184, 166, 0.35);
+  --color-teal-text: #5eead4;
+
   /* Elevation & Shadows */
   --shadow-2xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-xs: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
@@ -160,8 +181,9 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
 
   /* Datepicker */
-  --rdp-accent-color: #FB923C;
-  --rdp-accent-background-color: rgba(251, 146, 60, 0.2);
+  --rdp-accent-color: #fb923c;
+  --rdp-accent-background-color: rgba(251, 146, 60, 0.22);
+  --rdp-day-color: #f8fafc;
 }
 
 @theme {
@@ -212,4 +234,38 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
   }
+}
+
+/* React Day Picker Dark Mode Polish */
+.dark .rdp {
+  --rdp-accent-color: #fb923c;
+  --rdp-accent-background-color: rgba(251, 146, 60, 0.22);
+  color: var(--text-primary);
+}
+.dark .rdp-caption_label {
+  color: var(--text-primary);
+}
+.dark .rdp-nav_button {
+  color: var(--text-secondary);
+}
+.dark .rdp-nav_button:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+.dark .rdp-head_cell {
+  color: var(--text-muted);
+}
+.dark .rdp-day {
+  color: var(--text-primary);
+}
+.dark .rdp-day:hover:not(.rdp-day_selected) {
+  background-color: var(--bg-surface-hover);
+}
+.dark .rdp-day_outside {
+  color: var(--text-subtle);
+  opacity: 0.45;
+}
+.dark .rdp-day_selected:not([aria-disabled="true"]) {
+  background-color: var(--color-brand);
+  color: #ffffff;
 }

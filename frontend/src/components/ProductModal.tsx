@@ -88,39 +88,39 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-200">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+      <div className="bg-[var(--bg-surface)] rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-[var(--border-default)] text-[var(--text-primary)] transition-colors duration-200">
+        <div className="px-6 py-4 border-b border-[var(--border-default)] flex items-center justify-between bg-[var(--bg-table-header)]">
           <div className="flex items-center gap-2">
             <PackagePlus className="w-5 h-5 text-orange-600" />
-            <h3 className="font-bold text-slate-900 text-base md:text-lg">
+            <h3 className="font-bold text-[var(--text-primary)] text-base md:text-lg">
               {initialProduct ? 'Ubah Data Produk' : 'Tambah Produk Baru'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1.5 rounded-full hover:bg-[var(--bg-surface-hover)] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {!isShopOwner && (
-          <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200/80 rounded-xl flex items-center gap-2 text-xs text-amber-800">
+          <div className="mx-6 mt-4 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl flex items-center gap-2 text-xs text-amber-800 dark:text-amber-300">
             <Shield className="w-4 h-4 text-amber-600 shrink-0" />
             <span>Mode Hanya Lihat: Hanya role SHOP_OWNER yang bisa menambah atau mengubah data produk.</span>
           </div>
         )}
 
         {error && (
-          <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200/80 rounded-xl text-xs text-red-700 font-medium">
+          <div className="mx-6 mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl text-xs text-red-700 dark:text-red-300 font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
               Nama Produk
             </label>
             <input
@@ -130,40 +130,40 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Contoh: Indomie Goreng Spesial"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-slate-100 disabled:text-slate-500"
+              className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-[var(--bg-subtle)] disabled:text-[var(--text-muted)]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
                 Kategori
               </label>
               <select
                 value={category}
                 disabled={!isShopOwner}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-slate-100 disabled:text-slate-500"
+                className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl text-xs md:text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-[var(--bg-subtle)] disabled:text-[var(--text-muted)]"
               >
                 {categories.length > 0 ? (
                   categories.map((c) => (
-                    <option key={c.id || c.name} value={c.name}>
+                    <option key={c.id || c.name} value={c.name} className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">
                       {c.icon ? `${c.icon} ` : ''}{c.name}
                     </option>
                   ))
                 ) : (
                   <>
-                    <option value="Makanan Instan">🍜 Makanan Instan</option>
-                    <option value="Minuman">🥤 Minuman</option>
-                    <option value="Sembako">🌾 Sembako</option>
-                    <option value="Camilan">🍿 Camilan</option>
-                    <option value="Kebutuhan Rumah">🧼 Kebutuhan Rumah</option>
+                    <option value="Makanan Instan" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">🍜 Makanan Instan</option>
+                    <option value="Minuman" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">🥤 Minuman</option>
+                    <option value="Sembako" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">🌾 Sembako</option>
+                    <option value="Camilan" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">🍿 Camilan</option>
+                    <option value="Kebutuhan Rumah" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">🧼 Kebutuhan Rumah</option>
                   </>
                 )}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
                 SKU / Barcode
               </label>
               <input
@@ -171,14 +171,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
                 placeholder="KW-001"
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl text-xs md:text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
                 Harga Jual (Rp)
               </label>
               <input
@@ -186,11 +186,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 required
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
                 Stok Awal
               </label>
               <input
@@ -198,29 +198,29 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 required
                 value={stock}
                 onChange={(e) => setStock(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
               Tipe Ikon Produk
             </label>
             <select
               value={iconType}
               onChange={(e) => setIconType(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+              className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-xl text-xs md:text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             >
-              <option value="noodle">Mie Instan (Indomie)</option>
-              <option value="water">Air Mineral (Aqua)</option>
-              <option value="milk">Susu (Ultra Milk)</option>
-              <option value="oil">Minyak Goreng (Sania)</option>
-              <option value="chips">Keripik / Snack (Chitato)</option>
-              <option value="rice">Beras (Ramos)</option>
-              <option value="tea">Teh (Sosro)</option>
-              <option value="energy">Minuman Energi (Pocari)</option>
-              <option value="box">Kotak Standar</option>
+              <option value="noodle" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Mie Instan (Indomie)</option>
+              <option value="water" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Air Mineral (Aqua)</option>
+              <option value="milk" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Susu (Ultra Milk)</option>
+              <option value="oil" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Minyak Goreng (Sania)</option>
+              <option value="chips" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Keripik / Snack (Chitato)</option>
+              <option value="rice" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Beras (Ramos)</option>
+              <option value="tea" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Teh (Sosro)</option>
+              <option value="energy" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Minuman Energi (Pocari)</option>
+              <option value="box" className="bg-[var(--bg-dropdown)] text-[var(--text-primary)]">Kotak Standar</option>
             </select>
           </div>
 
@@ -228,7 +228,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <button
               type="submit"
               disabled={loading || !isShopOwner}
-              className="w-full bg-[#EC6C1A] hover:bg-orange-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+              className="w-full bg-[#EC6C1A] hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{loading ? 'Menyimpan...' : !isShopOwner ? 'Hanya SHOP_OWNER' : 'Simpan Produk'}</span>

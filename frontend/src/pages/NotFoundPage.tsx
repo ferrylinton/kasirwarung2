@@ -117,16 +117,16 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#F8FAFC] overflow-y-auto">
+    <div className="flex-1 flex flex-col h-full bg-[var(--bg-app)] text-[var(--text-primary)] overflow-y-auto">
       {/* Top Navbar */}
       <TopNavbar currentTab="not-found" />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 md:px-8 py-8 md:py-12 flex flex-col items-center">
         {/* Visual 404 Hero Container */}
-        <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 md:p-10 flex flex-col items-center text-center">
+        <div className="w-full bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-default)] shadow-xs p-6 md:p-10 flex flex-col items-center text-center">
           {/* Custom SVG Graphic */}
           <div className="relative mb-6">
-            <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500 shadow-inner">
+            <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-[var(--color-brand)] shadow-inner">
               <FileQuestion className="w-12 h-12 md:w-14 md:h-14 stroke-[1.75]" />
             </div>
             <div className="absolute -bottom-2 -right-2 bg-slate-900 text-white font-mono text-xs font-bold px-2.5 py-1 rounded-md shadow-xs border border-slate-700">
@@ -135,28 +135,28 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
           </div>
 
           {/* Typography Hierarchy */}
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight mb-2">
             Halaman Tidak Ditemukan
           </h1>
-          <p className="text-sm md:text-base text-slate-600 max-w-lg mb-6 leading-relaxed">
+          <p className="text-sm md:text-base text-[var(--text-secondary)] max-w-lg mb-6 leading-relaxed">
             Maaf, halaman atau rute yang Anda tuju tidak tersedia di sistem Kasir Warung.
             Alamat mungkin salah ketik, telah dipindahkan, atau rute belum terdaftar.
           </p>
 
           {/* Path diagnostic bar */}
-          <div className="flex items-center gap-2 bg-slate-100 border border-slate-200/80 rounded-lg px-3.5 py-2 mb-8 max-w-md w-full text-xs font-mono text-slate-700">
-            <span className="text-slate-400 select-none">Rute:</span>
-            <span className="truncate flex-1 text-left font-semibold text-slate-800">
+          <div className="flex items-center gap-2 bg-[var(--bg-muted)] border border-[var(--border-subtle)] rounded-lg px-3.5 py-2 mb-8 max-w-md w-full text-xs font-mono text-[var(--text-secondary)]">
+            <span className="text-[var(--text-muted)] select-none">Rute:</span>
+            <span className="truncate flex-1 text-left font-semibold text-[var(--text-primary)]">
               {currentPath}
             </span>
             <button
               onClick={handleCopyPath}
-              className="p-1 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800 transition-colors"
+              className="p-1 hover:bg-[var(--bg-surface-hover)] rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               title="Salin path rute"
               type="button"
             >
               {copied ? (
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
@@ -168,7 +168,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
             <button
               onClick={() => navigate(user?.role === ADMIN ? '/tenants' : '/')}
               type="button"
-              className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
             >
               <Home className="w-4 h-4" />
               <span>Kembali ke Beranda</span>
@@ -183,7 +183,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
                 }
               }}
               type="button"
-              className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 active:text-slate-900 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
+              className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-default)] text-[var(--text-secondary)] text-sm font-semibold rounded-lg transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Halaman Sebelumnya</span>
@@ -195,23 +195,23 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
         <section className="w-full mt-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-[var(--text-primary)]">
                 Pintasan Menu Tersedia
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[var(--text-muted)]">
                 Pilih menu yang ingin Anda tuju langsung di bawah ini
               </p>
             </div>
 
             {/* Quick search filter */}
             <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="text"
                 placeholder="Cari menu tujuan..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                className="w-full pl-9 pr-3 py-1.5 bg-[var(--bg-input)] border border-[var(--border-default)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[var(--color-brand)]"
               />
             </div>
           </div>
@@ -222,19 +222,19 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
                 key={link.id}
                 onClick={() => navigate(link.id === 'pos' ? '/' : `/${link.id}`)}
                 type="button"
-                className="group p-4 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-orange-300 rounded-xl text-left transition-all shadow-2xs hover:shadow-xs flex items-start gap-3 cursor-pointer"
+                className="group p-4 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-default)] hover:border-[var(--color-brand)] rounded-xl text-left transition-all shadow-2xs hover:shadow-xs flex items-start gap-3 cursor-pointer"
               >
-                <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-orange-50 transition-colors shrink-0">
+                <div className="p-2 rounded-lg bg-[var(--bg-muted)] group-hover:bg-orange-500/10 transition-colors shrink-0">
                   {link.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-sm font-semibold text-slate-900 group-hover:text-orange-600 transition-colors truncate">
+                    <span className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--color-brand)] transition-colors truncate">
                       {link.label}
                     </span>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    <ExternalLink className="w-3.5 h-3.5 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </div>
-                  <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">
+                  <p className="text-xs text-[var(--text-muted)] line-clamp-2 mt-0.5">
                     {link.description}
                   </p>
                 </div>
@@ -242,7 +242,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
             ))}
 
             {filteredLinks.length === 0 && (
-              <div className="col-span-full py-8 text-center text-xs text-slate-400 font-mono">
+              <div className="col-span-full py-8 text-center text-xs text-[var(--text-muted)] font-mono">
                 Tidak ada menu yang sesuai dengan pencarian "{searchQuery}"
               </div>
             )}
@@ -250,7 +250,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
         </section>
 
         {/* Footer Help text */}
-        <div className="mt-8 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+        <div className="mt-8 text-center text-xs text-[var(--text-muted)] flex items-center justify-center gap-2">
           <span>Kasir Warung POS</span>
           <span aria-hidden="true">·</span>
           <span>Bantuan Teknis: Periksa berkas log sistem atau hubungi Administrator</span>

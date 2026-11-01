@@ -267,6 +267,7 @@ export const ActivityLogPage: React.FC = () => {
             {entity}
           </span>
         );
+    }
   };
 
   // Helper for responsive pagination numbers
@@ -286,22 +287,19 @@ export const ActivityLogPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8F9FA]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] transition-colors">
       {/* Top Header Navbar */}
       <TopNavbar currentTab="activity-log" />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">
 
-
-
-
         {/* Filter Controls Bar: Single Row, Equal Height, and Fully Responsive */}
-        <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-[var(--bg-surface)] dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl border border-[var(--border-default)] dark:border-slate-800 shadow-xs transition-colors">
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2.5 sm:gap-3">
             {/* Search Input - Flex 1 */}
             <div className="relative flex-1 min-w-0">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
@@ -310,13 +308,13 @@ export const ActivityLogPage: React.FC = () => {
                   setPage(1);
                 }}
                 placeholder="Cari nama entitas, rincian aktivitas, aktor (user), email, atau tenan..."
-                className="w-full h-10 pl-10 pr-9 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-slate-50/60 transition-all flex items-center"
+                className="w-full h-10 pl-10 pr-9 border border-[var(--border-default)] dark:border-slate-700 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-[var(--bg-input)] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] transition-all flex items-center"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text-primary)] p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -334,7 +332,7 @@ export const ActivityLogPage: React.FC = () => {
                   }}
                   tenants={tenants}
                   allOptionLabel={`Semua Tenan (${tenants.length})`}
-                  className="h-10 bg-slate-50 hover:bg-slate-100 border-slate-200 shrink-0"
+                  className="h-10 bg-[var(--bg-surface)] dark:bg-slate-850 hover:bg-[var(--bg-surface-hover)] border-[var(--border-default)] dark:border-slate-700 shrink-0"
                 />
               )}
 
@@ -345,14 +343,14 @@ export const ActivityLogPage: React.FC = () => {
                   onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                   className={`h-10 inline-flex items-center gap-2 px-3.5 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
                     selectedRange?.from || selectedSingleDate
-                      ? 'bg-orange-50 border-orange-300 text-orange-700 shadow-2xs'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-orange-300'
+                      ? 'bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 shadow-2xs'
+                      : 'bg-[var(--bg-surface)] dark:bg-slate-850 border-[var(--border-default)] dark:border-slate-700 text-[var(--text-primary)] hover:border-orange-300 dark:hover:border-orange-500'
                   }`}
                 >
-                  <CalendarRange className="w-4 h-4 text-orange-600 shrink-0" />
+                  <CalendarRange className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
                   <span className="truncate max-w-[130px] sm:max-w-none">{activeDateLabel}</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
+                    className={`w-3.5 h-3.5 text-[var(--text-subtle)] shrink-0 transition-transform duration-200 ${
                       isCalendarOpen ? 'rotate-180' : ''
                     }`}
                   />
@@ -360,33 +358,33 @@ export const ActivityLogPage: React.FC = () => {
 
                 {/* react-day-picker Dropdown Card */}
                 {isCalendarOpen && (
-                <div className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2.5rem)] max-w-sm sm:max-w-none sm:w-[380px] bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 space-y-3.5 animate-in fade-in zoom-in-95">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                      <Calendar className="w-4 h-4 text-orange-600" />
+                <div className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2.5rem)] max-w-sm sm:max-w-none sm:w-[380px] bg-[var(--bg-surface)] dark:bg-slate-900 text-[var(--text-primary)] rounded-2xl border border-[var(--border-default)] dark:border-slate-800 shadow-2xl p-4 space-y-3.5 animate-in fade-in zoom-in-95">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
+                      <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                       <span>Filter Tanggal Aktivitas</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsCalendarOpen(false)}
-                      className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                      className="text-[var(--text-subtle)] hover:text-[var(--text-primary)] p-1 rounded-lg hover:bg-[var(--bg-surface-hover)] transition-colors cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
                   {/* Mode Toggle: Range vs Single */}
-                  <div className="flex items-center justify-between gap-1 p-1 bg-slate-100 rounded-xl text-xs">
+                  <div className="flex items-center justify-between gap-1 p-1 bg-[var(--bg-muted)] dark:bg-slate-800 rounded-xl text-xs">
                     <button
                       type="button"
                       onClick={() => {
                         setDateMode('range');
                         setSelectedSingleDate(undefined);
                       }}
-                      className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
+                      className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                         dateMode === 'range'
-                          ? 'bg-white text-orange-600 shadow-2xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-[var(--bg-surface)] dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-2xs'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       Rentang Tanggal (Range)
@@ -397,10 +395,10 @@ export const ActivityLogPage: React.FC = () => {
                         setDateMode('single');
                         setSelectedRange(undefined);
                       }}
-                      className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
+                      className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                         dateMode === 'single'
-                          ? 'bg-white text-orange-600 shadow-2xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-[var(--bg-surface)] dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-2xs'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       Satu Tanggal
@@ -417,7 +415,7 @@ export const ActivityLogPage: React.FC = () => {
                         setSelectedSingleDate(now);
                         setSelectedRange(undefined);
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-700 font-medium transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-[var(--bg-muted)] dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-600 dark:hover:text-orange-400 text-[var(--text-secondary)] font-medium transition-colors cursor-pointer"
                     >
                       Hari Ini
                     </button>
@@ -429,7 +427,7 @@ export const ActivityLogPage: React.FC = () => {
                         setSelectedRange({ from: subDays(now, 7), to: now });
                         setSelectedSingleDate(undefined);
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-700 font-medium transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-[var(--bg-muted)] dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-600 dark:hover:text-orange-400 text-[var(--text-secondary)] font-medium transition-colors cursor-pointer"
                     >
                       7 Hari Terakhir
                     </button>
@@ -441,7 +439,7 @@ export const ActivityLogPage: React.FC = () => {
                         setSelectedRange({ from: subDays(now, 30), to: now });
                         setSelectedSingleDate(undefined);
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-700 font-medium transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-[var(--bg-muted)] dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-600 dark:hover:text-orange-400 text-[var(--text-secondary)] font-medium transition-colors cursor-pointer"
                     >
                       30 Hari Terakhir
                     </button>
@@ -507,7 +505,7 @@ export const ActivityLogPage: React.FC = () => {
                 type="button"
                 onClick={handleResetFilters}
                 title="Reset Semua Filter"
-                className="h-10 inline-flex items-center gap-1.5 px-3 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer shrink-0"
+                className="h-10 inline-flex items-center gap-1.5 px-3 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Reset</span>
@@ -519,9 +517,9 @@ export const ActivityLogPage: React.FC = () => {
               type="button"
               onClick={() => refetch()}
               title="Segarkan Log"
-              className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer shrink-0"
+              className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl text-xs font-semibold bg-[var(--bg-surface)] dark:bg-slate-800 border border-[var(--border-default)] dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] shadow-2xs transition-all cursor-pointer shrink-0"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin text-orange-500' : 'text-slate-500'}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin text-orange-500' : 'text-[var(--text-muted)]'}`} />
               <span className="hidden sm:inline">Segarkan</span>
             </button>
           </div>
@@ -529,22 +527,22 @@ export const ActivityLogPage: React.FC = () => {
       </div>
 
         {/* Activity Logs Table */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-[var(--bg-surface)] dark:bg-slate-900 rounded-2xl border border-[var(--border-default)] dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
           {/* Card Header */}
-          <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-[var(--border-subtle)] dark:border-slate-800 flex items-center justify-between bg-[var(--bg-table-header)] dark:bg-slate-950/40">
             <div className="flex items-center gap-2">
-              <ClipboardList className="w-4 h-4 text-orange-600" />
-              <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+              <ClipboardList className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              <h3 className="font-bold text-[var(--text-primary)] text-xs sm:text-sm">
                 Catatan Log Aktivitas
               </h3>
               {pagination.total > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-700">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
                   {pagination.total} Log
                 </span>
               )}
             </div>
             {pagination.totalPages > 1 && (
-              <span className="text-xs text-slate-500 font-medium hidden sm:inline-block">
+              <span className="text-xs text-[var(--text-muted)] font-medium hidden sm:inline-block">
                 Halaman {pagination.page} dari {pagination.totalPages} (10 per halaman)
               </span>
             )}
@@ -554,7 +552,7 @@ export const ActivityLogPage: React.FC = () => {
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[920px]">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <tr className="bg-[var(--bg-table-header)] dark:bg-slate-950/60 border-b border-[var(--border-default)] dark:border-slate-800 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                   <th className="py-3 px-4">Waktu</th>
                   {isAdmin && <th className="py-3 px-4">Tenan / Toko</th>}
                   <th className="py-3 px-4">Aktor (Pengguna)</th>
@@ -565,16 +563,16 @@ export const ActivityLogPage: React.FC = () => {
                   <th className="py-3 px-4 text-center">Data</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-[var(--border-subtle)] dark:divide-slate-800/80 text-xs">
                 {isLoading ? (
                   <tr>
                     <td
                       colSpan={isAdmin ? 8 : 7}
-                      className="py-12 text-center text-slate-400"
+                      className="py-12 text-center text-[var(--text-muted)]"
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
                         <RefreshCw className="w-6 h-6 text-orange-500 animate-spin" />
-                        <span className="font-semibold text-slate-600">
+                        <span className="font-semibold text-[var(--text-secondary)]">
                           Memuat log aktivitas...
                         </span>
                       </div>
@@ -584,22 +582,22 @@ export const ActivityLogPage: React.FC = () => {
                   <tr>
                     <td
                       colSpan={isAdmin ? 8 : 7}
-                      className="py-12 text-center text-slate-400"
+                      className="py-12 text-center text-[var(--text-muted)]"
                     >
                       <div className="max-w-sm mx-auto flex flex-col items-center justify-center gap-2 text-center">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--bg-muted)] dark:bg-slate-800 flex items-center justify-center text-[var(--text-subtle)] mb-1">
                           <ClipboardList className="w-6 h-6" />
                         </div>
-                        <p className="font-bold text-slate-700 text-sm">
+                        <p className="font-bold text-[var(--text-primary)] text-sm">
                           Tidak Ada Log Aktivitas Ditemukan
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[var(--text-muted)]">
                           Belum ada catatan aktivitas yang sesuai dengan kriteria filter atau pencarian Anda.
                         </p>
                         <button
                           type="button"
                           onClick={handleResetFilters}
-                          className="mt-2 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+                          className="mt-2 px-3.5 py-1.5 rounded-xl bg-[var(--bg-muted)] dark:bg-slate-800 hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] text-xs font-semibold transition-colors cursor-pointer"
                         >
                           Reset Semua Filter
                         </button>
@@ -619,17 +617,17 @@ export const ActivityLogPage: React.FC = () => {
                     return (
                       <tr
                         key={log.id}
-                        className="hover:bg-slate-50/70 transition-colors group"
+                        className="hover:bg-[var(--bg-surface-hover)] dark:hover:bg-slate-800/40 transition-colors group"
                       >
                         {/* Waktu */}
                         <td className="py-3 px-4 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <Clock className="w-3.5 h-3.5 text-[var(--text-subtle)] shrink-0" />
                             <div>
-                              <div className="font-mono text-slate-800 font-semibold">
+                              <div className="font-mono text-[var(--text-primary)] font-semibold">
                                 {fullDateStr}
                               </div>
-                              <div className="text-[10px] text-slate-400 capitalize">
+                              <div className="text-[10px] text-[var(--text-subtle)] capitalize">
                                 {relativeTime}
                               </div>
                             </div>
@@ -640,8 +638,8 @@ export const ActivityLogPage: React.FC = () => {
                         {isAdmin && (
                           <td className="py-3 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-1.5">
-                              <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="font-semibold text-slate-800 truncate max-w-[140px]" title={log.tenantName}>
+                              <Building2 className="w-3.5 h-3.5 text-[var(--text-subtle)] shrink-0" />
+                              <span className="font-semibold text-[var(--text-primary)] truncate max-w-[140px]" title={log.tenantName}>
                                 {log.tenantName || 'Toko'}
                               </span>
                             </div>
@@ -652,14 +650,14 @@ export const ActivityLogPage: React.FC = () => {
                         <td className="py-3 px-4 whitespace-nowrap">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-slate-900">
+                              <span className="font-bold text-[var(--text-primary)]">
                                 {log.userName}
                               </span>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold bg-slate-100 text-slate-600">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold bg-[var(--bg-muted)] dark:bg-slate-850 text-[var(--text-secondary)]">
                                 {log.userRole}
                               </span>
                             </div>
-                            <span className="text-[11px] text-slate-400 truncate max-w-[160px]">
+                            <span className="text-[11px] text-[var(--text-subtle)] truncate max-w-[160px]">
                               {log.userEmail}
                             </span>
                           </div>
@@ -675,14 +673,14 @@ export const ActivityLogPage: React.FC = () => {
 
                         {/* Target Nama */}
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="font-semibold text-slate-800 truncate max-w-[150px] block" title={log.entityName}>
+                          <span className="font-semibold text-[var(--text-primary)] truncate max-w-[150px] block" title={log.entityName}>
                             {log.entityName}
                           </span>
                         </td>
 
                         {/* Rincian Aktivitas */}
                         <td className="py-3 px-4">
-                          <p className="text-slate-600 text-xs line-clamp-2 min-w-[220px] max-w-[340px]">
+                          <p className="text-[var(--text-secondary)] text-xs line-clamp-2 min-w-[220px] max-w-[340px]">
                             {log.details}
                           </p>
                         </td>
@@ -690,11 +688,11 @@ export const ActivityLogPage: React.FC = () => {
                         {/* Perangkat & IP */}
                         <td className="py-3 px-4 whitespace-nowrap text-center">
                           <div className="flex flex-col items-center">
-                            <span className="font-mono text-[11px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                            <span className="font-mono text-[11px] text-[var(--text-secondary)] bg-[var(--bg-muted)] dark:bg-slate-800 px-1.5 py-0.5 rounded">
                               {log.ipAddress}
                             </span>
                             <span
-                              className="text-[10px] text-slate-400 truncate max-w-[120px] mt-0.5"
+                              className="text-[10px] text-[var(--text-subtle)] truncate max-w-[120px] mt-0.5"
                               title={log.device}
                             >
                               {log.device}
@@ -708,13 +706,13 @@ export const ActivityLogPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => setActiveModalLog(log)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 transition-colors cursor-pointer"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               <span>Diff</span>
                             </button>
                           ) : (
-                            <span className="text-slate-300 text-xs font-mono">-</span>
+                            <span className="text-[var(--text-subtle)] text-xs font-mono">-</span>
                           )}
                         </td>
                       </tr>
@@ -726,27 +724,27 @@ export const ActivityLogPage: React.FC = () => {
           </div>
 
           {/* Mobile View: Responsive Activity Cards (visible on mobile < md) */}
-          <div className="block md:hidden divide-y divide-slate-100">
+          <div className="block md:hidden divide-y divide-[var(--border-subtle)] dark:divide-slate-800">
             {isLoading ? (
-              <div className="py-12 text-center text-slate-400">
+              <div className="py-12 text-center text-[var(--text-muted)]">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <RefreshCw className="w-6 h-6 text-orange-500 animate-spin" />
-                  <span className="font-semibold text-slate-600">Memuat log aktivitas...</span>
+                  <span className="font-semibold text-[var(--text-secondary)]">Memuat log aktivitas...</span>
                 </div>
               </div>
             ) : logs.length === 0 ? (
-              <div className="p-8 text-center text-slate-400">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-2">
+              <div className="p-8 text-center text-[var(--text-muted)]">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--bg-muted)] dark:bg-slate-800 flex items-center justify-center text-[var(--text-subtle)] mx-auto mb-2">
                   <ClipboardList className="w-6 h-6" />
                 </div>
-                <p className="font-bold text-slate-700 text-sm">Tidak Ada Log Aktivitas Ditemukan</p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="font-bold text-[var(--text-primary)] text-sm">Tidak Ada Log Aktivitas Ditemukan</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
                   Belum ada catatan aktivitas yang sesuai dengan kriteria filter atau pencarian Anda.
                 </p>
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+                  className="mt-3 px-3.5 py-1.5 rounded-xl bg-[var(--bg-muted)] dark:bg-slate-800 hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Reset Semua Filter
                 </button>
@@ -762,27 +760,27 @@ export const ActivityLogPage: React.FC = () => {
                 const hasDiffData = !!log.previousData || !!log.newData;
 
                 return (
-                  <div key={log.id} className="p-4 space-y-2.5 hover:bg-slate-50/70 transition-colors">
+                  <div key={log.id} className="p-4 space-y-2.5 hover:bg-[var(--bg-surface-hover)] dark:hover:bg-slate-800/40 transition-colors">
                     {/* Top Row: User info & Time */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 flex items-center justify-center font-bold text-xs shrink-0">
                           {log.userName.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-bold text-slate-900 text-xs truncate">{log.userName}</span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold bg-slate-100 text-slate-600">
+                            <span className="font-bold text-[var(--text-primary)] text-xs truncate">{log.userName}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold bg-[var(--bg-muted)] dark:bg-slate-800 text-[var(--text-secondary)]">
                               {log.userRole}
                             </span>
                           </div>
-                          <span className="text-[11px] text-slate-400 block truncate">{log.userEmail}</span>
+                          <span className="text-[11px] text-[var(--text-subtle)] block truncate">{log.userEmail}</span>
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <div className="text-[11px] font-mono font-semibold text-slate-700">{fullDateStr}</div>
-                        <div className="text-[10px] text-slate-400 capitalize">{relativeTime}</div>
+                        <div className="text-[11px] font-mono font-semibold text-[var(--text-primary)]">{fullDateStr}</div>
+                        <div className="text-[10px] text-[var(--text-subtle)] capitalize">{relativeTime}</div>
                       </div>
                     </div>
 
@@ -791,13 +789,13 @@ export const ActivityLogPage: React.FC = () => {
                       {renderEntityBadge(log.entity)}
                       {renderActionBadge(log.action)}
                       {log.entityName && (
-                        <span className="font-semibold text-slate-800 text-xs bg-slate-100/80 px-2 py-0.5 rounded truncate max-w-[160px]">
+                        <span className="font-semibold text-[var(--text-primary)] text-xs bg-[var(--bg-muted)] dark:bg-slate-800 px-2 py-0.5 rounded truncate max-w-[160px]">
                           {log.entityName}
                         </span>
                       )}
                       {isAdmin && log.tenantName && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">
-                          <Building2 className="w-3 h-3 text-slate-400" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[var(--bg-muted)] dark:bg-slate-800 text-[var(--text-primary)]">
+                          <Building2 className="w-3 h-3 text-[var(--text-subtle)]" />
                           <span className="truncate max-w-[120px]">{log.tenantName}</span>
                         </span>
                       )}
@@ -805,18 +803,18 @@ export const ActivityLogPage: React.FC = () => {
 
                     {/* Details text */}
                     {log.details && (
-                      <p className="text-xs text-slate-600 bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                      <p className="text-xs text-[var(--text-secondary)] bg-[var(--bg-muted)]/60 dark:bg-slate-800/60 p-2 rounded-lg border border-[var(--border-subtle)] dark:border-slate-800">
                         {log.details}
                       </p>
                     )}
 
                     {/* Bottom Row: Device/IP & Diff Button */}
-                    <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-slate-500">
+                    <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-[var(--text-subtle)]">
                       <div className="flex items-center gap-1.5 truncate">
-                        <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[10px] text-slate-600">
+                        <span className="font-mono bg-[var(--bg-muted)] dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-[var(--text-secondary)]">
                           {log.ipAddress}
                         </span>
-                        <span className="truncate text-slate-400 text-[10px]" title={log.device}>
+                        <span className="truncate text-[var(--text-subtle)] text-[10px]" title={log.device}>
                           {log.device}
                         </span>
                       </div>
@@ -825,7 +823,7 @@ export const ActivityLogPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setActiveModalLog(log)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 transition-colors shrink-0"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 transition-colors shrink-0 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Diff</span>
@@ -840,19 +838,19 @@ export const ActivityLogPage: React.FC = () => {
 
           {/* Responsive Pagination Controls (10 items per page) */}
           {pagination.total > 0 && (
-            <div className="p-3.5 sm:p-4 bg-slate-50/80 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <div className="text-slate-500 text-center sm:text-left">
+            <div className="p-3.5 sm:p-4 bg-[var(--bg-table-header)] dark:bg-slate-950/40 border-t border-[var(--border-default)] dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="text-[var(--text-muted)] text-center sm:text-left">
                 Menampilkan{' '}
-                <strong className="text-slate-800 font-bold">
+                <strong className="text-[var(--text-primary)] font-bold">
                   {(pagination.page - 1) * pageSize + 1}
                 </strong>
                 –
-                <strong className="text-slate-800 font-bold">
+                <strong className="text-[var(--text-primary)] font-bold">
                   {Math.min(pagination.page * pageSize, pagination.total)}
                 </strong>{' '}
                 dari{' '}
-                <strong className="text-slate-800 font-bold">{pagination.total}</strong> aktivitas{' '}
-                <span className="text-slate-400 font-medium hidden xs:inline">(10 per halaman)</span>
+                <strong className="text-[var(--text-primary)] font-bold">{pagination.total}</strong> aktivitas{' '}
+                <span className="text-[var(--text-subtle)] font-medium hidden xs:inline">(10 per halaman)</span>
               </div>
 
               <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
@@ -861,7 +859,7 @@ export const ActivityLogPage: React.FC = () => {
                   type="button"
                   disabled={pagination.page <= 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[var(--border-default)] dark:border-slate-700 bg-[var(--bg-surface)] dark:bg-slate-800 hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Sebelumnya</span>
@@ -872,7 +870,7 @@ export const ActivityLogPage: React.FC = () => {
                   {getPageNumbers().map((pNum, idx) => {
                     if (pNum === '...') {
                       return (
-                        <span key={`dots-${idx}`} className="w-7 sm:w-8 text-center text-slate-400 font-bold">
+                        <span key={`dots-${idx}`} className="w-7 sm:w-8 text-center text-[var(--text-subtle)] font-bold">
                           ...
                         </span>
                       );
@@ -885,8 +883,8 @@ export const ActivityLogPage: React.FC = () => {
                         onClick={() => setPage(num)}
                         className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           pagination.page === num
-                            ? 'bg-orange-600 text-white shadow-2xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                            ? 'bg-[#EC6C1A] text-white shadow-2xs'
+                            : 'bg-[var(--bg-surface)] dark:bg-slate-800 border border-[var(--border-default)] dark:border-slate-700 text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
                         }`}
                       >
                         {num}
@@ -900,7 +898,7 @@ export const ActivityLogPage: React.FC = () => {
                   type="button"
                   disabled={pagination.page >= pagination.totalPages}
                   onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
-                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[var(--border-default)] dark:border-slate-700 bg-[var(--bg-surface)] dark:bg-slate-800 hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <span className="hidden sm:inline">Selanjutnya</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -914,18 +912,18 @@ export const ActivityLogPage: React.FC = () => {
       {/* Diff & Detail Modal */}
       {activeModalLog && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
+          <div className="bg-[var(--bg-surface)] dark:bg-slate-900 text-[var(--text-primary)] rounded-2xl max-w-2xl w-full border border-[var(--border-default)] dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="p-4 md:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="p-4 md:p-5 border-b border-[var(--border-subtle)] dark:border-slate-800 flex items-center justify-between bg-[var(--bg-table-header)] dark:bg-slate-950/40">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center">
                   <ClipboardList className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 leading-tight">
+                  <h3 className="text-base font-bold text-[var(--text-primary)] leading-tight">
                     Rincian Perubahan Data
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[var(--text-muted)]">
                     {activeModalLog.entity} &bull; {activeModalLog.action} &bull;{' '}
                     {activeModalLog.entityName}
                   </p>
@@ -934,7 +932,7 @@ export const ActivityLogPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveModalLog(null)}
-                className="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-xl text-[var(--text-subtle)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -943,31 +941,31 @@ export const ActivityLogPage: React.FC = () => {
             {/* Modal Body */}
             <div className="p-4 md:p-6 overflow-y-auto space-y-4">
               {/* Event Metadata */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[var(--bg-muted)] dark:bg-slate-800/80 p-3.5 rounded-xl border border-[var(--border-subtle)] dark:border-slate-700/60 text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-semibold uppercase">Waktu</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="text-[var(--text-subtle)] block text-[10px] font-semibold uppercase">Waktu</span>
+                  <span className="font-semibold text-[var(--text-primary)]">
                     {format(parseISO(activeModalLog.createdAt), 'dd MMM yyyy HH:mm:ss')}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-semibold uppercase">Aktor</span>
-                  <span className="font-semibold text-slate-800">{activeModalLog.userName}</span>
-                  <span className="text-[10px] text-slate-500 block">({activeModalLog.userRole})</span>
+                  <span className="text-[var(--text-subtle)] block text-[10px] font-semibold uppercase">Aktor</span>
+                  <span className="font-semibold text-[var(--text-primary)]">{activeModalLog.userName}</span>
+                  <span className="text-[10px] text-[var(--text-muted)] block">({activeModalLog.userRole})</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-semibold uppercase">Toko/Tenan</span>
-                  <span className="font-semibold text-slate-800">{activeModalLog.tenantName}</span>
+                  <span className="text-[var(--text-subtle)] block text-[10px] font-semibold uppercase">Toko/Tenan</span>
+                  <span className="font-semibold text-[var(--text-primary)]">{activeModalLog.tenantName}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-semibold uppercase">Alamat IP</span>
-                  <span className="font-mono text-slate-800">{activeModalLog.ipAddress}</span>
+                  <span className="text-[var(--text-subtle)] block text-[10px] font-semibold uppercase">Alamat IP</span>
+                  <span className="font-mono text-[var(--text-primary)]">{activeModalLog.ipAddress}</span>
                 </div>
               </div>
 
               {/* Description */}
-              <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-900">
-                <span className="font-bold block text-[11px] text-amber-800 mb-0.5">Deskripsi Perubahan:</span>
+              <div className="p-3 bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/30 rounded-xl text-xs text-amber-900 dark:text-amber-200">
+                <span className="font-bold block text-[11px] text-amber-800 dark:text-amber-300 mb-0.5">Deskripsi Perubahan:</span>
                 {activeModalLog.details}
               </div>
 
@@ -975,13 +973,13 @@ export const ActivityLogPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Previous Data */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-bold text-rose-700">
+                  <div className="flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400">
                     <span>Data Sebelumnya (Previous)</span>
-                    <span className="text-[10px] bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] bg-rose-500/15 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded border border-rose-500/20">
                       BEFORE
                     </span>
                   </div>
-                  <div className="bg-slate-900 text-slate-200 font-mono text-[11px] p-3 rounded-xl border border-slate-800 overflow-x-auto max-h-56">
+                  <div className="bg-[var(--bg-code-block)] text-slate-200 font-mono text-[11px] p-3 rounded-xl border border-slate-800 overflow-x-auto max-h-56">
                     {activeModalLog.previousData ? (
                       <pre>{JSON.stringify(activeModalLog.previousData, null, 2)}</pre>
                     ) : (
@@ -992,13 +990,13 @@ export const ActivityLogPage: React.FC = () => {
 
                 {/* New Data */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-bold text-emerald-700">
+                  <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
                     <span>Data Baru (New Data)</span>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/20">
                       AFTER
                     </span>
                   </div>
-                  <div className="bg-slate-900 text-emerald-300 font-mono text-[11px] p-3 rounded-xl border border-slate-800 overflow-x-auto max-h-56">
+                  <div className="bg-[var(--bg-code-block)] text-emerald-300 font-mono text-[11px] p-3 rounded-xl border border-slate-800 overflow-x-auto max-h-56">
                     {activeModalLog.newData ? (
                       <pre>{JSON.stringify(activeModalLog.newData, null, 2)}</pre>
                     ) : (
@@ -1010,7 +1008,7 @@ export const ActivityLogPage: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="p-4 border-t border-[var(--border-subtle)] dark:border-slate-800 flex items-center justify-between bg-[var(--bg-table-header)] dark:bg-slate-950/40">
               <button
                 type="button"
                 onClick={() =>
@@ -1028,16 +1026,16 @@ export const ActivityLogPage: React.FC = () => {
                     )
                   )
                 }
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border-default)] dark:border-slate-700 bg-[var(--bg-surface)] dark:bg-slate-800 hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] text-xs font-semibold shadow-2xs transition-all cursor-pointer"
               >
                 {copiedDiff ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700 font-bold">Tersalin ke Clipboard</span>
+                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-emerald-700 dark:text-emerald-300 font-bold">Tersalin ke Clipboard</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                    <Copy className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
                     <span>Salin Data JSON</span>
                   </>
                 )}
@@ -1046,7 +1044,7 @@ export const ActivityLogPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveModalLog(null)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl transition-colors cursor-pointer"
               >
                 Tutup
               </button>
