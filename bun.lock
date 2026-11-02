@@ -18,6 +18,7 @@
         "dotenv": "^18.0.9",
         "express": "^5.3.0",
         "i18next": "^26.5.11",
+        "i18next-http-backend": "^4.0.9",
         "i18next-http-middleware": "^3.9.11",
         "ioredis": "^6.0.0",
         "jsonwebtoken": "^9.0.3",
@@ -527,6 +528,8 @@
     "https-proxy-agent": ["https-proxy-agent@7.0.6", "", { "dependencies": { "agent-base": "^7.1.2", "debug": "4" } }, "sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw=="],
 
     "i18next": ["i18next@26.5.12", "", { "peerDependencies": { "typescript": "^5 || ^6 || ^7" }, "optionalPeers": ["typescript"] }, "sha512-vTt8tc3y5axoU7wwTYg8vjpILLyP33a5GyGJAVI7FDRx1XueYxZVIkcVeStoftrVnAM/o28hKvK0sslucDI9aQ=="],
+
+    "i18next-http-backend": ["i18next-http-backend@4.0.9", "", {}, "sha512-OrdH7wL9zNcmUwH3PatOCIa/NdL6NOGtlwjGqSHSS6fsh9sqm5BtHj6FRt+6coWSxro1LbM61ay+Jc2bbppGkw=="],
 
     "i18next-http-middleware": ["i18next-http-middleware@3.9.11", "", {}, "sha512-Cc3Mc6aBjFgkWOulzCn3Hc76Muw8eVi1e3rgfTZj1olpDHYKzKAGeziYGvLOBVmFCJABJ3U90jf+jTti7ZNq7A=="],
 
