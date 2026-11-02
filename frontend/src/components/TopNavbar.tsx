@@ -112,6 +112,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         return t('nav.categories', 'Kelola Kategori Produk');
       case 'history':
         return t('nav.history', 'Riwayat Transaksi');
+      case 'privacy-policy':
+        return t('privacy.pageTitle', 'Kebijakan Privasi');
       case 'not-found':
         return '404 · Halaman Tidak Ditemukan';
       case 'error':

@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { lazy, Suspense } from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -18,29 +18,47 @@ import { useIdleTimer } from './hooks/useIdleTimer.ts';
 import { ActiveTab } from './components/TopNavbar.tsx';
 import { ADMIN, SHOP_OWNER, SHOP_CASHIER, ROLES, type UserRole } from './constants/roles.ts';
 
-// Direct component imports
-import OrderPage from './pages/OrderPage.tsx';
-import LoginPage from './pages/LoginPage.tsx';
-import ProfilePage from './pages/ProfilePage.tsx';
-import LoginHistoryPage from './pages/LoginHistoryPage.tsx';
-import ActiveTokensPage from './pages/ActiveTokensPage.tsx';
-import ChangePasswordPage from './pages/ChangePasswordPage.tsx';
-import ProductsPage from './pages/ProductsPage.tsx';
-import CategoriesPage from './pages/CategoriesPage.tsx';
-import AdminProductsPage from './pages/AdminProductsPage.tsx';
-import AdminCategoriesPage from './pages/AdminCategoriesPage.tsx';
-import OrderHistoryPage from './pages/OrderHistoryPage.tsx';
-import TenantsPage from './pages/TenantsPage.tsx';
-import UsersPage from './pages/UsersPage.tsx';
-import StoreSettingsPage from './pages/StoreSettingsPage.tsx';
-import AdminDeactivationRequestsPage from './pages/AdminDeactivationRequestsPage.tsx';
-import ActivityLogPage from './pages/ActivityLogPage.tsx';
-import LogViewerPage from './pages/LogViewerPage.tsx';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage.tsx';
-import NotFoundPage from './pages/NotFoundPage.tsx';
+// Core layout error boundaries (loaded synchronously to avoid fallback failure)
 import ErrorPage from './pages/ErrorPage.tsx';
 import ErrorBoundary from './components/common/ErrorBoundary.tsx';
 import { AdminDrillProvider } from './context/AdminDrillContext.tsx';
+
+/**
+ * Helper to dynamically load a page component using React Router's native route `lazy` property.
+ */
+function routeLazy<T = any>(
+  importFn: () => Promise<{ default: React.ComponentType<T> }>
+) {
+  return async () => {
+    const mod = await importFn();
+    return { Component: mod.default };
+  };
+}
+
+/**
+ * Fallback loading spinners for lazy-loaded page transitions
+ */
+const FullPageLoadingFallback: React.FC = () => (
+  <div className="min-h-screen w-screen bg-[#181A1F] flex items-center justify-center p-6">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs text-slate-400 font-mono tracking-wider">
+        MEMUAT KASIR WARUNG...
+      </span>
+    </div>
+  </div>
+);
+
+const PageLoadingFallback: React.FC = () => (
+  <div className="flex-1 w-full h-full min-h-[300px] flex items-center justify-center p-6 bg-transparent">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-9 h-9 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs text-[var(--text-muted)] font-medium tracking-wide">
+        Memuat halaman...
+      </span>
+    </div>
+  </div>
+);
 
 /**
  * Maps an ActiveTab to a URL pathname
@@ -122,10 +140,12 @@ const AppLayout: React.FC = () => {
         onLogout={logout}
       />
 
-      {/* Main View Area with ErrorBoundary protection */}
+      {/* Main View Area with ErrorBoundary and Suspense protection for lazy-loaded pages */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <ErrorBoundary>
-          <Outlet />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Outlet />
+          </Suspense>
         </ErrorBoundary>
       </div>
 
@@ -155,267 +175,262 @@ const RouteErrorBoundary: React.FC = () => {
   );
 };
 
-// Wrapper Components
-const LoginPageWrapper: React.FC = () => {
+// ==========================================
+// Layout Guards
+// ==========================================
+
+/**
+ * GuestGuardLayout:
+ * Layout Guard for unauthenticated/guest routes (e.g. /login).
+ * If the user is already authenticated, redirects immediately to their designated home route:
+ * - ADMIN -> /tenants
+ * - SHOP_OWNER / SHOP_CASHIER -> /
+ */
+const GuestGuardLayout: React.FC = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#181A1F] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <FullPageLoadingFallback />;
   }
 
   if (user) {
     return <Navigate to={user.role === ADMIN ? '/tenants' : '/'} replace />;
   }
 
-  return <LoginPage onOpenPrivacyPolicy={() => navigate('/privacy-policy')} />;
-};
-
-const PrivacyPolicyRouteWrapper: React.FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
   return (
-    <PrivacyPolicyPage
-      onBack={() => {
-        if (user) {
-          navigate(user.role === ADMIN ? '/tenants' : '/');
-        } else {
-          navigate('/login');
-        }
-      }}
-    />
+    <Suspense fallback={<FullPageLoadingFallback />}>
+      <Outlet />
+    </Suspense>
   );
 };
 
-const IndexRouteWrapper: React.FC = () => {
+/**
+ * RoleGuard Component:
+ * Controls access to routes based on allowed user roles.
+ * If user does not possess an allowed role, safely redirects:
+ * - ADMIN -> /tenants
+ * - Non-ADMIN -> /
+ */
+export interface RoleGuardProps {
+  allowedRoles: string[];
+}
+
+export const RoleGuard: React.FC<RoleGuardProps> = ({ allowedRoles }) => {
   const { user } = useAuth();
 
-  if (user?.role === ADMIN) {
-    return <Navigate to="/tenants" replace />;
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <Navigate to={user?.role === ADMIN ? '/tenants' : '/'} replace />;
   }
 
-  return <OrderPage />;
+  return <Outlet />;
 };
 
-const OrderPageWrapper: React.FC = () => {
-  const { user } = useAuth();
+// ==========================================
+// Router Configuration with Route lazy Property & Layout Guards
+// ==========================================
 
-  if (user?.role === ADMIN) {
-    return <Navigate to="/tenants" replace />;
-  }
-
-  return <OrderPage />;
-};
-
-const ProductsPageWrapper: React.FC = () => {
-  const { user } = useAuth();
-
-  if (user?.role === ADMIN) {
-    return <AdminProductsPage />;
-  }
-
-  return <ProductsPage />;
-};
-
-const CategoriesPageWrapper: React.FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  if (user?.role === ADMIN) {
-    return <AdminCategoriesPage />;
-  }
-
-  return (
-    <CategoriesPage
-      onFilterCategory={() => navigate('/products')}
-    />
-  );
-};
-
-const TenantsPageWrapper: React.FC = () => {
-  const { user } = useAuth();
-
-  if (user?.role !== ADMIN) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <TenantsPage />;
-};
-
-const AdminProductsPageWrapper: React.FC = () => {
-  const { user } = useAuth();
-
-  if (user?.role !== ADMIN) {
-    return <Navigate to="/products" replace />;
-  }
-
-  return <AdminProductsPage />;
-};
-
-const AdminCategoriesPageWrapper: React.FC = () => {
-  const { user } = useAuth();
-
-  if (user?.role !== ADMIN) {
-    return <Navigate to="/categories" replace />;
-  }
-
-  return <AdminCategoriesPage />;
-};
-
-const AdminDeactivationRequestsPageWrapper: React.FC = () => {
-  const { user } = useAuth();
-
-  if (user?.role !== ADMIN) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <AdminDeactivationRequestsPage />;
-};
-
-const UsersPageWrapper: React.FC = () => {
-  return <UsersPage />;
-};
-
-const StoreSettingsPageWrapper: React.FC = () => {
-  return <StoreSettingsPage />;
-};
-
-const OrderHistoryPageWrapper: React.FC = () => {
-  return <OrderHistoryPage />;
-};
-
-const ProfilePageWrapper: React.FC = () => {
-  return <ProfilePage />;
-};
-
-const LoginHistoryPageWrapper: React.FC = () => {
-  return <LoginHistoryPage />;
-};
-
-const ActiveTokensPageWrapper: React.FC = () => {
-  return <ActiveTokensPage />;
-};
-
-const ActivityLogPageWrapper: React.FC = () => {
-  return <ActivityLogPage />;
-};
-
-const LogViewerPageWrapper: React.FC = () => {
-  return <LogViewerPage />;
-};
-
-const ChangePasswordPageWrapper: React.FC = () => {
-  return <ChangePasswordPage />;
-};
-
-const NotFoundPageWrapper: React.FC = () => {
-  const location = useLocation();
-  return (
-    <NotFoundPage
-      attemptedPath={location.pathname}
-    />
-  );
-};
-
-// Define application routes with createBrowserRouter
 const router = createBrowserRouter([
+  // Guest-only routes (protected by GuestGuardLayout)
   {
-    path: '/login',
-    element: <LoginPageWrapper />,
+    element: <GuestGuardLayout />,
     errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        path: '/login',
+        lazy: async () => {
+          const { default: LoginPage } = await import('./pages/LoginPage.tsx');
+          const Component: React.FC = () => {
+            const navigate = useNavigate();
+            return <LoginPage onOpenPrivacyPolicy={() => navigate('/privacy-policy')} />;
+          };
+          return { Component };
+        },
+      },
+    ],
   },
+
+  // Publicly accessible route (viewable by guest or authenticated users)
   {
     path: '/privacy-policy',
-    element: <PrivacyPolicyRouteWrapper />,
     errorElement: <RouteErrorBoundary />,
+    lazy: async () => {
+      const { default: PrivacyPolicyPage } = await import('./pages/PrivacyPolicyPage.tsx');
+      const Component: React.FC = () => {
+        const { user } = useAuth();
+        const navigate = useNavigate();
+        return (
+          <PrivacyPolicyPage
+            onBack={() => {
+              if (user) {
+                navigate(user.role === ADMIN ? '/tenants' : '/');
+              } else {
+                navigate('/login');
+              }
+            }}
+          />
+        );
+      };
+      return { Component };
+    },
   },
+
+  // Authenticated application routes with AppLayout (Auth Guard + App Shell)
   {
     path: '/',
     element: <AppLayout />,
     errorElement: <RouteErrorBoundary />,
     children: [
+      // POS Cashier Routes (protected by RoleGuard: SHOP_OWNER, SHOP_CASHIER)
       {
-        index: true,
-        element: <IndexRouteWrapper />,
+        element: <RoleGuard allowedRoles={[SHOP_OWNER, SHOP_CASHIER]} />,
+        children: [
+          {
+            index: true,
+            lazy: routeLazy(() => import('./pages/OrderPage.tsx')),
+          },
+          {
+            path: 'pos',
+            lazy: routeLazy(() => import('./pages/OrderPage.tsx')),
+          },
+        ],
       },
-      {
-        path: 'pos',
-        element: <OrderPageWrapper />,
-      },
+
+      // Catalog & Categories (polymorphic based on role)
       {
         path: 'products',
-        element: <ProductsPageWrapper />,
+        lazy: async () => {
+          const [{ default: ProductsPage }, { default: AdminProductsPage }] = await Promise.all([
+            import('./pages/ProductsPage.tsx'),
+            import('./pages/AdminProductsPage.tsx'),
+          ]);
+          const Component: React.FC = () => {
+            const { user } = useAuth();
+            return user?.role === ADMIN ? <AdminProductsPage /> : <ProductsPage />;
+          };
+          return { Component };
+        },
       },
       {
         path: 'categories',
-        element: <CategoriesPageWrapper />,
+        lazy: async () => {
+          const [{ default: CategoriesPage }, { default: AdminCategoriesPage }] = await Promise.all([
+            import('./pages/CategoriesPage.tsx'),
+            import('./pages/AdminCategoriesPage.tsx'),
+          ]);
+          const Component: React.FC = () => {
+            const { user } = useAuth();
+            const navigate = useNavigate();
+            return user?.role === ADMIN ? (
+              <AdminCategoriesPage />
+            ) : (
+              <CategoriesPage onFilterCategory={() => navigate('/products')} />
+            );
+          };
+          return { Component };
+        },
       },
+
+      // Shared Authenticated Routes
       {
         path: 'history',
-        element: <OrderHistoryPageWrapper />,
+        lazy: routeLazy(() => import('./pages/OrderHistoryPage.tsx')),
       },
       {
         path: 'profile',
-        element: <ProfilePageWrapper />,
+        lazy: routeLazy(() => import('./pages/ProfilePage.tsx')),
       },
       {
         path: 'login-history',
-        element: <LoginHistoryPageWrapper />,
+        lazy: routeLazy(() => import('./pages/LoginHistoryPage.tsx')),
       },
       {
         path: 'active-tokens',
-        element: <ActiveTokensPageWrapper />,
+        lazy: routeLazy(() => import('./pages/ActiveTokensPage.tsx')),
       },
       {
         path: 'activity-log',
-        element: <ActivityLogPageWrapper />,
+        lazy: routeLazy(() => import('./pages/ActivityLogPage.tsx')),
       },
       {
         path: 'system-logs',
-        element: <LogViewerPageWrapper />,
+        lazy: routeLazy(() => import('./pages/LogViewerPage.tsx')),
       },
       {
         path: 'change-password',
-        element: <ChangePasswordPageWrapper />,
+        lazy: routeLazy(() => import('./pages/ChangePasswordPage.tsx')),
       },
+
+      // Store Settings (protected by RoleGuard: SHOP_OWNER, ADMIN)
       {
-        path: 'tenants',
-        element: <TenantsPageWrapper />,
+        element: <RoleGuard allowedRoles={[SHOP_OWNER, ADMIN]} />,
+        children: [
+          {
+            path: 'store-settings',
+            lazy: routeLazy(() => import('./pages/StoreSettingsPage.tsx')),
+          },
+        ],
       },
+
+      // Cashier Users Management (protected by RoleGuard: SHOP_OWNER, ADMIN)
       {
-        path: 'admin-products',
-        element: <AdminProductsPageWrapper />,
+        element: <RoleGuard allowedRoles={[SHOP_OWNER, ADMIN]} />,
+        children: [
+          {
+            path: 'cashiers',
+            lazy: routeLazy(() => import('./pages/UsersPage.tsx')),
+          },
+        ],
       },
+
+      // Platform Administrator Routes (protected by RoleGuard: ADMIN)
       {
-        path: 'admin-categories',
-        element: <AdminCategoriesPageWrapper />,
+        element: <RoleGuard allowedRoles={[ADMIN]} />,
+        children: [
+          {
+            path: 'tenants',
+            lazy: routeLazy(() => import('./pages/TenantsPage.tsx')),
+          },
+          {
+            path: 'admin-products',
+            lazy: routeLazy(() => import('./pages/AdminProductsPage.tsx')),
+          },
+          {
+            path: 'admin-categories',
+            lazy: routeLazy(() => import('./pages/AdminCategoriesPage.tsx')),
+          },
+          {
+            path: 'deactivation-requests',
+            lazy: routeLazy(() => import('./pages/AdminDeactivationRequestsPage.tsx')),
+          },
+        ],
       },
-      {
-        path: 'cashiers',
-        element: <UsersPageWrapper />,
-      },
-      {
-        path: 'store-settings',
-        element: <StoreSettingsPageWrapper />,
-      },
-      {
-        path: 'deactivation-requests',
-        element: <AdminDeactivationRequestsPageWrapper />,
-      },
+
+      // Fallback inside layout
       {
         path: '*',
-        element: <NotFoundPageWrapper />,
+        lazy: async () => {
+          const { default: NotFoundPage } = await import('./pages/NotFoundPage.tsx');
+          const Component: React.FC = () => {
+            const location = useLocation();
+            return <NotFoundPage attemptedPath={location.pathname} />;
+          };
+          return { Component };
+        },
       },
     ],
   },
+
+  // Fallback outside layout
   {
     path: '*',
-    element: <NotFoundPageWrapper />,
+    lazy: async () => {
+      const { default: NotFoundPage } = await import('./pages/NotFoundPage.tsx');
+      const Component: React.FC = () => {
+        const location = useLocation();
+        return <NotFoundPage attemptedPath={location.pathname} />;
+      };
+      return { Component };
+    },
   },
 ]);
 
