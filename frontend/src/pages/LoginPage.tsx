@@ -39,7 +39,7 @@ const DEMO_ACCOUNTS: Array<{
     email: 'admin@kasirwarung.id',
     password: 'admin123',
     subtext: 'Kelola seluruh tenan platform',
-    badgeClass: 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60',
+    badgeClass: 'bg-purple-100 text-purple-700',
   },
   {
     id: 'owner-budi',
@@ -48,7 +48,7 @@ const DEMO_ACCOUNTS: Array<{
     email: 'budi@kasirwarung.id',
     password: 'kasir123',
     subtext: 'Warung Berkah Budi',
-    badgeClass: 'bg-orange-100 dark:bg-orange-950/70 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60',
+    badgeClass: 'bg-orange-100 text-orange-700',
   },
   {
     id: 'cashier-siti',
@@ -57,7 +57,7 @@ const DEMO_ACCOUNTS: Array<{
     email: 'siti@kasirwarung.id',
     password: 'kasir123',
     subtext: 'Warung Berkah Budi',
-    badgeClass: 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60',
+    badgeClass: 'bg-emerald-100 text-emerald-700',
   },
   {
     id: 'owner-hendra',
@@ -66,7 +66,7 @@ const DEMO_ACCOUNTS: Array<{
     email: 'hendra@kelontong.id',
     password: 'kasir123',
     subtext: 'Warung Kelontong Sejahtera',
-    badgeClass: 'bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60',
+    badgeClass: 'bg-blue-100 text-blue-700',
   },
 ];
 
@@ -297,7 +297,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-gradient-to-b from-orange-50/50 to-emerald-50/50 dark:from-orange-950/40 dark:to-emerald-950/40 border border-orange-200/60 dark:border-orange-500/30 rounded-2xl p-2 flex items-center justify-center mx-auto shadow-sm">
             <img
-              src="/src/assets/images/kasir_warung_logo_1791830546088.jpg"
+              src="/frontend/src/assets/images/kasir_warung_logo_1791830546088.jpg"
               alt="Logo KasirWarung"
               referrerPolicy="no-referrer"
               className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal rounded-xl"
@@ -451,104 +451,76 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onOpenPrivacyPolicy }) => 
             </button>
 
             {/* Quick Demo Accounts Select Dropdown using @radix-ui/react-select */}
-            {(() => {
-              const activeDemoAccount = DEMO_ACCOUNTS.find(
-                (acc) => acc.email === loginEmail && acc.password === loginPassword
-              );
+            <div className="bg-[var(--bg-subtle)] dark:bg-slate-800/60 p-3.5 rounded-2xl border border-[var(--border-default)] dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                  {t('auth.demoAccountsTitle', 'Akun Demo Siap Pakai:')}
+                </p>
+                <span className="text-[10px] text-[var(--text-subtle)] font-mono">Quick Access</span>
+              </div>
 
-              return (
-                <div
-                  className="bg-white dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 space-y-2 shadow-2xs transition-colors"
-                  style={{ backgroundColor: 'var(--bg-subtle, #f8fafc)' }}
+              <Select.Root
+                value={
+                  DEMO_ACCOUNTS.find(
+                    (acc) => acc.email === loginEmail && acc.password === loginPassword
+                  )?.id || ''
+                }
+                onValueChange={(val) => {
+                  const selected = DEMO_ACCOUNTS.find((acc) => acc.id === val);
+                  if (selected) {
+                    fillQuickDemo(selected.email, selected.password);
+                  }
+                }}
+              >
+                <Select.Trigger
+                  aria-label={t('auth.demoAccountsTitle', 'Pilih Akun Demo Cepat')}
+                  className="w-full h-11 px-3.5 bg-[var(--bg-surface)] dark:bg-slate-800 border border-[var(--border-default)] dark:border-slate-700 rounded-xl text-xs md:text-sm text-[var(--text-primary)] flex items-center justify-between gap-2 shadow-2xs hover:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
                 >
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                      {t('auth.demoAccountsTitle', 'Akun Demo Siap Pakai:')}
-                    </p>
-                    <span className="text-[10px] text-[var(--text-subtle)] font-mono">Quick Access</span>
-                  </div>
+                  <Select.Value placeholder="-- Pilih Akun Demo Cepat --" />
+                  <Select.Icon className="text-[var(--text-muted)]">
+                    <ChevronDown className="w-4 h-4" />
+                  </Select.Icon>
+                </Select.Trigger>
 
-                  <Select.Root
-                    value={activeDemoAccount?.id || ''}
-                    onValueChange={(val) => {
-                      const selected = DEMO_ACCOUNTS.find((acc) => acc.id === val);
-                      if (selected) {
-                        fillQuickDemo(selected.email, selected.password);
-                      }
-                    }}
+                <Select.Portal>
+                  <Select.Content
+                    position="popper"
+                    sideOffset={6}
+                    className="z-50 min-w-[280px] sm:min-w-[340px] bg-[var(--bg-dropdown)] dark:bg-slate-900 rounded-2xl shadow-xl border border-[var(--border-default)] dark:border-slate-800 p-1.5 animate-in fade-in-80 zoom-in-95 max-h-[300px] overflow-y-auto"
                   >
-                    <Select.Trigger
-                      aria-label={t('auth.demoAccountsTitle', 'Pilih Akun Demo Cepat')}
-                      className={`w-full h-11 px-3.5 rounded-xl text-xs md:text-sm text-[var(--text-primary)] flex items-center justify-between gap-2 shadow-2xs transition-all cursor-pointer border ${
-                        activeDemoAccount
-                          ? 'bg-orange-50/70 dark:bg-orange-950/25 border-orange-300 dark:border-orange-800/60 ring-1 ring-orange-500/20'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-orange-400'
-                      }`}
-                      style={{ backgroundColor: activeDemoAccount ? undefined : 'var(--bg-surface, #ffffff)' }}
-                    >
-                      <Select.Value placeholder="-- Pilih Akun Demo Cepat --">
-                        {activeDemoAccount ? (
-                          <span className="flex items-center gap-2 truncate">
-                            <span
-                              className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${activeDemoAccount.badgeClass}`}
-                            >
-                              {activeDemoAccount.role}
+                    <Select.Viewport className="p-1 space-y-1">
+                      {DEMO_ACCOUNTS.map((acc) => (
+                        <Select.Item
+                          key={acc.id}
+                          value={acc.id}
+                          className="flex items-center justify-between gap-3 px-3 py-2 text-xs rounded-xl hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 focus:bg-orange-500/10 focus:text-orange-600 dark:focus:text-orange-400 cursor-pointer outline-none transition-colors data-[highlighted]:bg-orange-500/10 data-[state=checked]:bg-orange-500/20"
+                        >
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${acc.badgeClass}`}
+                              >
+                                {acc.role}
+                              </span>
+                              <Select.ItemText>
+                                <span className="font-bold text-[var(--text-primary)]">{acc.label}</span>
+                              </Select.ItemText>
+                            </div>
+                            <span className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">
+                              {acc.email} • {acc.subtext}
                             </span>
-                            <span className="font-bold text-[var(--text-primary)] truncate">
-                              {activeDemoAccount.label}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-[var(--text-muted)]">-- Pilih Akun Demo Cepat --</span>
-                        )}
-                      </Select.Value>
-                      <Select.Icon className="text-[var(--text-muted)] shrink-0">
-                        <ChevronDown className="w-4 h-4" />
-                      </Select.Icon>
-                    </Select.Trigger>
-
-                    <Select.Portal>
-                      <Select.Content
-                        position="popper"
-                        sideOffset={6}
-                        className="z-50 min-w-[280px] sm:min-w-[340px] bg-white dark:bg-[#131b2a] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700/80 p-1.5 animate-in fade-in-80 zoom-in-95 max-h-[320px] overflow-y-auto text-[var(--text-primary)]"
-                        style={{ backgroundColor: 'var(--bg-dropdown, #ffffff)' }}
-                      >
-                        <Select.Viewport className="p-1 space-y-1">
-                          {DEMO_ACCOUNTS.map((acc) => (
-                            <Select.Item
-                              key={acc.id}
-                              value={acc.id}
-                              className="relative flex items-center justify-between gap-3 px-3 py-2.5 text-xs rounded-xl cursor-pointer outline-none transition-colors select-none text-[var(--text-primary)] hover:bg-orange-50 dark:hover:bg-orange-950/40 focus:bg-orange-50 dark:focus:bg-orange-950/40 data-[highlighted]:bg-orange-50 dark:data-[highlighted]:bg-orange-950/40 data-[state=checked]:bg-orange-100/80 dark:data-[state=checked]:bg-orange-900/40 border border-transparent data-[state=checked]:border-orange-200 dark:data-[state=checked]:border-orange-800/60"
-                            >
-                              <div className="flex flex-col min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span
-                                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${acc.badgeClass}`}
-                                  >
-                                    {acc.role}
-                                  </span>
-                                  <Select.ItemText>
-                                    <span className="font-bold text-[var(--text-primary)] truncate">{acc.label}</span>
-                                  </Select.ItemText>
-                                </div>
-                                <span className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5 truncate">
-                                  {acc.email} • {acc.subtext}
-                                </span>
-                              </div>
-                              <Select.ItemIndicator className="text-orange-600 dark:text-orange-400 shrink-0 ml-2">
-                                <Check className="w-4 h-4 stroke-[2.5]" />
-                              </Select.ItemIndicator>
-                            </Select.Item>
-                          ))}
-                        </Select.Viewport>
-                      </Select.Content>
-                    </Select.Portal>
-                  </Select.Root>
-                </div>
-              );
-            })()}
+                          </div>
+                          <Select.ItemIndicator className="text-orange-600 dark:text-orange-400 shrink-0">
+                            <Check className="w-4 h-4 stroke-[2.5]" />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
+            </div>
           </form>
         )}
 
